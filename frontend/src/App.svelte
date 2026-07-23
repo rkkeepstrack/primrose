@@ -306,7 +306,10 @@
     <div class="error">{error}</div>
   {/if}
 
-  {#if collections.length === 0}
+  {#if !restored}
+    <!-- restoring saved collections; render nothing to avoid a splash flicker -->
+    <div class="empty-state"></div>
+  {:else if collections.length === 0}
     <div class="empty-state">
       <img class="splash-logo" src={primroseLogo} alt="" />
       <h1>Primrose</h1>
