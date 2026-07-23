@@ -32,9 +32,10 @@
     // widest hue span that stays clear of the yellow selection color:
     // green -> teal -> blue -> purple -> pink, ~23° per recency step so
     // neighbouring entries are clearly distinct
-    // stretched sweep: 165 (spring green) through blue/purple/pink/red,
-    // wrapping just past 360 into red-orange for the oldest entries
-    const hue = (165 + (1 - h) * 220) % 360;
+    // true heatmap semantics: warm when fresh, cooling with age.
+    // newest = coral (20°, neighbouring the yellow/orange selection),
+    // aging through pink/purple/blue to teal (190°)
+    const hue = (380 - (1 - h) * 190) % 360;
     // intensity fades linearly with age, ending near zero so the oldest
     // entry melts into the white bg
     const alpha = 0.15 * h;
