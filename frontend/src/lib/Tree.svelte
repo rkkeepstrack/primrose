@@ -5,6 +5,7 @@
   export let nodes: TreeNode[];
   export let selectedPath: string | null = null;
   export let onSelect: (node: TreeNode) => void;
+  export let onNewRequest: (dirPath: string) => void;
 
   let open: Record<string, boolean> = {};
 
@@ -17,21 +18,28 @@
   {#each nodes as node (node.path)}
     <li>
       {#if node.isFolder}
-        <button class="row folder" on:click={() => toggle(node)}>
-          <svg
-            class="caret"
-            class:open={open[node.path]}
-            width="10"
-            height="10"
-            viewBox="0 0 10 10"
-          >
-            <path d="M3 1.5 L7.5 5 L3 8.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" />
-          </svg>
-          <span class="name">{node.name}</span>
-        </button>
+        <div class="folder-row">
+          <button class="row folder" on:click={() => toggle(node)}>
+            <svg
+              class="caret"
+              class:open={open[node.path]}
+              width="10"
+              height="10"
+              viewBox="0 0 10 10"
+            >
+              <path d="M3 1.5 L7.5 5 L3 8.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <span class="name">{node.name}</span>
+          </button>
+          <button
+            class="folder-add"
+            title="New request in {node.name}"
+            on:click={() => { open[node.path] = true; onNewRequest(node.path); }}
+          >+</button>
+        </div>
         {#if open[node.path] && node.children?.length}
           <div class="children">
-            <Tree nodes={node.children} {selectedPath} {onSelect} />
+            <Tree nodes={node.children} {selectedPath} {onSelect} {onNewRequest} />
           </div>
         {/if}
       {:else}
@@ -75,6 +83,23 @@
   .row:hover {
     background: #f5f5f5;
   }
+  .folder-row {
+    display: flex;
+    align-items: center;
+  }
+  .folder-row .row { flex: 1; min-width: 0; }
+  .folder-add {
+    border: none;
+    background: none;
+    color: transparent;
+    font-size: 14px;
+    cursor: pointer;
+    padding: 2px 8px;
+    border-radius: 5px;
+    flex-shrink: 0;
+  }
+  .folder-row:hover .folder-add { color: #b0b0b0; }
+  .folder-add:hover { color: #4caf7d !important; background: #f4faf6; }
   .row.selected {
     background: #fdf7dc;
   }

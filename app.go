@@ -59,6 +59,12 @@ func (a *App) ReadRequest(path string) (*collection.Request, error) {
 	return r, nil
 }
 
+// CreateRequest writes a brand-new request file into dir and returns its path.
+// Fails if a request with that name already exists.
+func (a *App) CreateRequest(dir, name string, r collection.Request) (string, error) {
+	return collection.CreateRequest(dir, name, &r)
+}
+
 // SaveRequest writes a request back to its TOML file.
 func (a *App) SaveRequest(path string, r collection.Request) error {
 	return collection.WriteRequest(path, &r)

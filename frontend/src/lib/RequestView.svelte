@@ -7,6 +7,7 @@
   import { splitUrl, buildUrl, queryFromUrl } from './urlQuery';
 
   export let request: ApiRequest;
+  export let draftName: string | null = null; // non-null while creating a new request
   export let dirty = false;
   export let sending = false;
   export let envVars: Record<string, string> = {};
@@ -84,6 +85,20 @@
 <svelte:window on:keydown={handleKeydown} />
 
 <div class="request-view">
+  {#if draftName !== null}
+    <div class="draft-row">
+      <span class="draft-label">New request</span>
+      <!-- svelte-ignore a11y_autofocus -->
+      <input
+        class="draft-name"
+        placeholder="request name…"
+        bind:value={draftName}
+        autofocus
+        on:keydown={(e) => e.key === 'Enter' && onSave()}
+      />
+      <span class="draft-hint">saved as {draftName || 'name'}.toml on Save</span>
+    </div>
+  {/if}
   <div class="url-row">
     <div class="url-bar">
       <div class="method-wrap">
@@ -235,6 +250,30 @@
     gap: 8px;
     align-items: stretch;
   }
+  .draft-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .draft-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #b8a23f;
+    background: #fdf7dc;
+    border-radius: 4px;
+    padding: 3px 8px;
+  }
+  .draft-name {
+    border: 1px solid #ecdfa8;
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 13px;
+    font-family: inherit;
+    color: #333;
+    width: 240px;
+  }
+  .draft-name:focus { outline: none; background: #fffdf2; }
+  .draft-hint { font-size: 12px; color: #bbb; }
   .url-bar {
     display: flex;
     align-items: center;

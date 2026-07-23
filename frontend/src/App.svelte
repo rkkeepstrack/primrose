@@ -14,6 +14,7 @@
   } from './lib/stores';
   import {
     OpenCollectionDialog,
+    CreateRequest,
     ReadRequest,
     SaveRequest,
     SendRequest,
@@ -33,7 +34,7 @@
   let envView = false;
   let environments: Record<string, Environment[]> = {};
 
-  $: runs = selectedPath ? ($runHistory[selectedPath] ?? []) : [];
+  $: runs = $runHistory[selectedPath ?? 'draft'] ?? [];
   $: activeRoot = collections[activeIdx]?.root ?? null;
   $: envs = activeRoot ? (environments[activeRoot] ?? []) : [];
   $: activeEnvName = activeRoot
@@ -66,13 +67,46 @@
     }
   }
 
+  // draft state for a new, not-yet-saved request
+  let draftDir: string | null = null;
+  let draftName: string | null = null;
+
+  function newRequest(dir: string) {
+    if (dirty && !confirm('Discard unsaved changes?')) return;
+    request = {
+      method: 'GET',
+      url: '',
+      query: {},
+      headers: {},
+      body: { type: 'json', content: '' },
+    };
+    selectedPath = null;
+    selectedName = '';
+    draftDir = dir;
+    draftName = '';
+    dirty = true;
+  }
+
   async function saveRequest() {
-    if (!request || !selectedPath) return;
+    if (!request) return;
     error = '';
     try {
-      await SaveRequest(selectedPath, request as any);
+      if (draftDir !== null) {
+        if (!draftName?.trim()) {
+          error = 'Give the new request a name before saving.';
+          return;
+        }
+        selectedPath = await CreateRequest(draftDir, draftName, request as any);
+        selectedName = draftName;
+        draftDir = null;
+        draftName = null;
+      } else if (selectedPath) {
+        await SaveRequest(selectedPath, request as any);
+      } else {
+        return;
+      }
       dirty = false;
-      // method badge in the tree may have changed
+      // tree changed (new file or method badge)
       const col = (await GetTree(collections[activeIdx].root)) as Collection;
       collections[activeIdx] = col;
     } catch (e) {
@@ -81,10 +115,10 @@
   }
 
   async function sendRequest() {
-    if (!request || !selectedPath || sending) return;
+    if (!request || sending) return;
     error = '';
     sending = true;
-    const path = selectedPath;
+    const path = selectedPath ?? 'draft';
     try {
       const resp = await SendRequest(request as any, activeEnvVars, dynValues);
       recordRun(path, { at: new Date(), response: resp, error: null });
@@ -117,6 +151,8 @@
   async function selectRequest(node: TreeNode) {
     if (dirty && !confirm('Discard unsaved changes?')) return;
     error = '';
+    draftDir = null;
+    draftName = null;
     try {
       const r = (await ReadRequest(node.path)) as ApiRequest;
       // URL is the source of truth for query params in the UI
@@ -141,6 +177,8 @@
     selectedPath = null;
     request = null;
     dirty = false;
+    draftDir = null;
+    draftName = null;
   }
 </script>
 
@@ -181,18 +219,29 @@
       <div class="main">
         <aside class="sidebar">
           <div class="sidebar-head">
+            <button
+              class="new-root"
+              title="New request at root level"
+              on:click={() => activeRoot && newRequest(activeRoot)}
+            >+</button>
             <button class="env-label" on:click={() => (envView = true)} title="Edit environments">
               {activeEnvName ?? 'No environment'}
             </button>
           </div>
           <input class="search" placeholder="Search" disabled title="Fuzzy search comes in milestone 4" />
-          <Tree nodes={collections[activeIdx].tree} {selectedPath} onSelect={selectRequest} />
+          <Tree
+            nodes={collections[activeIdx].tree}
+            {selectedPath}
+            onSelect={selectRequest}
+            onNewRequest={newRequest}
+          />
         </aside>
         <section class="detail">
           {#if request}
             <RequestView
               {request}
               bind:dirty
+              bind:draftName
               {sending}
               envVars={activeEnvVars}
               dynamicValues={dynValues}
@@ -259,9 +308,20 @@
   }
   .sidebar-head {
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 8px;
   }
+  .new-root {
+    border: none;
+    background: none;
+    color: #999;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 1px 9px;
+    border-radius: 5px;
+  }
+  .new-root:hover { color: #4caf7d; background: #f4faf6; }
   .env-label {
     border: none;
     background: none;

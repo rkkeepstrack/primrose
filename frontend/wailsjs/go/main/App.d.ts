@@ -4,6 +4,8 @@ import {collection} from '../models';
 import {env} from '../models';
 import {httpclient} from '../models';
 
+export function CreateRequest(arg1:string,arg2:string,arg3:collection.Request):Promise<string>;
+
 export function GetTree(arg1:string):Promise<collection.Collection>;
 
 export function ListEnvironments(arg1:string):Promise<Array<env.Environment>>;

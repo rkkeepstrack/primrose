@@ -3,10 +3,42 @@ package collection
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"sort"
 	"strconv"
 	"strings"
 )
+
+// CreateRequest creates a new request file named after name inside dir.
+// The name is sanitized to a safe filename; an existing file is never
+// overwritten.
+func CreateRequest(dir, name string, r *Request) (string, error) {
+	name = sanitizeName(name)
+	if name == "" {
+		return "", fmt.Errorf("request name must not be empty")
+	}
+	path := filepath.Join(dir, name+".toml")
+	if _, err := os.Stat(path); err == nil {
+		return "", fmt.Errorf("a request named %q already exists here", name)
+	}
+	if err := WriteRequest(path, r); err != nil {
+		return "", err
+	}
+	return path, nil
+}
+
+// sanitizeName turns a display name into a safe filename.
+func sanitizeName(name string) string {
+	name = strings.TrimSpace(strings.TrimSuffix(name, ".toml"))
+	name = strings.Map(func(c rune) rune {
+		switch c {
+		case '/', '\\', ':', 0:
+			return '-'
+		}
+		return c
+	}, name)
+	return strings.Trim(name, ". ")
+}
 
 // WriteRequest serializes a request to TOML by hand so the output stays
 // stable and human-friendly: fixed section order, body content in a
