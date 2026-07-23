@@ -35,7 +35,8 @@
     // stretched sweep: 165 (spring green) through blue/purple/pink/red,
     // wrapping just past 360 into red-orange for the oldest entries
     const hue = (165 + (1 - h) * 220) % 360;
-    const alpha = 0.05 + 0.07 * h;
+    // intensity fades with age so the oldest entry melts into the white bg
+    const alpha = 0.13 * h * h + 0.02 * h;
     return `background: hsla(${hue.toFixed(0)}, 80%, 52%, ${alpha.toFixed(3)})`;
   }
 
