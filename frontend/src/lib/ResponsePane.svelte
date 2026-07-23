@@ -3,8 +3,29 @@
   import CodeViewer from './CodeViewer.svelte';
   import primroseLogo from '../assets/images/primrose-logo.svg';
 
+  import { onDestroy } from 'svelte';
+
   export let runs: RunRecord[];
   export let sending = false;
+
+  // live elapsed timer while a request is in flight
+  let elapsedMs = 0;
+  let timer: ReturnType<typeof setInterval> | null = null;
+
+  $: if (sending && !timer) {
+    const startedAt = Date.now();
+    elapsedMs = 0;
+    timer = setInterval(() => (elapsedMs = Date.now() - startedAt), 53);
+  } else if (!sending && timer) {
+    clearInterval(timer);
+    timer = null;
+  }
+  onDestroy(() => timer && clearInterval(timer));
+
+  function fmtElapsed(ms: number): string {
+    if (ms < 1000) return `${ms} ms`;
+    return `${(ms / 1000).toFixed(1)} s`;
+  }
 
   type Tab = 'response' | 'headers' | 'timeline';
   type Mode = 'json' | 'raw' | 'image';
@@ -83,6 +104,7 @@
   {#if sending}
     <div class="loading">
       <img class="spinner" src={primroseLogo} alt="loading" />
+      <span class="elapsed">{fmtElapsed(elapsedMs)}</span>
     </div>
   {:else if !current}
     <p class="empty">Send the request to see the response.</p>
@@ -302,8 +324,15 @@
   .loading {
     flex: 1;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
+    gap: 14px;
+  }
+  .elapsed {
+    font-size: 13px;
+    color: #999;
+    font-variant-numeric: tabular-nums;
   }
   .spinner {
     width: 56px;

@@ -1,6 +1,7 @@
 package httpclient
 
 import (
+	"context"
 	"encoding/base64"
 	"io"
 	"net/http"
@@ -48,6 +49,11 @@ var client = &http.Client{Timeout: 30 * time.Second}
 // the URL's query string — the UI keeps both in sync, so this avoids doubles
 // while still supporting hand-written files that only use [query].
 func Send(r *collection.Request) (*Response, error) {
+	return SendCtx(context.Background(), r)
+}
+
+// SendCtx is Send with cancellation support.
+func SendCtx(ctx context.Context, r *collection.Request) (*Response, error) {
 	url := r.URL
 	existing := map[string]bool{}
 	if i := strings.Index(url, "?"); i != -1 {
@@ -80,7 +86,7 @@ func Send(r *collection.Request) (*Response, error) {
 		bodyReader = strings.NewReader(r.Body.Content)
 	}
 
-	req, err := http.NewRequest(strings.ToUpper(r.Method), url, bodyReader)
+	req, err := http.NewRequestWithContext(ctx, strings.ToUpper(r.Method), url, bodyReader)
 	if err != nil {
 		return nil, err
 	}

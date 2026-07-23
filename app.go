@@ -3,7 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
+	"sync"
 
+	"primrose/internal/appstate"
 	"primrose/internal/collection"
 	"primrose/internal/env"
 	"primrose/internal/httpclient"
@@ -14,6 +16,9 @@ import (
 // App struct
 type App struct {
 	ctx context.Context
+
+	sendMu     sync.Mutex
+	cancelSend context.CancelFunc
 }
 
 // NewApp creates a new App application struct
@@ -81,10 +86,44 @@ func (a *App) SaveRequest(path string, r collection.Request) error {
 }
 
 // SendRequest resolves {{env}} and /:dynamic variables, then executes the
-// request and returns the response.
+// request and returns the response. Cancellable via CancelRequest.
 func (a *App) SendRequest(r collection.Request, envVars, dynamicVars map[string]string) (*httpclient.Response, error) {
+	ctx, cancel := context.WithCancel(context.Background())
+	a.sendMu.Lock()
+	a.cancelSend = cancel
+	a.sendMu.Unlock()
+	defer func() {
+		a.sendMu.Lock()
+		a.cancelSend = nil
+		a.sendMu.Unlock()
+		cancel()
+	}()
+
 	resolved := collection.Resolve(&r, envVars, dynamicVars)
-	return httpclient.Send(resolved)
+	resp, err := httpclient.SendCtx(ctx, resolved)
+	if ctx.Err() == context.Canceled {
+		return nil, fmt.Errorf("canceled")
+	}
+	return resp, err
+}
+
+// LoadUIState returns the persisted UI state (open collections etc).
+func (a *App) LoadUIState() (*appstate.State, error) {
+	return appstate.Load()
+}
+
+// SaveUIState persists the UI state.
+func (a *App) SaveUIState(s appstate.State) error {
+	return appstate.Save(&s)
+}
+
+// CancelRequest aborts the in-flight request, if any.
+func (a *App) CancelRequest() {
+	a.sendMu.Lock()
+	defer a.sendMu.Unlock()
+	if a.cancelSend != nil {
+		a.cancelSend()
+	}
 }
 
 // ListEnvironments returns the environments of a collection.

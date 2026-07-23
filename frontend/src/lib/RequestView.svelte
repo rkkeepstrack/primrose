@@ -5,7 +5,6 @@
   import CodeEditor from './CodeEditor.svelte';
   import { extractEnvVars, extractDynamicVars } from './varUtils';
   import { splitUrl, buildUrl, queryFromUrl } from './urlQuery';
-  import primroseLogo from '../assets/images/primrose-logo.svg';
 
   export let request: ApiRequest;
   export let draftName: string | null = null; // non-null while creating a new request
@@ -16,6 +15,7 @@
   export let onDynamicChange: (name: string, value: string) => void;
   export let onSave: () => void;
   export let onSend: () => void;
+  export let onCancel: () => void;
 
   $: usedEnvVars = extractEnvVars(request);
   $: usedDynamicVars = extractDynamicVars(request.url);
@@ -124,12 +124,11 @@
     <button class="action save" class:dirty on:click={onSave} title="⌘S">
       Save{dirty ? ' •' : ''}
     </button>
-    <button class="action send" disabled={sending} on:click={onSend} title="⌘↵">
-      {#if sending}
-        <img class="send-spinner" src={primroseLogo} alt="" />
-      {/if}
-      Send
-    </button>
+    {#if sending}
+      <button class="action cancel" on:click={onCancel}>Cancel</button>
+    {:else}
+      <button class="action send" on:click={onSend} title="⌘↵">Send</button>
+    {/if}
   </div>
 
   <div class="panes" bind:this={panesEl}>
@@ -351,21 +350,15 @@
   }
   .action.send:hover { background: #429e70; }
   .action.send:active { background: #3a8d63; }
-  .action.send:disabled { opacity: 0.8; cursor: default; }
-  .action.send {
-    display: flex;
-    align-items: center;
-    gap: 7px;
+  .action.cancel {
+    border: none;
+    background: #d98282;
+    color: #fff;
+    font-weight: 500;
+    padding: 0 16px;
+    transition: background 0.1s ease;
   }
-  .send-spinner {
-    width: 15px;
-    height: 15px;
-    animation: primrose-spin 1.6s linear infinite;
-  }
-  @keyframes primrose-spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-  }
+  .action.cancel:hover { background: #c96f6f; }
 
   .tabs {
     display: flex;

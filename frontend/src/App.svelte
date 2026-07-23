@@ -18,6 +18,10 @@
     CreateRequest,
     CreateFolder,
     MoveItem,
+    CancelRequest,
+    OpenCollection,
+    LoadUIState,
+    SaveUIState,
     ReadRequest,
     SaveRequest,
     SendRequest,
@@ -26,8 +30,38 @@
     SaveEnvironment,
   } from '../wailsjs/go/main/App';
 
+  import { onMount } from 'svelte';
+
   let collections: Collection[] = [];
   let activeIdx = 0;
+  let restored = false;
+
+  onMount(async () => {
+    try {
+      const state = await LoadUIState();
+      for (const root of state?.openRoots ?? []) {
+        try {
+          const col = (await OpenCollection(root)) as Collection;
+          collections = [...collections, col];
+          await loadEnvironments(root);
+        } catch {
+          // folder gone/renamed — skip silently
+        }
+      }
+      const idx = collections.findIndex((c) => c.root === state?.activeRoot);
+      if (idx >= 0) activeIdx = idx;
+    } finally {
+      restored = true;
+    }
+  });
+
+  // persist open collections + active tab whenever they change
+  $: if (restored) {
+    SaveUIState({
+      openRoots: collections.map((c) => c.root),
+      activeRoot: collections[activeIdx]?.root ?? '',
+    } as any);
+  }
   let selectedPath: string | null = null;
   let selectedName = '';
   let request: ApiRequest | null = null;
@@ -179,10 +213,19 @@
       const resp = await SendRequest(request as any, activeEnvVars, dynValues);
       recordRun(path, { at: new Date(), response: resp, error: null });
     } catch (e) {
-      recordRun(path, { at: new Date(), response: null, error: String(e) });
+      const msg = String(e);
+      recordRun(path, {
+        at: new Date(),
+        response: null,
+        error: msg.includes('canceled') ? 'Canceled' : msg,
+      });
     } finally {
       sending = false;
     }
+  }
+
+  function cancelRequest() {
+    CancelRequest();
   }
 
   async function openCollection() {
@@ -265,6 +308,7 @@
 
   {#if collections.length === 0}
     <div class="empty-state">
+      <img class="splash-logo" src={primroseLogo} alt="" />
       <h1>Primrose</h1>
       <p>Open a collection folder to get started.</p>
       <button class="primary" on:click={openCollection}>Open Collection…</button>
@@ -331,6 +375,7 @@
               onDynamicChange={(name, value) => selectedPath && setDynamicVar(selectedPath, name, value)}
               onSave={saveRequest}
               onSend={sendRequest}
+              onCancel={cancelRequest}
             >
               <ResponsePane {runs} {sending} />
             </RequestView>
@@ -478,7 +523,12 @@
     gap: 10px;
     color: #666;
   }
-  .empty-state h1 { font-weight: 500; color: #444; }
+  .empty-state h1 { font-weight: 500; color: #444; margin: 0; }
+  .splash-logo {
+    width: 72px;
+    height: 72px;
+    margin-bottom: 6px;
+  }
   .primary {
     border: 1px solid #ecdfa8;
     background: #fdf7dc;

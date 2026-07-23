@@ -1,3 +1,22 @@
+export namespace appstate {
+	
+	export class State {
+	    openRoots: string[];
+	    activeRoot: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new State(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.openRoots = source["openRoots"];
+	        this.activeRoot = source["activeRoot"];
+	    }
+	}
+
+}
+
 export namespace collection {
 	
 	export class Body {
