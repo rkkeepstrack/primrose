@@ -353,8 +353,13 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 10px 14px;
+    /* left inset clears the macOS traffic lights (hidden-inset title bar) */
+    padding: 10px 14px 10px 84px;
     border-bottom: 1px solid #e5e5e5;
+    --wails-draggable: drag;
+  }
+  .collection-tabs button {
+    --wails-draggable: no-drag;
   }
   .brand {
     display: flex;
