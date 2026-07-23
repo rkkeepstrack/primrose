@@ -71,6 +71,15 @@ Request name = filename. Folder hierarchy = sidebar hierarchy, always mirrored 1
 - **Primrose palette:** yellow, orange, green, white. White base, pale-yellow active/selection states, green + orange as accents (e.g. method colors, active tab underline).
 - **Variable highlighting** (milestone 3): `{{env_var}}` and `:dynamicVar` tokens tinted (green per mockups) in URL bar and body via CodeMirror decorations.
 
+## Recency heatmap (instead of request tabs)
+
+Postman/Bruno open every request in its own tab; Primrose deliberately does not. Instead, the sidebar visualizes which requests were touched recently:
+
+- Background-color highlight on request rows in the tree, as a **gradient over the last 20 clicked requests** — most recently opened is strongest, dimming with each older touch.
+- Uses the primrose-yellow tint on white, staying within the low-contrast design.
+- Toggleable via a **search filter** (e.g. a `recent` filter/toggle in the sidebar search bar) so the heatmap can be turned on/off or used to show only recently touched requests.
+- Session-only state (like run history and dynamic variables) — never persisted.
+
 ## UI structure (per mockups)
 
 - **Top bar:** one tab per open collection + an Environment tab (per-collection env editor with search).
@@ -96,7 +105,7 @@ Request name = filename. Folder hierarchy = sidebar hierarchy, always mirrored 1
 1. **Skeleton** — Wails + Svelte scaffold, open a collection folder, render tree from disk, read a request TOML into the detail view.
 2. **Send loop** — URL/method/query/headers/body editing, save to TOML, send via Go, show response with JSON pretty-print.
 3. **Environments** — env files, env switcher, `{{var}}` resolution + highlighting, Env tab (request-level), Environment editor tab (collection-level).
-4. **Tree UX** — fuzzy search, drag & drop moves, folder `+` modal (duplicate/rename/delete/new), new-request flow, multiple collection tabs.
+4. **Tree UX** — fuzzy search, drag & drop moves, folder `+` modal (duplicate/rename/delete/new), new-request flow, multiple collection tabs, recency heatmap (last-20 gradient + search filter toggle).
 5. **Polish** — dynamic `:vars`, Timeline run history, response headers tab, fsnotify live reload.
 6. **Keyboard shortcuts & actions** — full shortcut pass: save (⌘S) and send (⌘↵) as first-class shortcuts, plus navigation (switch tabs/requests), searchable via a shortcut reference. Rework action placement: move the Save button out of the URL row (final home TBD), keep Send prominent.
 
