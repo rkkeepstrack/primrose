@@ -128,6 +128,27 @@ export namespace collection {
 
 }
 
+export namespace env {
+	
+	export class Environment {
+	    name: string;
+	    path: string;
+	    vars: Record<string, string>;
+	
+	    static createFrom(source: any = {}) {
+	        return new Environment(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.path = source["path"];
+	        this.vars = source["vars"];
+	    }
+	}
+
+}
+
 export namespace httpclient {
 	
 	export class Response {

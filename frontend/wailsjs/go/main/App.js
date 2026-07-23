@@ -6,6 +6,10 @@ export function GetTree(arg1) {
   return window['go']['main']['App']['GetTree'](arg1);
 }
 
+export function ListEnvironments(arg1) {
+  return window['go']['main']['App']['ListEnvironments'](arg1);
+}
+
 export function OpenCollection(arg1) {
   return window['go']['main']['App']['OpenCollection'](arg1);
 }
@@ -18,10 +22,14 @@ export function ReadRequest(arg1) {
   return window['go']['main']['App']['ReadRequest'](arg1);
 }
 
+export function SaveEnvironment(arg1, arg2, arg3) {
+  return window['go']['main']['App']['SaveEnvironment'](arg1, arg2, arg3);
+}
+
 export function SaveRequest(arg1, arg2) {
   return window['go']['main']['App']['SaveRequest'](arg1, arg2);
 }
 
-export function SendRequest(arg1) {
-  return window['go']['main']['App']['SendRequest'](arg1);
+export function SendRequest(arg1, arg2, arg3) {
+  return window['go']['main']['App']['SendRequest'](arg1, arg2, arg3);
 }

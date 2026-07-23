@@ -2,12 +2,20 @@
   import type { ApiRequest } from './types';
   import { METHODS } from './types';
   import KeyValueEditor from './KeyValueEditor.svelte';
+  import CodeEditor from './CodeEditor.svelte';
+  import { extractEnvVars, extractDynamicVars } from './varUtils';
 
   export let request: ApiRequest;
   export let dirty = false;
   export let sending = false;
+  export let envVars: Record<string, string> = {};
+  export let dynamicValues: Record<string, string> = {};
+  export let onDynamicChange: (name: string, value: string) => void;
   export let onSave: () => void;
   export let onSend: () => void;
+
+  $: usedEnvVars = extractEnvVars(request);
+  $: usedDynamicVars = extractDynamicVars(request.url);
 
   type Tab = 'query' | 'body' | 'headers' | 'env';
   let tab: Tab = 'query';
@@ -81,12 +89,11 @@
           </div>
         {/if}
       </div>
-      <input
-        class="url"
-        bind:value={request.url}
-        on:input={markDirty}
+      <CodeEditor
+        singleLine
+        value={request.url}
         placeholder="https://api.example.com/…"
-        spellcheck="false"
+        onChange={(v) => { request.url = v; markDirty(); }}
       />
     </div>
     <button class="action save" class:dirty on:click={onSave} title="⌘S">
@@ -117,15 +124,57 @@
           <span class="sep">|</span>
           <button class:on={request.body.type === 'text'} on:click={() => { request.body.type = 'text'; markDirty(); }}>text</button>
         </div>
-        <textarea
-          class="body-content"
-          bind:value={request.body.content}
-          on:input={markDirty}
+        <CodeEditor
+          value={request.body.content}
+          lang={request.body.type}
           placeholder="Enter text here…"
-          spellcheck="false"
-        ></textarea>
+          onChange={(v) => { request.body.content = v; markDirty(); }}
+        />
       {:else}
-        <p class="empty">Environment variables in this call — coming in milestone 3.</p>
+        <h4 class="env-heading">Environment variables in this call</h4>
+        {#if usedEnvVars.length === 0}
+          <p class="empty">No <span class="var-token">{'{{variables}}'}</span> used in this request.</p>
+        {:else}
+          <table class="env-table">
+            <thead><tr><th>Name</th><th>Value</th></tr></thead>
+            <tbody>
+              {#each usedEnvVars as name (name)}
+                <tr>
+                  <td>{name}</td>
+                  {#if envVars[name] !== undefined}
+                    <td>{envVars[name]}</td>
+                  {:else}
+                    <td class="missing">not set in current environment</td>
+                  {/if}
+                </tr>
+              {/each}
+            </tbody>
+          </table>
+        {/if}
+
+        <h4 class="env-heading">Dynamic variables in this call</h4>
+        {#if usedDynamicVars.length === 0}
+          <p class="empty">No <span class="var-token">/:dynamicVariables</span> in the URL.</p>
+        {:else}
+          <table class="env-table">
+            <thead><tr><th>Name</th><th>Value</th></tr></thead>
+            <tbody>
+              {#each usedDynamicVars as name (name)}
+                <tr>
+                  <td>{name}</td>
+                  <td class="dyn-cell">
+                    <input
+                      placeholder="session value…"
+                      value={dynamicValues[name] ?? ''}
+                      on:input={(e) => onDynamicChange(name, e.currentTarget.value)}
+                    />
+                  </td>
+                </tr>
+              {/each}
+            </tbody>
+          </table>
+          <p class="dyn-note">Dynamic values live in this session only — they are never saved to files.</p>
+        {/if}
       {/if}
     </div>
 
@@ -223,17 +272,6 @@
   .method-DELETE { color: #d98282; }
   .method-HEAD, .method-OPTIONS { color: #999; }
 
-  input.url {
-    flex: 1;
-    min-width: 0;
-    border: none;
-    background: transparent;
-    font-size: 13px;
-    font-family: inherit;
-    color: #444;
-    padding: 5px 4px;
-  }
-  input.url:focus { outline: none; }
 
   .action {
     border: 1px solid #e0e0e0;
@@ -301,17 +339,39 @@
     padding: 2px 4px;
   }
   .body-switch button.on { color: #4caf7d; font-weight: 600; }
-  .body-content {
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 12px;
-    min-height: 220px;
-    font-size: 12.5px;
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-    background: #fafafa;
-    color: #444;
-    resize: vertical;
-  }
-  .body-content:focus { outline: none; border-color: #ecdfa8; background: #fff; }
   .empty { color: #aaa; font-size: 13px; }
+  .env-heading {
+    margin: 6px 0 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: #3d9469;
+  }
+  .var-token { color: #3d9469; font-weight: 600; }
+  .env-table {
+    border-collapse: collapse;
+    width: 100%;
+    max-width: 560px;
+    font-size: 13px;
+  }
+  .env-table th, .env-table td {
+    border: 1px solid #e5e5e5;
+    padding: 7px 12px;
+    text-align: left;
+    color: #444;
+  }
+  .env-table th { font-weight: 600; color: #666; background: #fafafa; }
+  .env-table td.missing { color: #d98282; font-style: italic; }
+  .env-table td.dyn-cell { padding: 0; }
+  .env-table td.dyn-cell input {
+    width: 100%;
+    box-sizing: border-box;
+    border: none;
+    padding: 7px 12px;
+    font-size: 13px;
+    font-family: inherit;
+    color: #444;
+    background: transparent;
+  }
+  .env-table td.dyn-cell input:focus { outline: none; background: #fdf7dc; }
+  .dyn-note { color: #bbb; font-size: 12px; margin: 0; }
 </style>

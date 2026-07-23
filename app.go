@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"primrose/internal/collection"
+	"primrose/internal/env"
 	"primrose/internal/httpclient"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
@@ -63,7 +64,19 @@ func (a *App) SaveRequest(path string, r collection.Request) error {
 	return collection.WriteRequest(path, &r)
 }
 
-// SendRequest executes the request and returns the response.
-func (a *App) SendRequest(r collection.Request) (*httpclient.Response, error) {
-	return httpclient.Send(&r)
+// SendRequest resolves {{env}} and /:dynamic variables, then executes the
+// request and returns the response.
+func (a *App) SendRequest(r collection.Request, envVars, dynamicVars map[string]string) (*httpclient.Response, error) {
+	resolved := collection.Resolve(&r, envVars, dynamicVars)
+	return httpclient.Send(resolved)
+}
+
+// ListEnvironments returns the environments of a collection.
+func (a *App) ListEnvironments(root string) ([]env.Environment, error) {
+	return env.List(root)
+}
+
+// SaveEnvironment writes an environment file back to disk.
+func (a *App) SaveEnvironment(root, name string, vars map[string]string) error {
+	return env.Save(root, name, vars)
 }

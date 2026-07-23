@@ -1,0 +1,155 @@
+<script lang="ts">
+  import type { Environment } from './types';
+  import KeyValueEditor from './KeyValueEditor.svelte';
+
+  export let environments: Environment[];
+  export let activeName: string | null;
+  export let onSelect: (name: string) => void;
+  export let onSaveVars: (name: string, vars: Record<string, string>) => void;
+
+  let search = '';
+  let draft: Record<string, string> | null = null;
+  let draftFor: string | null = null;
+
+  $: active = environments.find((e) => e.name === activeName) ?? null;
+
+  // reset draft when switching environments
+  $: if (active && draftFor !== active.name) {
+    draftFor = active.name;
+    draft = { ...active.vars };
+    search = '';
+  }
+
+  $: filtered = draft
+    ? Object.fromEntries(
+        Object.entries(draft).filter(
+          ([k, v]) =>
+            !search ||
+            k.toLowerCase().includes(search.toLowerCase()) ||
+            v.toLowerCase().includes(search.toLowerCase())
+        )
+      )
+    : {};
+
+  $: dirty = active && draft && JSON.stringify(draft) !== JSON.stringify(active.vars);
+
+  function handleChange(entries: Record<string, string>) {
+    if (!draft) return;
+    if (search) {
+      // editing a filtered view: merge changes back over the unfiltered draft
+      const hidden = Object.fromEntries(
+        Object.entries(draft).filter(([k]) => !(k in filtered))
+      );
+      draft = { ...hidden, ...entries };
+    } else {
+      draft = entries;
+    }
+  }
+
+  function save() {
+    if (active && draft) onSaveVars(active.name, draft);
+  }
+</script>
+
+<div class="env-editor">
+  <aside class="env-list">
+    {#each environments as e (e.name)}
+      <button class:active={e.name === activeName} on:click={() => onSelect(e.name)}>
+        {e.name}
+      </button>
+    {:else}
+      <p class="empty">No environments yet.<br />Add TOML files under <code>environments/</code>.</p>
+    {/each}
+  </aside>
+
+  <section class="env-detail">
+    {#if active && draft}
+      <div class="toolbar">
+        <input class="search" placeholder="Search for Variables or Values…" bind:value={search} />
+        <button class="save" class:dirty on:click={save} disabled={!dirty}>
+          Save{dirty ? ' •' : ''}
+        </button>
+      </div>
+      <KeyValueEditor entries={filtered} onChange={handleChange} />
+      {#if search}
+        <p class="note">Filtered view — hidden variables are kept as they are.</p>
+      {/if}
+    {:else}
+      <p class="empty">Select an environment on the left.</p>
+    {/if}
+  </section>
+</div>
+
+<style>
+  .env-editor {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    height: 100%;
+    min-height: 0;
+  }
+  .env-list {
+    border-right: 1px solid #e5e5e5;
+    padding: 12px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .env-list button {
+    border: none;
+    background: none;
+    text-align: left;
+    font-size: 13px;
+    font-family: inherit;
+    color: #666;
+    padding: 6px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .env-list button:hover { background: #f5f5f5; }
+  .env-list button.active {
+    color: #3d9469;
+    font-weight: 600;
+    background: #f4faf6;
+  }
+  .env-detail {
+    padding: 16px 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .toolbar {
+    display: flex;
+    gap: 8px;
+  }
+  .search {
+    flex: 1;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 7px 12px;
+    font-size: 13px;
+    font-family: inherit;
+    background: #fafafa;
+  }
+  .search:focus { outline: none; border-color: #ecdfa8; background: #fff; }
+  .save {
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    background: #fff;
+    font-size: 13px;
+    font-family: inherit;
+    color: #666;
+    cursor: pointer;
+    padding: 0 16px;
+  }
+  .save:disabled { opacity: 0.5; cursor: default; }
+  .save.dirty {
+    border-color: #ecdfa8;
+    background: #fdf7dc;
+    color: #333;
+  }
+  .note { color: #bbb; font-size: 12px; margin: 0; }
+  .empty { color: #aaa; font-size: 13px; }
+  code { font-size: 12px; }
+</style>

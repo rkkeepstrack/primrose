@@ -43,3 +43,9 @@ export interface RunRecord {
 }
 
 export const METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'] as const;
+
+export interface Environment {
+  name: string;
+  path: string;
+  vars: Record<string, string>;
+}

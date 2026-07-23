@@ -2,14 +2,23 @@
   import Tree from './lib/Tree.svelte';
   import RequestView from './lib/RequestView.svelte';
   import ResponsePane from './lib/ResponsePane.svelte';
-  import type { Collection, TreeNode, ApiRequest } from './lib/types';
-  import { runHistory, recordRun } from './lib/stores';
+  import EnvironmentEditor from './lib/EnvironmentEditor.svelte';
+  import type { Collection, TreeNode, ApiRequest, Environment } from './lib/types';
+  import {
+    runHistory,
+    recordRun,
+    selectedEnvNames,
+    dynamicVars,
+    setDynamicVar,
+  } from './lib/stores';
   import {
     OpenCollectionDialog,
     ReadRequest,
     SaveRequest,
     SendRequest,
     GetTree,
+    ListEnvironments,
+    SaveEnvironment,
   } from '../wailsjs/go/main/App';
 
   let collections: Collection[] = [];
@@ -20,8 +29,41 @@
   let dirty = false;
   let sending = false;
   let error = '';
+  let envView = false;
+  let environments: Record<string, Environment[]> = {};
 
   $: runs = selectedPath ? ($runHistory[selectedPath] ?? []) : [];
+  $: activeRoot = collections[activeIdx]?.root ?? null;
+  $: envs = activeRoot ? (environments[activeRoot] ?? []) : [];
+  $: activeEnvName = activeRoot
+    ? ($selectedEnvNames[activeRoot] ?? envs[0]?.name ?? null)
+    : null;
+  $: activeEnvVars = envs.find((e) => e.name === activeEnvName)?.vars ?? {};
+  $: dynValues = selectedPath ? ($dynamicVars[selectedPath] ?? {}) : {};
+
+  async function loadEnvironments(root: string) {
+    try {
+      environments[root] = ((await ListEnvironments(root)) ?? []) as Environment[];
+    } catch (e) {
+      error = String(e);
+    }
+  }
+
+  function pickEnvironment(name: string) {
+    if (!activeRoot) return;
+    selectedEnvNames.update((s) => ({ ...s, [activeRoot!]: name }));
+  }
+
+  async function saveEnvVars(name: string, vars: Record<string, string>) {
+    if (!activeRoot) return;
+    error = '';
+    try {
+      await SaveEnvironment(activeRoot, name, vars);
+      await loadEnvironments(activeRoot);
+    } catch (e) {
+      error = String(e);
+    }
+  }
 
   async function saveRequest() {
     if (!request || !selectedPath) return;
@@ -43,7 +85,7 @@
     sending = true;
     const path = selectedPath;
     try {
-      const resp = await SendRequest(request as any);
+      const resp = await SendRequest(request as any, activeEnvVars, dynValues);
       recordRun(path, { at: new Date(), response: resp, error: null });
     } catch (e) {
       recordRun(path, { at: new Date(), response: null, error: String(e) });
@@ -65,6 +107,7 @@
         collections = [...collections, col];
         activeIdx = collections.length - 1;
       }
+      await loadEnvironments(col.root);
     } catch (e) {
       error = String(e);
     }
@@ -84,7 +127,10 @@
   }
 
   function switchCollection(i: number) {
+    if (i === activeIdx && !envView) return;
     if (dirty && !confirm('Discard unsaved changes?')) return;
+    envView = false;
+    if (i === activeIdx) return;
     activeIdx = i;
     selectedPath = null;
     request = null;
@@ -100,6 +146,11 @@
       </button>
     {/each}
     <button class="col-tab open-btn" on:click={openCollection}>+ Open Collection</button>
+    {#if envView}
+      <button class="col-tab env-tab active" on:click={() => (envView = false)}>
+        Environment ×
+      </button>
+    {/if}
   </header>
 
   {#if error}
@@ -113,24 +164,44 @@
       <button class="primary" on:click={openCollection}>Open Collection…</button>
     </div>
   {:else}
-    <div class="main">
-      <aside class="sidebar">
-        <div class="sidebar-head">
-          <span class="env-label">Environment A</span>
-        </div>
-        <input class="search" placeholder="Search" disabled title="Fuzzy search comes in milestone 4" />
-        <Tree nodes={collections[activeIdx].tree} {selectedPath} onSelect={selectRequest} />
-      </aside>
-      <section class="detail">
-        {#if request}
-          <RequestView {request} bind:dirty {sending} onSave={saveRequest} onSend={sendRequest}>
-            <ResponsePane {runs} />
-          </RequestView>
-        {:else}
-          <p class="hint">Select a request in the sidebar.</p>
-        {/if}
-      </section>
-    </div>
+    {#if envView}
+      <EnvironmentEditor
+        environments={envs}
+        activeName={activeEnvName}
+        onSelect={pickEnvironment}
+        onSaveVars={saveEnvVars}
+      />
+    {:else}
+      <div class="main">
+        <aside class="sidebar">
+          <div class="sidebar-head">
+            <button class="env-label" on:click={() => (envView = true)} title="Edit environments">
+              {activeEnvName ?? 'No environment'}
+            </button>
+          </div>
+          <input class="search" placeholder="Search" disabled title="Fuzzy search comes in milestone 4" />
+          <Tree nodes={collections[activeIdx].tree} {selectedPath} onSelect={selectRequest} />
+        </aside>
+        <section class="detail">
+          {#if request}
+            <RequestView
+              {request}
+              bind:dirty
+              {sending}
+              envVars={activeEnvVars}
+              dynamicValues={dynValues}
+              onDynamicChange={(name, value) => selectedPath && setDynamicVar(selectedPath, name, value)}
+              onSave={saveRequest}
+              onSend={sendRequest}
+            >
+              <ResponsePane {runs} />
+            </RequestView>
+          {:else}
+            <p class="hint">Select a request in the sidebar.</p>
+          {/if}
+        </section>
+      </div>
+    {/if}
   {/if}
 </div>
 
@@ -185,7 +256,18 @@
     justify-content: flex-end;
     margin-bottom: 8px;
   }
-  .env-label { font-size: 13px; color: #888; }
+  .env-label {
+    border: none;
+    background: none;
+    font-size: 13px;
+    font-family: inherit;
+    color: #3d9469;
+    cursor: pointer;
+    padding: 3px 8px;
+    border-radius: 5px;
+  }
+  .env-label:hover { background: #f4faf6; }
+  .env-tab { margin-left: auto; }
   .search {
     width: 100%;
     box-sizing: border-box;
