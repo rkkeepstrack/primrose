@@ -1,5 +1,5 @@
 import { writable } from 'svelte/store';
-import type { RunRecord } from './types';
+import type { RunRecord, ApiRequest } from './types';
 
 // Session-only run history, keyed by request file path. Never persisted.
 export const runHistory = writable<Record<string, RunRecord[]>>({});
@@ -27,6 +27,34 @@ export function touchRecent(path: string) {
 
 export function renameRecent(oldPath: string, newPath: string) {
   recentPaths.update((list) => list.map((p) => (p === oldPath ? newPath : p)));
+  unsavedEdits.update((e) => {
+    if (!(oldPath in e)) return e;
+    const { [oldPath]: moved, ...rest } = e;
+    return { ...rest, [newPath]: moved };
+  });
+}
+
+// Unsaved edits per request path, kept while the request stays within the
+// recents window; pruned (silently discarded) once it falls out.
+// TODO: window size becomes a global setting later.
+export const unsavedEdits = writable<Record<string, ApiRequest>>({});
+
+export function stashEdit(path: string, request: ApiRequest) {
+  unsavedEdits.update((e) => ({ ...e, [path]: request }));
+}
+
+export function dropEdit(path: string) {
+  unsavedEdits.update((e) => {
+    const { [path]: _, ...rest } = e;
+    return rest;
+  });
+}
+
+export function pruneEdits(keep: string[]) {
+  const keepSet = new Set(keep);
+  unsavedEdits.update((e) =>
+    Object.fromEntries(Object.entries(e).filter(([p]) => keepSet.has(p)))
+  );
 }
 
 export function setDynamicVar(path: string, name: string, value: string) {

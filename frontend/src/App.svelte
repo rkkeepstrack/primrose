@@ -16,6 +16,10 @@
     touchRecent,
     renameRecent,
     RECENT_MAX,
+    unsavedEdits,
+    stashEdit,
+    dropEdit,
+    pruneEdits,
   } from './lib/stores';
   import { filterTree } from './lib/fuzzy';
   import {
@@ -151,6 +155,7 @@
         return;
       }
       dirty = false;
+      if (selectedPath) dropEdit(selectedPath);
       // tree changed (new file or method badge)
       const col = (await GetTree(collections[activeIdx].root)) as Collection;
       collections[activeIdx] = col;
@@ -225,6 +230,7 @@
     error = '';
     try {
       await DeleteItem(node.path);
+      dropEdit(node.path);
       if (selectedPath === node.path || selectedPath?.startsWith(node.path + '/')) {
         selectedPath = null;
         request = null;
@@ -247,6 +253,10 @@
         $recentPaths.map((p, i) => [p, (RECENT_MAX - i) / RECENT_MAX])
       )
     : {};
+
+  // discard stashed edits for requests that fell out of the recents window
+  $: pruneEdits($recentPaths);
+  $: dirtyPaths = new Set(Object.keys($unsavedEdits).concat(dirty && selectedPath ? [selectedPath] : []));
 
   let rootDroppable = false;
 
@@ -313,21 +323,33 @@
     }
   }
 
+  // keep unsaved edits in memory when switching away from a request
+  function stashCurrentEdit() {
+    if (dirty && selectedPath && request) stashEdit(selectedPath, request);
+  }
+
   async function selectRequest(node: TreeNode) {
-    if (dirty && !confirm('Discard unsaved changes?')) return;
+    if (draftDir !== null && dirty && !confirm('Discard the unsaved new request?')) return;
     error = '';
+    stashCurrentEdit();
     draftDir = null;
     draftName = null;
     try {
-      const r = (await ReadRequest(node.path)) as ApiRequest;
-      // URL is the source of truth for query params in the UI
-      const norm = normalizeUrlAndQuery(r.url, r.query);
-      r.url = norm.url;
-      r.query = norm.query;
-      request = r;
+      const stashed = $unsavedEdits[node.path];
+      if (stashed) {
+        request = stashed;
+        dirty = true;
+      } else {
+        const r = (await ReadRequest(node.path)) as ApiRequest;
+        // URL is the source of truth for query params in the UI
+        const norm = normalizeUrlAndQuery(r.url, r.query);
+        r.url = norm.url;
+        r.query = norm.query;
+        request = r;
+        dirty = false;
+      }
       selectedPath = node.path;
       selectedName = node.name;
-      dirty = false;
       touchRecent(node.path);
     } catch (e) {
       error = String(e);
@@ -336,9 +358,10 @@
 
   function switchCollection(i: number) {
     if (i === activeIdx && !envView) return;
-    if (dirty && !confirm('Discard unsaved changes?')) return;
+    if (draftDir !== null && dirty && !confirm('Discard the unsaved new request?')) return;
     envView = false;
     if (i === activeIdx) return;
+    stashCurrentEdit();
     activeIdx = i;
     selectedPath = null;
     request = null;
@@ -439,6 +462,7 @@
             {selectedPath}
             forceOpen={search.trim().length > 0}
             {heat}
+            {dirtyPaths}
             onSelect={selectRequest}
             onNewRequest={newRequest}
             onNewFolder={newFolder}

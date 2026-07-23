@@ -13,6 +13,7 @@
   export let onDelete: (node: TreeNode) => void;
   export let forceOpen = false; // expand everything while searching
   export let heat: Record<string, number> = {}; // path -> 0..1 recency
+  export let dirtyPaths: Set<string> = new Set(); // unsaved edits
 
   let open: Record<string, boolean> = {};
   let dropTarget: string | null = null;
@@ -29,8 +30,8 @@
     const h = heat[path];
     if (!h) return '';
     const hue = 215 + (1 - h) * 65; // 215 (blue) -> 280 (purple)
-    const alpha = 0.06 + 0.08 * h; // subtle throughout
-    return `background: hsla(${hue.toFixed(0)}, 70%, 62%, ${alpha.toFixed(3)})`;
+    const alpha = 0.025 + 0.045 * h; // barely-there whisper of color
+    return `background: hsla(${hue.toFixed(0)}, 70%, 60%, ${alpha.toFixed(3)})`;
   }
 
   function dragStart(e: DragEvent, node: TreeNode) {
@@ -135,6 +136,7 @@
               {onDelete}
               {forceOpen}
               {heat}
+              {dirtyPaths}
             />
           </div>
         {/if}
@@ -149,6 +151,9 @@
           >
             <span class="method method-{node.method}">{node.method}</span>
             <span class="name">{node.name}</span>
+            {#if dirtyPaths.has(node.path)}
+              <span class="dirty-dot" title="Unsaved changes"></span>
+            {/if}
           </button>
           <div class="menu-wrap">
             <button
@@ -275,5 +280,13 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+  .dirty-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #e8a94c;
+    flex-shrink: 0;
+    margin-left: auto;
   }
 </style>
