@@ -141,10 +141,13 @@
           </div>
         {/if}
       {:else}
-        <div class="row-wrap" style={node.path === selectedPath ? '' : heatStyle(node.path)}>
+        <div
+          class="row-wrap"
+          class:selected={node.path === selectedPath}
+          style={node.path === selectedPath ? '' : heatStyle(node.path)}
+        >
           <button
             class="row request"
-            class:selected={node.path === selectedPath}
             draggable="true"
             on:dragstart={(e) => dragStart(e, node)}
             on:click={() => onSelect(node)}
@@ -192,23 +195,24 @@
     padding: 5px 8px;
     border: none;
     background: none;
-    border-radius: 6px;
     cursor: pointer;
     font-size: 13px;
     font-family: inherit;
     color: #444;
     text-align: left;
   }
-  .row:hover {
-    background: #f5f5f5;
-  }
-  .row.selected {
-    background: #fdf7dc;
-  }
   .row-wrap {
     display: flex;
     align-items: center;
-    border-radius: 6px;
+  }
+  .row-wrap:hover:not(.selected) {
+    background: #f5f5f5;
+  }
+  .row-wrap.selected {
+    background: #fdf7dc;
+  }
+  .row-wrap.selected .hover-btn {
+    color: #b0b0b0;
   }
   .row-wrap.droppable {
     background: #f4faf6;
