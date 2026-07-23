@@ -1,19 +1,48 @@
 <script lang="ts">
-  import type { RunRecord } from './types';
+  import type { RunRecord, ApiResponse } from './types';
+  import CodeViewer from './CodeViewer.svelte';
 
   export let runs: RunRecord[];
 
   type Tab = 'response' | 'headers' | 'timeline';
+  type Mode = 'json' | 'raw' | 'image';
   let tab: Tab = 'response';
   let viewedIdx = 0;
+  let mode: Mode = 'json';
+  let modeTouched = false;
 
   let lastRuns = runs;
   $: if (runs !== lastRuns) {
     lastRuns = runs;
     viewedIdx = 0; // a new run (or request switch) shows the latest response
+    modeTouched = false;
   }
 
   $: current = runs[viewedIdx] ?? null;
+
+  function autoMode(r: ApiResponse | null): Mode {
+    if (!r) return 'raw';
+    if (r.contentType?.startsWith('image/')) return 'image';
+    if (isJson(r)) return 'json';
+    return 'raw';
+  }
+
+  function isJson(r: ApiResponse): boolean {
+    if (r.contentType?.includes('json')) return true;
+    try {
+      JSON.parse(r.body);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  $: if (!modeTouched && current) mode = autoMode(current.response);
+
+  function pickMode(m: Mode) {
+    mode = m;
+    modeTouched = true;
+  }
 
   function pretty(body: string): string {
     try {
@@ -69,9 +98,31 @@
 
     {#if tab === 'response'}
       {#if current.error}
-        <pre class="body error-body">{current.error}</pre>
+        <pre class="error-body">{current.error}</pre>
       {:else if current.response}
-        <pre class="body">{pretty(current.response.body) || '(empty response body)'}</pre>
+        <div class="mode-switch">
+          {#each ['json', 'raw', 'image'] as m}
+            <button class:on={mode === m} on:click={() => pickMode(m as Mode)}>{m}</button>
+          {/each}
+        </div>
+        {#if mode === 'image'}
+          {#if current.response.bodyBase64}
+            <div class="image-wrap">
+              <img
+                src="data:{current.response.contentType};base64,{current.response.bodyBase64}"
+                alt="response body"
+              />
+            </div>
+          {:else}
+            <p class="empty">Response is not an image.</p>
+          {/if}
+        {:else if current.response.bodyBase64}
+          <p class="empty">Binary response ({current.response.contentType || 'unknown type'}, {fmtSize(current.response.size)}) — try the image mode.</p>
+        {:else if mode === 'json'}
+          <CodeViewer value={pretty(current.response.body)} lang="json" />
+        {:else}
+          <CodeViewer value={current.response.body} lang="text" />
+        {/if}
       {/if}
     {:else if tab === 'headers'}
       {#if current.response}
@@ -112,6 +163,7 @@
     gap: 12px;
     min-width: 0;
     min-height: 0;
+    height: 100%;
   }
   .tabs {
     display: flex;
@@ -153,20 +205,42 @@
     font-size: 12px;
   }
 
-  .body {
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 12px;
-    font-size: 12.5px;
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-    overflow: auto;
-    margin: 0;
-    background: #fafafa;
-    color: #444;
+  .mode-switch {
+    display: flex;
+    gap: 4px;
+  }
+  .mode-switch button {
+    border: none;
+    background: none;
+    font-size: 12px;
+    font-family: inherit;
+    color: #bbb;
+    cursor: pointer;
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+  .mode-switch button.on {
+    color: #4caf7d;
+    font-weight: 600;
+    background: #f4faf6;
+  }
+
+  .image-wrap {
     flex: 1;
     min-height: 0;
+    overflow: auto;
   }
-  .error-body { color: #b06a6a; }
+  .image-wrap img {
+    max-width: 100%;
+  }
+
+  .error-body {
+    color: #b06a6a;
+    font-size: 12.5px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    white-space: pre-wrap;
+    margin: 0;
+  }
 
   .kv {
     border-collapse: collapse;

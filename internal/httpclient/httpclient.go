@@ -1,6 +1,7 @@
 package httpclient
 
 import (
+	"encoding/base64"
 	"io"
 	"net/http"
 	"sort"
@@ -11,13 +12,30 @@ import (
 )
 
 // Response is what the frontend renders in the response pane.
+// Text bodies arrive in Body; binary bodies (images, …) in BodyBase64.
 type Response struct {
-	Status     int               `json:"status"`
-	StatusText string            `json:"statusText"`
-	Headers    map[string]string `json:"headers"`
-	Body       string            `json:"body"`
-	DurationMs int64             `json:"durationMs"`
-	Size       int64             `json:"size"`
+	Status      int               `json:"status"`
+	StatusText  string            `json:"statusText"`
+	Headers     map[string]string `json:"headers"`
+	Body        string            `json:"body"`
+	BodyBase64  string            `json:"bodyBase64,omitempty"`
+	ContentType string            `json:"contentType"`
+	DurationMs  int64             `json:"durationMs"`
+	Size        int64             `json:"size"`
+}
+
+// isTextContentType reports whether a body should be shipped as plain text.
+func isTextContentType(ct string) bool {
+	ct = strings.ToLower(ct)
+	if strings.HasPrefix(ct, "text/") {
+		return true
+	}
+	for _, s := range []string{"json", "xml", "javascript", "x-www-form-urlencoded", "graphql"} {
+		if strings.Contains(ct, s) {
+			return true
+		}
+	}
+	return ct == "" // no content type: assume text, the UI shows raw
 }
 
 const maxBodyBytes = 20 << 20 // 20 MB cap so a huge response can't freeze the UI
@@ -82,13 +100,19 @@ func Send(r *collection.Request) (*Response, error) {
 		headers[k] = strings.Join(vals, ", ")
 	}
 
-	statusText := http.StatusText(resp.StatusCode)
-	return &Response{
-		Status:     resp.StatusCode,
-		StatusText: statusText,
-		Headers:    headers,
-		Body:       string(bodyBytes),
-		DurationMs: duration.Milliseconds(),
-		Size:       int64(len(bodyBytes)),
-	}, nil
+	contentType := resp.Header.Get("Content-Type")
+	out := &Response{
+		Status:      resp.StatusCode,
+		StatusText:  http.StatusText(resp.StatusCode),
+		Headers:     headers,
+		ContentType: contentType,
+		DurationMs:  duration.Milliseconds(),
+		Size:        int64(len(bodyBytes)),
+	}
+	if isTextContentType(contentType) {
+		out.Body = string(bodyBytes)
+	} else {
+		out.BodyBase64 = base64.StdEncoding.EncodeToString(bodyBytes)
+	}
+	return out, nil
 }

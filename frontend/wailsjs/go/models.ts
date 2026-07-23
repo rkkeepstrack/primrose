@@ -135,6 +135,8 @@ export namespace httpclient {
 	    statusText: string;
 	    headers: Record<string, string>;
 	    body: string;
+	    bodyBase64?: string;
+	    contentType: string;
 	    durationMs: number;
 	    size: number;
 	
@@ -148,6 +150,8 @@ export namespace httpclient {
 	        this.statusText = source["statusText"];
 	        this.headers = source["headers"];
 	        this.body = source["body"];
+	        this.bodyBase64 = source["bodyBase64"];
+	        this.contentType = source["contentType"];
 	        this.durationMs = source["durationMs"];
 	        this.size = source["size"];
 	    }

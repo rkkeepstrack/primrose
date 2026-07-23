@@ -26,6 +26,8 @@ export interface ApiRequest {
 }
 
 export interface ApiResponse {
+  bodyBase64?: string;
+  contentType: string;
   status: number;
   statusText: string;
   headers: Record<string, string>;
