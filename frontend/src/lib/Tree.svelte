@@ -33,12 +33,13 @@
     // green -> teal -> blue -> purple -> pink, ~23° per recency step so
     // neighbouring entries are clearly distinct
     // true heatmap semantics: warm when fresh, cooling with age.
-    // newest = coral (20°, neighbouring the yellow/orange selection),
-    // aging through pink/purple/blue to teal (190°)
-    const hue = (380 - (1 - h) * 190) % 360;
+    // newest = orange (35°, blending into the yellow/orange selection),
+    // aging through coral/pink/purple/blue to teal (190°)
+    const hue = (395 - (1 - h) * 205) % 360;
     // intensity fades linearly with age, ending near zero so the oldest
-    // entry melts into the white bg
-    const alpha = 0.15 * h;
+    // entry melts into the white bg; starts gentler now that the fresh
+    // end sits in warm territory
+    const alpha = 0.11 * h;
     return `background: hsla(${hue.toFixed(0)}, 80%, 52%, ${alpha.toFixed(3)})`;
   }
 
