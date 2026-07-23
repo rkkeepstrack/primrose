@@ -239,11 +239,13 @@
 </script>
 
 <div class="app">
-  <header class="collection-tabs">
+  <div class="titlebar">
     <div class="brand">
       <img class="brand-logo" src={primroseLogo} alt="" />
       <span class="brand-name">Primrose</span>
     </div>
+  </div>
+  <header class="collection-tabs">
     {#each collections as col, i (col.root)}
       <button class="col-tab" class:active={i === activeIdx} on:click={() => switchCollection(i)}>
         {col.name}
@@ -349,33 +351,35 @@
     background: #fff;
     color: #333;
   }
-  .collection-tabs {
+  .titlebar {
     display: flex;
     align-items: center;
-    gap: 8px;
-    /* left inset clears the macOS traffic lights (hidden-inset title bar) */
-    padding: 10px 14px 10px 84px;
-    border-bottom: 1px solid #e5e5e5;
+    justify-content: center;
+    height: 38px;
+    flex-shrink: 0;
     --wails-draggable: drag;
-  }
-  .collection-tabs button {
-    --wails-draggable: no-drag;
   }
   .brand {
     display: flex;
     align-items: center;
     gap: 7px;
-    margin-right: 10px;
   }
   .brand-logo {
-    width: 20px;
-    height: 20px;
+    width: 18px;
+    height: 18px;
   }
   .brand-name {
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
-    color: #444;
+    color: #555;
     letter-spacing: 0.01em;
+  }
+  .collection-tabs {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 14px 10px;
+    border-bottom: 1px solid #e5e5e5;
   }
   .col-tab {
     border: 1px solid #e0e0e0;
