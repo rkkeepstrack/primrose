@@ -242,17 +242,35 @@
     }
   }
 
-  // sidebar search + recency heatmap
+  // sidebar search + recency heatmap / recent-only filter
   let search = '';
-  let heatmapOn = true;
+  let recentFilterOn = false;
+
+  function findRequestNode(nodes: TreeNode[], path: string): TreeNode | null {
+    for (const n of nodes) {
+      if (n.path === path && !n.isFolder) return n;
+      if (n.isFolder && n.children?.length) {
+        const hit = findRequestNode(n.children, path);
+        if (hit) return hit;
+      }
+    }
+    return null;
+  }
+
   $: visibleTree = collections[activeIdx]
-    ? filterTree(collections[activeIdx].tree, search)
+    ? recentFilterOn
+      ? // flat list of the recent requests, chronological (newest first)
+        filterTree(
+          $recentPaths
+            .map((p) => findRequestNode(collections[activeIdx].tree, p))
+            .filter((n): n is TreeNode => n !== null),
+          search
+        )
+      : filterTree(collections[activeIdx].tree, search)
     : [];
-  $: heat = heatmapOn
-    ? Object.fromEntries(
-        $recentPaths.map((p, i) => [p, (RECENT_MAX - i) / RECENT_MAX])
-      )
-    : {};
+  $: heat = Object.fromEntries(
+    $recentPaths.map((p, i) => [p, (RECENT_MAX - i) / RECENT_MAX])
+  );
 
   // discard stashed edits for requests that fell out of the recents window
   $: pruneEdits($recentPaths);
@@ -450,11 +468,11 @@
             <input class="search" placeholder="Search" bind:value={search} />
             <button
               class="heat-toggle"
-              class:on={heatmapOn}
-              title="Toggle recency heatmap (recently opened requests glow)"
-              on:click={() => (heatmapOn = !heatmapOn)}
+              class:on={recentFilterOn}
+              title="Show only the recently opened requests, newest first"
+              on:click={() => (recentFilterOn = !recentFilterOn)}
             >
-              <img src={primroseLogo} alt="heatmap" />
+              <img src={primroseLogo} alt="recent filter" />
             </button>
           </div>
           <Tree
