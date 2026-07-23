@@ -222,6 +222,10 @@
   .row-wrap.selected .hover-btn {
     color: #444;
   }
+  .row-wrap.selected .name {
+    font-weight: 600;
+    color: #1d1d1d;
+  }
   .row-wrap.droppable {
     background: #f4faf6;
     outline: 1px dashed #4caf7d;
