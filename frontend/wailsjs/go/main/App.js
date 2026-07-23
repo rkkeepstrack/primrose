@@ -14,6 +14,14 @@ export function CreateRequest(arg1, arg2, arg3) {
   return window['go']['main']['App']['CreateRequest'](arg1, arg2, arg3);
 }
 
+export function DeleteItem(arg1) {
+  return window['go']['main']['App']['DeleteItem'](arg1);
+}
+
+export function DuplicateItem(arg1) {
+  return window['go']['main']['App']['DuplicateItem'](arg1);
+}
+
 export function GetTree(arg1) {
   return window['go']['main']['App']['GetTree'](arg1);
 }
@@ -40,6 +48,10 @@ export function OpenCollectionDialog() {
 
 export function ReadRequest(arg1) {
   return window['go']['main']['App']['ReadRequest'](arg1);
+}
+
+export function RenameItem(arg1, arg2) {
+  return window['go']['main']['App']['RenameItem'](arg1, arg2);
 }
 
 export function SaveEnvironment(arg1, arg2, arg3) {

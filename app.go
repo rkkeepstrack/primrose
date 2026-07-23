@@ -80,6 +80,21 @@ func (a *App) MoveItem(src, destDir string) (string, error) {
 	return collection.MoveItem(src, destDir)
 }
 
+// RenameItem renames a request file or folder.
+func (a *App) RenameItem(path, newName string) (string, error) {
+	return collection.RenameItem(path, newName)
+}
+
+// DeleteItem deletes a request file or folder (recursively).
+func (a *App) DeleteItem(path string) error {
+	return collection.DeleteItem(path)
+}
+
+// DuplicateItem copies a request file or folder with a -copy suffix.
+func (a *App) DuplicateItem(path string) (string, error) {
+	return collection.DuplicateItem(path)
+}
+
 // SaveRequest writes a request back to its TOML file.
 func (a *App) SaveRequest(path string, r collection.Request) error {
 	return collection.WriteRequest(path, &r)

@@ -12,13 +12,21 @@
     selectedEnvNames,
     dynamicVars,
     setDynamicVar,
+    recentPaths,
+    touchRecent,
+    renameRecent,
+    RECENT_MAX,
   } from './lib/stores';
+  import { filterTree } from './lib/fuzzy';
   import {
     OpenCollectionDialog,
     CreateRequest,
     CreateFolder,
     MoveItem,
     CancelRequest,
+    RenameItem,
+    DeleteItem,
+    DuplicateItem,
     OpenCollection,
     LoadUIState,
     SaveUIState,
@@ -182,6 +190,64 @@
     }
   }
 
+  async function renameItem(node: TreeNode) {
+    const name = prompt('New name:', node.name);
+    if (!name?.trim() || name === node.name) return;
+    error = '';
+    try {
+      const newPath = await RenameItem(node.path, name);
+      if (selectedPath === node.path) {
+        selectedPath = newPath;
+        selectedName = name;
+      } else if (selectedPath?.startsWith(node.path + '/')) {
+        selectedPath = newPath + selectedPath.slice(node.path.length);
+      }
+      renameRecent(node.path, newPath);
+      await refreshTree();
+    } catch (e) {
+      error = String(e);
+    }
+  }
+
+  async function duplicateItem(node: TreeNode) {
+    error = '';
+    try {
+      await DuplicateItem(node.path);
+      await refreshTree();
+    } catch (e) {
+      error = String(e);
+    }
+  }
+
+  async function deleteItem(node: TreeNode) {
+    const what = node.isFolder ? `folder "${node.name}" and everything in it` : `request "${node.name}"`;
+    if (!confirm(`Delete ${what}?`)) return;
+    error = '';
+    try {
+      await DeleteItem(node.path);
+      if (selectedPath === node.path || selectedPath?.startsWith(node.path + '/')) {
+        selectedPath = null;
+        request = null;
+        dirty = false;
+      }
+      await refreshTree();
+    } catch (e) {
+      error = String(e);
+    }
+  }
+
+  // sidebar search + recency heatmap
+  let search = '';
+  let heatmapOn = true;
+  $: visibleTree = collections[activeIdx]
+    ? filterTree(collections[activeIdx].tree, search)
+    : [];
+  $: heat = heatmapOn
+    ? Object.fromEntries(
+        $recentPaths.map((p, i) => [p, (RECENT_MAX - i) / RECENT_MAX])
+      )
+    : {};
+
   let rootDroppable = false;
 
   function rootDragOver(e: DragEvent) {
@@ -262,6 +328,7 @@
       selectedPath = node.path;
       selectedName = node.name;
       dirty = false;
+      touchRecent(node.path);
     } catch (e) {
       error = String(e);
     }
@@ -356,14 +423,29 @@
               {activeEnvName ?? 'No environment'}
             </button>
           </div>
-          <input class="search" placeholder="Search" disabled title="Fuzzy search comes in milestone 4" />
+          <div class="search-row">
+            <input class="search" placeholder="Search" bind:value={search} />
+            <button
+              class="heat-toggle"
+              class:on={heatmapOn}
+              title="Toggle recency heatmap (recently opened requests glow)"
+              on:click={() => (heatmapOn = !heatmapOn)}
+            >
+              <img src={primroseLogo} alt="heatmap" />
+            </button>
+          </div>
           <Tree
-            nodes={collections[activeIdx].tree}
+            nodes={visibleTree}
             {selectedPath}
+            forceOpen={search.trim().length > 0}
+            {heat}
             onSelect={selectRequest}
             onNewRequest={newRequest}
             onNewFolder={newFolder}
             onMove={moveItem}
+            onRename={renameItem}
+            onDuplicate={duplicateItem}
+            onDelete={deleteItem}
           />
         </aside>
         <section class="detail">
@@ -509,6 +591,26 @@
     background: #fafafa;
   }
   .search:focus { outline: none; border-color: #ecdfa8; background: #fff; }
+  .search-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  .search-row .search { margin-bottom: 0; flex: 1; }
+  .heat-toggle {
+    border: none;
+    background: none;
+    padding: 4px;
+    border-radius: 5px;
+    cursor: pointer;
+    line-height: 0;
+    opacity: 0.25;
+    filter: grayscale(1);
+    transition: opacity 0.12s ease, filter 0.12s ease;
+  }
+  .heat-toggle.on { opacity: 1; filter: none; }
+  .heat-toggle img { width: 16px; height: 16px; }
   .detail {
     padding: 16px 20px;
     min-width: 0;

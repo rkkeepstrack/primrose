@@ -8,12 +8,24 @@
   export let onNewRequest: (dirPath: string) => void;
   export let onNewFolder: (dirPath: string) => void;
   export let onMove: (src: string, destDir: string) => void;
+  export let onRename: (node: TreeNode) => void;
+  export let onDuplicate: (node: TreeNode) => void;
+  export let onDelete: (node: TreeNode) => void;
+  export let forceOpen = false; // expand everything while searching
+  export let heat: Record<string, number> = {}; // path -> 0..1 recency
 
   let open: Record<string, boolean> = {};
   let dropTarget: string | null = null;
+  let menuFor: string | null = null;
 
   function toggle(node: TreeNode) {
     open[node.path] = !open[node.path];
+  }
+
+  function heatStyle(path: string): string {
+    const h = heat[path];
+    if (!h) return '';
+    return `background: rgba(240, 213, 90, ${(0.08 + 0.3 * h).toFixed(3)})`;
   }
 
   function dragStart(e: DragEvent, node: TreeNode) {
@@ -38,14 +50,21 @@
       onMove(src, node.path);
     }
   }
+
+  function menuAction(action: (n: TreeNode) => void, node: TreeNode) {
+    menuFor = null;
+    action(node);
+  }
 </script>
+
+<svelte:window on:click={() => (menuFor = null)} />
 
 <ul class="tree">
   {#each nodes as node (node.path)}
     <li>
       {#if node.isFolder}
         <div
-          class="folder-row"
+          class="row-wrap"
           class:droppable={dropTarget === node.path}
           role="treeitem"
           aria-selected="false"
@@ -58,7 +77,7 @@
           <button class="row folder" on:click={() => toggle(node)}>
             <svg
               class="caret"
-              class:open={open[node.path]}
+              class:open={forceOpen || open[node.path]}
               width="10"
               height="10"
               viewBox="0 0 10 10"
@@ -82,8 +101,22 @@
             title="New request in {node.name}"
             on:click={() => { open[node.path] = true; onNewRequest(node.path); }}
           >+</button>
+          <div class="menu-wrap">
+            <button
+              class="hover-btn"
+              title="More…"
+              on:click|stopPropagation={() => (menuFor = menuFor === node.path ? null : node.path)}
+            >⋮</button>
+            {#if menuFor === node.path}
+              <div class="menu">
+                <button on:click={() => menuAction(onRename, node)}>Rename</button>
+                <button on:click={() => menuAction(onDuplicate, node)}>Duplicate</button>
+                <button class="danger" on:click={() => menuAction(onDelete, node)}>Delete</button>
+              </div>
+            {/if}
+          </div>
         </div>
-        {#if open[node.path] && node.children?.length}
+        {#if (forceOpen || open[node.path]) && node.children?.length}
           <div class="children">
             <Tree
               nodes={node.children}
@@ -92,20 +125,41 @@
               {onNewRequest}
               {onNewFolder}
               {onMove}
+              {onRename}
+              {onDuplicate}
+              {onDelete}
+              {forceOpen}
+              {heat}
             />
           </div>
         {/if}
       {:else}
-        <button
-          class="row request"
-          class:selected={node.path === selectedPath}
-          draggable="true"
-          on:dragstart={(e) => dragStart(e, node)}
-          on:click={() => onSelect(node)}
-        >
-          <span class="method method-{node.method}">{node.method}</span>
-          <span class="name">{node.name}</span>
-        </button>
+        <div class="row-wrap" style={node.path === selectedPath ? '' : heatStyle(node.path)}>
+          <button
+            class="row request"
+            class:selected={node.path === selectedPath}
+            draggable="true"
+            on:dragstart={(e) => dragStart(e, node)}
+            on:click={() => onSelect(node)}
+          >
+            <span class="method method-{node.method}">{node.method}</span>
+            <span class="name">{node.name}</span>
+          </button>
+          <div class="menu-wrap">
+            <button
+              class="hover-btn"
+              title="More…"
+              on:click|stopPropagation={() => (menuFor = menuFor === node.path ? null : node.path)}
+            >⋮</button>
+            {#if menuFor === node.path}
+              <div class="menu">
+                <button on:click={() => menuAction(onRename, node)}>Rename</button>
+                <button on:click={() => menuAction(onDuplicate, node)}>Duplicate</button>
+                <button class="danger" on:click={() => menuAction(onDelete, node)}>Delete</button>
+              </div>
+            {/if}
+          </div>
+        </div>
       {/if}
     </li>
   {/each}
@@ -141,16 +195,16 @@
   .row.selected {
     background: #fdf7dc;
   }
-  .folder-row {
+  .row-wrap {
     display: flex;
     align-items: center;
     border-radius: 6px;
   }
-  .folder-row.droppable {
+  .row-wrap.droppable {
     background: #f4faf6;
     outline: 1px dashed #4caf7d;
   }
-  .folder-row .row { flex: 1; min-width: 0; }
+  .row-wrap .row { flex: 1; min-width: 0; }
   .hover-btn {
     display: flex;
     align-items: center;
@@ -163,8 +217,37 @@
     border-radius: 5px;
     flex-shrink: 0;
   }
-  .folder-row:hover .hover-btn { color: #b0b0b0; }
+  .row-wrap:hover .hover-btn { color: #b0b0b0; }
   .hover-btn:hover { color: #4caf7d !important; background: #f4faf6; }
+  .menu-wrap { position: relative; }
+  .menu {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 2px);
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    padding: 4px;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    min-width: 120px;
+  }
+  .menu button {
+    border: none;
+    background: none;
+    text-align: left;
+    font-size: 13px;
+    font-family: inherit;
+    color: #444;
+    padding: 6px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  .menu button:hover { background: #f5f5f5; }
+  .menu button.danger { color: #d98282; }
+  .menu button.danger:hover { background: #fdf0f0; }
   .caret {
     flex-shrink: 0;
     color: #a0a0a0;

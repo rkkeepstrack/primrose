@@ -11,6 +11,10 @@ export function CreateFolder(arg1:string,arg2:string):Promise<string>;
 
 export function CreateRequest(arg1:string,arg2:string,arg3:collection.Request):Promise<string>;
 
+export function DeleteItem(arg1:string):Promise<void>;
+
+export function DuplicateItem(arg1:string):Promise<string>;
+
 export function GetTree(arg1:string):Promise<collection.Collection>;
 
 export function ListEnvironments(arg1:string):Promise<Array<env.Environment>>;
@@ -24,6 +28,8 @@ export function OpenCollection(arg1:string):Promise<collection.Collection>;
 export function OpenCollectionDialog():Promise<collection.Collection>;
 
 export function ReadRequest(arg1:string):Promise<collection.Request>;
+
+export function RenameItem(arg1:string,arg2:string):Promise<string>;
 
 export function SaveEnvironment(arg1:string,arg2:string,arg3:Record<string, string>):Promise<void>;
 

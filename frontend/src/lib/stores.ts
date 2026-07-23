@@ -14,6 +14,21 @@ export const selectedEnvNames = writable<Record<string, string>>({});
 // Dynamic /:var values per request path. Session-only, never persisted.
 export const dynamicVars = writable<Record<string, Record<string, string>>>({});
 
+// Recency heatmap: the last 20 opened requests, most recent first.
+// Session-only, never persisted.
+export const RECENT_MAX = 20;
+export const recentPaths = writable<string[]>([]);
+
+export function touchRecent(path: string) {
+  recentPaths.update((list) =>
+    [path, ...list.filter((p) => p !== path)].slice(0, RECENT_MAX)
+  );
+}
+
+export function renameRecent(oldPath: string, newPath: string) {
+  recentPaths.update((list) => list.map((p) => (p === oldPath ? newPath : p)));
+}
+
 export function setDynamicVar(path: string, name: string, value: string) {
   dynamicVars.update((d) => ({ ...d, [path]: { ...(d[path] ?? {}), [name]: value } }));
 }
