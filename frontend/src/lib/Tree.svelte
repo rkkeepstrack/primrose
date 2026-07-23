@@ -22,10 +22,15 @@
     open[node.path] = !open[node.path];
   }
 
+  // Recency as a subtle hue shift: most recent is blueish, fading towards
+  // purpleish for older touches. Deliberately distinct from the yellow
+  // selection highlight.
   function heatStyle(path: string): string {
     const h = heat[path];
     if (!h) return '';
-    return `background: rgba(240, 213, 90, ${(0.08 + 0.3 * h).toFixed(3)})`;
+    const hue = 215 + (1 - h) * 65; // 215 (blue) -> 280 (purple)
+    const alpha = 0.06 + 0.08 * h; // subtle throughout
+    return `background: hsla(${hue.toFixed(0)}, 70%, 62%, ${alpha.toFixed(3)})`;
   }
 
   function dragStart(e: DragEvent, node: TreeNode) {
