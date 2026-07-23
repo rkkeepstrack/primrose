@@ -128,3 +128,30 @@ export namespace collection {
 
 }
 
+export namespace httpclient {
+	
+	export class Response {
+	    status: number;
+	    statusText: string;
+	    headers: Record<string, string>;
+	    body: string;
+	    durationMs: number;
+	    size: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new Response(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.status = source["status"];
+	        this.statusText = source["statusText"];
+	        this.headers = source["headers"];
+	        this.body = source["body"];
+	        this.durationMs = source["durationMs"];
+	        this.size = source["size"];
+	    }
+	}
+
+}
+

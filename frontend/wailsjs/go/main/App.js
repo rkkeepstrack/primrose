@@ -17,3 +17,11 @@ export function OpenCollectionDialog() {
 export function ReadRequest(arg1) {
   return window['go']['main']['App']['ReadRequest'](arg1);
 }
+
+export function SaveRequest(arg1, arg2) {
+  return window['go']['main']['App']['SaveRequest'](arg1, arg2);
+}
+
+export function SendRequest(arg1) {
+  return window['go']['main']['App']['SendRequest'](arg1);
+}

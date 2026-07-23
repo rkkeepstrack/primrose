@@ -24,3 +24,20 @@ export interface ApiRequest {
   headers: Record<string, string>;
   body: RequestBody;
 }
+
+export interface ApiResponse {
+  status: number;
+  statusText: string;
+  headers: Record<string, string>;
+  body: string;
+  durationMs: number;
+  size: number;
+}
+
+export interface RunRecord {
+  at: Date;
+  response: ApiResponse | null;
+  error: string | null;
+}
+
+export const METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'] as const;

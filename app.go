@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"primrose/internal/collection"
+	"primrose/internal/httpclient"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
@@ -55,4 +56,14 @@ func (a *App) ReadRequest(path string) (*collection.Request, error) {
 		return nil, fmt.Errorf("reading request: %w", err)
 	}
 	return r, nil
+}
+
+// SaveRequest writes a request back to its TOML file.
+func (a *App) SaveRequest(path string, r collection.Request) error {
+	return collection.WriteRequest(path, &r)
+}
+
+// SendRequest executes the request and returns the response.
+func (a *App) SendRequest(r collection.Request) (*httpclient.Response, error) {
+	return httpclient.Send(&r)
 }

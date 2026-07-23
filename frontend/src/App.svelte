@@ -1,15 +1,56 @@
 <script lang="ts">
   import Tree from './lib/Tree.svelte';
   import RequestView from './lib/RequestView.svelte';
+  import ResponsePane from './lib/ResponsePane.svelte';
   import type { Collection, TreeNode, ApiRequest } from './lib/types';
-  import { OpenCollectionDialog, ReadRequest } from '../wailsjs/go/main/App';
+  import { runHistory, recordRun } from './lib/stores';
+  import {
+    OpenCollectionDialog,
+    ReadRequest,
+    SaveRequest,
+    SendRequest,
+    GetTree,
+  } from '../wailsjs/go/main/App';
 
   let collections: Collection[] = [];
   let activeIdx = 0;
   let selectedPath: string | null = null;
   let selectedName = '';
   let request: ApiRequest | null = null;
+  let dirty = false;
+  let sending = false;
   let error = '';
+
+  $: runs = selectedPath ? ($runHistory[selectedPath] ?? []) : [];
+
+  async function saveRequest() {
+    if (!request || !selectedPath) return;
+    error = '';
+    try {
+      await SaveRequest(selectedPath, request as any);
+      dirty = false;
+      // method badge in the tree may have changed
+      const col = (await GetTree(collections[activeIdx].root)) as Collection;
+      collections[activeIdx] = col;
+    } catch (e) {
+      error = String(e);
+    }
+  }
+
+  async function sendRequest() {
+    if (!request || !selectedPath || sending) return;
+    error = '';
+    sending = true;
+    const path = selectedPath;
+    try {
+      const resp = await SendRequest(request as any);
+      recordRun(path, { at: new Date(), response: resp, error: null });
+    } catch (e) {
+      recordRun(path, { at: new Date(), response: null, error: String(e) });
+    } finally {
+      sending = false;
+    }
+  }
 
   async function openCollection() {
     error = '';
@@ -30,20 +71,24 @@
   }
 
   async function selectRequest(node: TreeNode) {
+    if (dirty && !confirm('Discard unsaved changes?')) return;
     error = '';
     try {
       request = (await ReadRequest(node.path)) as ApiRequest;
       selectedPath = node.path;
       selectedName = node.name;
+      dirty = false;
     } catch (e) {
       error = String(e);
     }
   }
 
   function switchCollection(i: number) {
+    if (dirty && !confirm('Discard unsaved changes?')) return;
     activeIdx = i;
     selectedPath = null;
     request = null;
+    dirty = false;
   }
 </script>
 
@@ -78,7 +123,10 @@
       </aside>
       <section class="detail">
         {#if request}
-          <RequestView {request} name={selectedName} />
+          <div class="panes">
+            <RequestView {request} bind:dirty {sending} onSave={saveRequest} onSend={sendRequest} />
+            <ResponsePane {runs} />
+          </div>
         {:else}
           <p class="hint">Select a request in the sidebar.</p>
         {/if}
@@ -155,6 +203,13 @@
     padding: 16px 20px;
     overflow-y: auto;
     min-width: 0;
+    min-height: 0;
+  }
+  .panes {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 24px;
+    height: 100%;
   }
   .hint { color: #aaa; }
 

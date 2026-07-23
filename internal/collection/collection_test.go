@@ -2,6 +2,7 @@ package collection
 
 import (
 	"encoding/json"
+	"os"
 	"testing"
 )
 
@@ -34,4 +35,27 @@ func TestOpenSampleCollection(t *testing.T) {
 	if r.Method != "POST" || r.Body.Type != "json" || r.Headers["Content-Type"] != "application/json" {
 		t.Errorf("unexpected request: %+v", r)
 	}
+}
+
+func TestWriteRequestRoundTrip(t *testing.T) {
+	tmp := t.TempDir() + "/req.toml"
+	orig := &Request{
+		Method:  "POST",
+		URL:     "{{base}}/things?x=1",
+		Query:   map[string]string{"a": "1", "b c": "two words"},
+		Headers: map[string]string{"Content-Type": "application/json"},
+		Body:    Body{Type: "json", Content: "{\n  \"k\": \"v\"\n}"},
+	}
+	if err := WriteRequest(tmp, orig); err != nil {
+		t.Fatal(err)
+	}
+	got, err := ReadRequest(tmp)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got.URL != orig.URL || got.Query["b c"] != "two words" || got.Body.Content != orig.Body.Content+"\n" && got.Body.Content != orig.Body.Content {
+		t.Errorf("round trip mismatch:\norig: %+v\ngot:  %+v", orig, got)
+	}
+	raw, _ := os.ReadFile(tmp)
+	t.Logf("file:\n%s", raw)
 }
