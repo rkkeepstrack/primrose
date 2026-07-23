@@ -29,9 +29,12 @@
   function heatStyle(path: string): string {
     const h = heat[path];
     if (!h) return '';
-    const hue = 175 + (1 - h) * 155; // 175 (teal) -> 330 (pink)
-    const alpha = 0.05 + 0.06 * h; // subtle, slightly more present
-    return `background: hsla(${hue.toFixed(0)}, 80%, 55%, ${alpha.toFixed(3)})`;
+    // widest hue span that stays clear of the yellow selection color:
+    // green -> teal -> blue -> purple -> pink, ~23° per recency step so
+    // neighbouring entries are clearly distinct
+    const hue = 140 + (1 - h) * 210; // 140 (green) -> 350 (pink)
+    const alpha = 0.05 + 0.07 * h;
+    return `background: hsla(${hue.toFixed(0)}, 80%, 52%, ${alpha.toFixed(3)})`;
   }
 
   function dragStart(e: DragEvent, node: TreeNode) {
