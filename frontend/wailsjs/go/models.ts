@@ -152,6 +152,7 @@ export namespace env {
 export namespace httpclient {
 	
 	export class Response {
+	    finalUrl: string;
 	    status: number;
 	    statusText: string;
 	    headers: Record<string, string>;
@@ -167,6 +168,7 @@ export namespace httpclient {
 	
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.finalUrl = source["finalUrl"];
 	        this.status = source["status"];
 	        this.statusText = source["statusText"];
 	        this.headers = source["headers"];

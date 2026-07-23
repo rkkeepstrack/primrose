@@ -4,6 +4,7 @@
   import ResponsePane from './lib/ResponsePane.svelte';
   import EnvironmentEditor from './lib/EnvironmentEditor.svelte';
   import type { Collection, TreeNode, ApiRequest, Environment } from './lib/types';
+  import { normalizeUrlAndQuery } from './lib/urlQuery';
   import {
     runHistory,
     recordRun,
@@ -117,7 +118,12 @@
     if (dirty && !confirm('Discard unsaved changes?')) return;
     error = '';
     try {
-      request = (await ReadRequest(node.path)) as ApiRequest;
+      const r = (await ReadRequest(node.path)) as ApiRequest;
+      // URL is the source of truth for query params in the UI
+      const norm = normalizeUrlAndQuery(r.url, r.query);
+      r.url = norm.url;
+      r.query = norm.query;
+      request = r;
       selectedPath = node.path;
       selectedName = node.name;
       dirty = false;

@@ -4,6 +4,7 @@
   import KeyValueEditor from './KeyValueEditor.svelte';
   import CodeEditor from './CodeEditor.svelte';
   import { extractEnvVars, extractDynamicVars } from './varUtils';
+  import { splitUrl, buildUrl, queryFromUrl } from './urlQuery';
 
   export let request: ApiRequest;
   export let dirty = false;
@@ -50,8 +51,16 @@
     markDirty();
   }
 
+  // URL builder: query tab and URL bar are two views of the same state.
   function setQuery(q: Record<string, string>) {
     request.query = q;
+    request.url = buildUrl(splitUrl(request.url).base, q);
+    markDirty();
+  }
+
+  function setUrl(v: string) {
+    request.url = v;
+    request.query = queryFromUrl(v);
     markDirty();
   }
 
@@ -93,7 +102,7 @@
         singleLine
         value={request.url}
         placeholder="https://api.example.com/…"
-        onChange={(v) => { request.url = v; markDirty(); }}
+        onChange={setUrl}
       />
     </div>
     <button class="action save" class:dirty on:click={onSave} title="⌘S">

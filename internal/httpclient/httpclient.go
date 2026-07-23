@@ -14,6 +14,7 @@ import (
 // Response is what the frontend renders in the response pane.
 // Text bodies arrive in Body; binary bodies (images, …) in BodyBase64.
 type Response struct {
+	FinalURL    string            `json:"finalUrl"` // what was actually requested, after resolution
 	Status      int               `json:"status"`
 	StatusText  string            `json:"statusText"`
 	Headers     map[string]string `json:"headers"`
@@ -43,13 +44,25 @@ const maxBodyBytes = 20 << 20 // 20 MB cap so a huge response can't freeze the U
 var client = &http.Client{Timeout: 30 * time.Second}
 
 // Send executes the request as-is (variable resolution happens before this).
+// Query params from the map are appended only if their key is not already in
+// the URL's query string — the UI keeps both in sync, so this avoids doubles
+// while still supporting hand-written files that only use [query].
 func Send(r *collection.Request) (*Response, error) {
 	url := r.URL
-	if len(r.Query) > 0 {
-		keys := make([]string, 0, len(r.Query))
-		for k := range r.Query {
+	existing := map[string]bool{}
+	if i := strings.Index(url, "?"); i != -1 {
+		for _, part := range strings.Split(url[i+1:], "&") {
+			key, _, _ := strings.Cut(part, "=")
+			existing[key] = true
+		}
+	}
+	keys := make([]string, 0, len(r.Query))
+	for k := range r.Query {
+		if !existing[k] {
 			keys = append(keys, k)
 		}
+	}
+	if len(keys) > 0 {
 		sort.Strings(keys)
 		var params []string
 		for _, k := range keys {
@@ -102,6 +115,7 @@ func Send(r *collection.Request) (*Response, error) {
 
 	contentType := resp.Header.Get("Content-Type")
 	out := &Response{
+		FinalURL:    url,
 		Status:      resp.StatusCode,
 		StatusText:  http.StatusText(resp.StatusCode),
 		Headers:     headers,

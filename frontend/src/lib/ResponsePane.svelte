@@ -95,6 +95,11 @@
         <span class="old-run">viewing run #{runs.length - viewedIdx}</span>
       {/if}
     </div>
+    {#if current.response?.finalUrl}
+      <div class="final-url" title="URL actually requested, after variable resolution">
+        → {current.response.finalUrl}
+      </div>
+    {/if}
 
     {#if tab === 'response'}
       {#if current.error}
@@ -197,6 +202,14 @@
   .status.err { color: #d98282; }
   .status.other { color: #e0a869; }
   .meta { color: #aaa; font-size: 12px; }
+  .final-url {
+    color: #aaa;
+    font-size: 12px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
   .old-run {
     color: #b8a23f;
     background: #fdf7dc;
