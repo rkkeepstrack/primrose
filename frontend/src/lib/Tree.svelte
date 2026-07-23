@@ -33,8 +33,13 @@
     // green -> teal -> blue -> purple -> pink, ~23° per recency step so
     // neighbouring entries are clearly distinct
     const hue = 140 + (1 - h) * 210; // 140 (green) -> 350 (pink)
-    const alpha = 0.05 + 0.07 * h;
-    return `background: hsla(${hue.toFixed(0)}, 80%, 52%, ${alpha.toFixed(3)})`;
+    const alpha = 0.04 + 0.06 * h;
+    // colored left bar + faint tint: reads clearly different from the
+    // solid yellow selection highlight
+    return (
+      `background: hsla(${hue.toFixed(0)}, 80%, 52%, ${alpha.toFixed(3)});` +
+      `box-shadow: inset 3px 0 0 hsla(${hue.toFixed(0)}, 75%, 55%, 0.85)`
+    );
   }
 
   function dragStart(e: DragEvent, node: TreeNode) {
@@ -215,7 +220,7 @@
     background: #fdf7dc;
   }
   .row-wrap.selected .hover-btn {
-    color: #b0b0b0;
+    color: #444;
   }
   .row-wrap.droppable {
     background: #f4faf6;
@@ -234,7 +239,7 @@
     border-radius: 5px;
     flex-shrink: 0;
   }
-  .row-wrap:hover .hover-btn { color: #b0b0b0; }
+  .row-wrap:hover .hover-btn { color: #444; }
   .hover-btn:hover { color: #4caf7d !important; background: #f4faf6; }
   .menu-wrap { position: relative; }
   .menu {
