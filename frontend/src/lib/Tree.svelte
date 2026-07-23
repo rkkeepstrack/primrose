@@ -32,7 +32,9 @@
     // widest hue span that stays clear of the yellow selection color:
     // green -> teal -> blue -> purple -> pink, ~23° per recency step so
     // neighbouring entries are clearly distinct
-    const hue = 190 + (1 - h) * 170; // 190 (teal-blue) -> 360 (red)
+    // stretched sweep: 165 (spring green) through blue/purple/pink/red,
+    // wrapping just past 360 into red-orange for the oldest entries
+    const hue = (165 + (1 - h) * 220) % 360;
     const alpha = 0.05 + 0.07 * h;
     return `background: hsla(${hue.toFixed(0)}, 80%, 52%, ${alpha.toFixed(3)})`;
   }
