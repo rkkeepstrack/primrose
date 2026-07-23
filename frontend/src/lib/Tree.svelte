@@ -23,15 +23,15 @@
     open[node.path] = !open[node.path];
   }
 
-  // Recency as a subtle hue shift: most recent is blueish, fading towards
-  // purpleish for older touches. Deliberately distinct from the yellow
-  // selection highlight.
+  // Recency as a subtle hue journey: most recent is teal, wandering through
+  // blue and purple to pink for the oldest touches. Deliberately distinct
+  // from the yellow selection highlight.
   function heatStyle(path: string): string {
     const h = heat[path];
     if (!h) return '';
-    const hue = 215 + (1 - h) * 65; // 215 (blue) -> 280 (purple)
-    const alpha = 0.025 + 0.045 * h; // barely-there whisper of color
-    return `background: hsla(${hue.toFixed(0)}, 70%, 60%, ${alpha.toFixed(3)})`;
+    const hue = 175 + (1 - h) * 155; // 175 (teal) -> 330 (pink)
+    const alpha = 0.05 + 0.06 * h; // subtle, slightly more present
+    return `background: hsla(${hue.toFixed(0)}, 80%, 55%, ${alpha.toFixed(3)})`;
   }
 
   function dragStart(e: DragEvent, node: TreeNode) {
