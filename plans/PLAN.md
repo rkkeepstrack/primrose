@@ -97,8 +97,9 @@ Request name = filename. Folder hierarchy = sidebar hierarchy, always mirrored 1
 2. **Send loop** — URL/method/query/headers/body editing, save to TOML, send via Go, show response with JSON pretty-print.
 3. **Environments** — env files, env switcher, `{{var}}` resolution + highlighting, Env tab (request-level), Environment editor tab (collection-level).
 4. **Tree UX** — fuzzy search, drag & drop moves, folder `+` modal (duplicate/rename/delete/new), new-request flow, multiple collection tabs.
-5. **Polish** — dynamic `:vars`, Timeline run history, response headers tab, fsnotify live reload, keyboard shortcuts (⌘↵ send, ⌘S save).
+5. **Polish** — dynamic `:vars`, Timeline run history, response headers tab, fsnotify live reload.
+6. **Keyboard shortcuts & actions** — full shortcut pass: save (⌘S) and send (⌘↵) as first-class shortcuts, plus navigation (switch tabs/requests), searchable via a shortcut reference. Rework action placement: move the Save button out of the URL row (final home TBD), keep Send prominent.
 
 ## Later (explicitly out of v1)
 
-Auth helpers (bearer/basic), curl import/export, cookie jar, request phase timings, scripting, GraphQL/WebSocket.
+"Copy as curl" button on a request, curl import, auth helpers (bearer/basic), cookie jar, request phase timings, scripting, GraphQL/WebSocket.

@@ -123,10 +123,9 @@
       </aside>
       <section class="detail">
         {#if request}
-          <div class="panes">
-            <RequestView {request} bind:dirty {sending} onSave={saveRequest} onSend={sendRequest} />
+          <RequestView {request} bind:dirty {sending} onSave={saveRequest} onSend={sendRequest}>
             <ResponsePane {runs} />
-          </div>
+          </RequestView>
         {:else}
           <p class="hint">Select a request in the sidebar.</p>
         {/if}
@@ -201,15 +200,9 @@
   .search:focus { outline: none; border-color: #ecdfa8; background: #fff; }
   .detail {
     padding: 16px 20px;
-    overflow-y: auto;
     min-width: 0;
     min-height: 0;
-  }
-  .panes {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: 24px;
-    height: 100%;
+    overflow: hidden;
   }
   .hint { color: #aaa; }
 

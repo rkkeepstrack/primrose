@@ -13,6 +13,25 @@
   let tab: Tab = 'query';
   let methodOpen = false;
 
+  // horizontal split between request tabs (left) and response section (right)
+  let panesEl: HTMLDivElement;
+  let splitPct = 50;
+
+  function startDrag(e: MouseEvent) {
+    e.preventDefault();
+    const rect = panesEl.getBoundingClientRect();
+    const onMove = (ev: MouseEvent) => {
+      const pct = ((ev.clientX - rect.left) / rect.width) * 100;
+      splitPct = Math.min(80, Math.max(20, pct));
+    };
+    const onUp = () => {
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+    };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+  }
+
   function markDirty() {
     dirty = true;
   }
@@ -78,34 +97,44 @@
     </button>
   </div>
 
-  <nav class="tabs">
-    {#each ['query', 'body', 'headers', 'env'] as t}
-      <button class:active={tab === t} on:click={() => (tab = t as Tab)}>
-        {t[0].toUpperCase() + t.slice(1)}
-      </button>
-    {/each}
-  </nav>
+  <div class="panes" bind:this={panesEl}>
+    <div class="pane request-pane" style="width: {splitPct}%">
+      <nav class="tabs">
+        {#each ['query', 'body', 'headers', 'env'] as t}
+          <button class:active={tab === t} on:click={() => (tab = t as Tab)}>
+            {t[0].toUpperCase() + t.slice(1)}
+          </button>
+        {/each}
+      </nav>
 
-  {#if tab === 'query'}
-    <KeyValueEditor entries={request.query} onChange={setQuery} />
-  {:else if tab === 'headers'}
-    <KeyValueEditor entries={request.headers} onChange={setHeaders} />
-  {:else if tab === 'body'}
-    <div class="body-switch">
-      <button class:on={request.body.type === 'json'} on:click={() => { request.body.type = 'json'; markDirty(); }}>json</button>
-      <span class="sep">|</span>
-      <button class:on={request.body.type === 'text'} on:click={() => { request.body.type = 'text'; markDirty(); }}>text</button>
+      {#if tab === 'query'}
+        <KeyValueEditor entries={request.query} onChange={setQuery} />
+      {:else if tab === 'headers'}
+        <KeyValueEditor entries={request.headers} onChange={setHeaders} />
+      {:else if tab === 'body'}
+        <div class="body-switch">
+          <button class:on={request.body.type === 'json'} on:click={() => { request.body.type = 'json'; markDirty(); }}>json</button>
+          <span class="sep">|</span>
+          <button class:on={request.body.type === 'text'} on:click={() => { request.body.type = 'text'; markDirty(); }}>text</button>
+        </div>
+        <textarea
+          class="body-content"
+          bind:value={request.body.content}
+          on:input={markDirty}
+          placeholder="Enter text here…"
+          spellcheck="false"
+        ></textarea>
+      {:else}
+        <p class="empty">Environment variables in this call — coming in milestone 3.</p>
+      {/if}
     </div>
-    <textarea
-      class="body-content"
-      bind:value={request.body.content}
-      on:input={markDirty}
-      placeholder="Enter text here…"
-      spellcheck="false"
-    ></textarea>
-  {:else}
-    <p class="empty">Environment variables in this call — coming in milestone 3.</p>
-  {/if}
+
+    <div class="divider" role="separator" aria-orientation="vertical" on:mousedown={startDrag}></div>
+
+    <div class="pane response-pane-wrap">
+      <slot />
+    </div>
+  </div>
 </div>
 
 <style>
@@ -115,6 +144,33 @@
     gap: 14px;
     min-width: 0;
     min-height: 0;
+    height: 100%;
+  }
+  .panes {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+  }
+  .pane {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    min-width: 0;
+    min-height: 0;
+    overflow-y: auto;
+  }
+  .response-pane-wrap {
+    flex: 1;
+  }
+  .divider {
+    flex-shrink: 0;
+    width: 5px;
+    margin: 0 10px;
+    cursor: col-resize;
+    border-left: 1px solid #e5e5e5;
+  }
+  .divider:hover {
+    border-left-color: #ecdfa8;
   }
   .url-row {
     display: flex;
@@ -196,11 +252,15 @@
     color: #333;
   }
   .action.send {
-    border-color: #bfe3cd;
-    background: #eaf6ef;
-    color: #2c7a52;
+    border: none;
+    background: #4caf7d;
+    color: #fff;
+    font-weight: 500;
+    padding: 0 20px;
+    transition: background 0.1s ease;
   }
-  .action.send:hover { background: #def0e5; }
+  .action.send:hover { background: #429e70; }
+  .action.send:active { background: #3a8d63; }
   .action.send:disabled { opacity: 0.6; cursor: default; }
 
   .tabs {
