@@ -5,6 +5,7 @@
   import EnvironmentEditor from './lib/EnvironmentEditor.svelte';
   import type { Collection, TreeNode, ApiRequest, Environment } from './lib/types';
   import { normalizeUrlAndQuery } from './lib/urlQuery';
+  import primroseLogo from './assets/images/primrose-logo.svg';
   import {
     runHistory,
     recordRun,
@@ -239,6 +240,10 @@
 
 <div class="app">
   <header class="collection-tabs">
+    <div class="brand">
+      <img class="brand-logo" src={primroseLogo} alt="" />
+      <span class="brand-name">Primrose</span>
+    </div>
     {#each collections as col, i (col.root)}
       <button class="col-tab" class:active={i === activeIdx} on:click={() => switchCollection(i)}>
         {col.name}
@@ -346,9 +351,26 @@
   }
   .collection-tabs {
     display: flex;
+    align-items: center;
     gap: 8px;
     padding: 10px 14px;
     border-bottom: 1px solid #e5e5e5;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-right: 10px;
+  }
+  .brand-logo {
+    width: 20px;
+    height: 20px;
+  }
+  .brand-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #444;
+    letter-spacing: 0.01em;
   }
   .col-tab {
     border: 1px solid #e0e0e0;
