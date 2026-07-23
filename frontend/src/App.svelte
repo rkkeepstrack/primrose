@@ -22,6 +22,8 @@
     pruneEdits,
   } from './lib/stores';
   import { filterTree } from './lib/fuzzy';
+  import Dialog from './lib/Dialog.svelte';
+  import { confirmDialog, promptDialog } from './lib/dialogs';
   import {
     OpenCollectionDialog,
     CreateRequest,
@@ -120,8 +122,9 @@
   let draftDir: string | null = null;
   let draftName: string | null = null;
 
-  function newRequest(dir: string) {
-    if (dirty && !confirm('Discard unsaved changes?')) return;
+  async function newRequest(dir: string) {
+    if (draftDir !== null && dirty && !(await confirmDialog('Discard the unsaved new request?'))) return;
+    stashCurrentEdit();
     request = {
       method: 'GET',
       url: '',
@@ -170,7 +173,7 @@
   }
 
   async function newFolder(dir: string) {
-    const name = prompt('Folder name:');
+    const name = await promptDialog('Folder name:');
     if (!name?.trim()) return;
     error = '';
     try {
@@ -196,7 +199,7 @@
   }
 
   async function renameItem(node: TreeNode) {
-    const name = prompt('New name:', node.name);
+    const name = await promptDialog('New name:', node.name);
     if (!name?.trim() || name === node.name) return;
     error = '';
     try {
@@ -226,7 +229,7 @@
 
   async function deleteItem(node: TreeNode) {
     const what = node.isFolder ? `folder "${node.name}" and everything in it` : `request "${node.name}"`;
-    if (!confirm(`Delete ${what}?`)) return;
+    if (!(await confirmDialog(`Delete ${what}?`, true))) return;
     error = '';
     try {
       await DeleteItem(node.path);
@@ -347,7 +350,7 @@
   }
 
   async function selectRequest(node: TreeNode) {
-    if (draftDir !== null && dirty && !confirm('Discard the unsaved new request?')) return;
+    if (draftDir !== null && dirty && !(await confirmDialog('Discard the unsaved new request?'))) return;
     error = '';
     stashCurrentEdit();
     draftDir = null;
@@ -374,9 +377,9 @@
     }
   }
 
-  function switchCollection(i: number) {
+  async function switchCollection(i: number) {
     if (i === activeIdx && !envView) return;
-    if (draftDir !== null && dirty && !confirm('Discard the unsaved new request?')) return;
+    if (draftDir !== null && dirty && !(await confirmDialog('Discard the unsaved new request?'))) return;
     envView = false;
     if (i === activeIdx) return;
     stashCurrentEdit();
@@ -513,6 +516,7 @@
       </div>
     {/if}
   {/if}
+  <Dialog />
 </div>
 
 <style>
