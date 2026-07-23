@@ -15,6 +15,8 @@
   import {
     OpenCollectionDialog,
     CreateRequest,
+    CreateFolder,
+    MoveItem,
     ReadRequest,
     SaveRequest,
     SendRequest,
@@ -112,6 +114,59 @@
     } catch (e) {
       error = String(e);
     }
+  }
+
+  async function refreshTree() {
+    const col = (await GetTree(collections[activeIdx].root)) as Collection;
+    collections[activeIdx] = col;
+  }
+
+  async function newFolder(dir: string) {
+    const name = prompt('Folder name:');
+    if (!name?.trim()) return;
+    error = '';
+    try {
+      await CreateFolder(dir, name);
+      await refreshTree();
+    } catch (e) {
+      error = String(e);
+    }
+  }
+
+  async function moveItem(src: string, destDir: string) {
+    error = '';
+    try {
+      const newPath = await MoveItem(src, destDir);
+      if (selectedPath === src) selectedPath = newPath;
+      else if (selectedPath?.startsWith(src + '/')) {
+        selectedPath = newPath + selectedPath.slice(src.length);
+      }
+      await refreshTree();
+    } catch (e) {
+      error = String(e);
+    }
+  }
+
+  let rootDroppable = false;
+
+  function rootDragOver(e: DragEvent) {
+    if (!e.dataTransfer?.types.includes('application/x-primrose-path')) return;
+    // only when dropping on the sidebar background itself, not on a tree row
+    if ((e.target as HTMLElement).closest('.tree')) {
+      rootDroppable = false;
+      return;
+    }
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    rootDroppable = true;
+  }
+
+  function rootDrop(e: DragEvent) {
+    rootDroppable = false;
+    if ((e.target as HTMLElement).closest('.tree')) return;
+    e.preventDefault();
+    const src = e.dataTransfer?.getData('application/x-primrose-path');
+    if (src && activeRoot) moveItem(src, activeRoot);
   }
 
   async function sendRequest() {
@@ -217,13 +272,32 @@
       />
     {:else}
       <div class="main">
-        <aside class="sidebar">
+        <aside
+          class="sidebar"
+          class:root-droppable={rootDroppable}
+          role="tree"
+          on:dragover={rootDragOver}
+          on:dragleave={() => (rootDroppable = false)}
+          on:drop={rootDrop}
+        >
           <div class="sidebar-head">
-            <button
-              class="new-root"
-              title="New request at root level"
-              on:click={() => activeRoot && newRequest(activeRoot)}
-            >+</button>
+            <div class="head-actions">
+              <button
+                class="new-root"
+                title="New request at root level"
+                on:click={() => activeRoot && newRequest(activeRoot)}
+              >+</button>
+              <button
+                class="new-root"
+                title="New folder at root level"
+                on:click={() => activeRoot && newFolder(activeRoot)}
+              >
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3">
+                  <path d="M1.5 4.5 a1 1 0 0 1 1-1 h3.5 l1.5 1.8 h6 a1 1 0 0 1 1 1 v6.2 a1 1 0 0 1 -1 1 h-11 a1 1 0 0 1 -1-1 z" />
+                  <path d="M8 7.6 v4 M6 9.6 h4" stroke-linecap="round" />
+                </svg>
+              </button>
+            </div>
             <button class="env-label" on:click={() => (envView = true)} title="Edit environments">
               {activeEnvName ?? 'No environment'}
             </button>
@@ -234,6 +308,8 @@
             {selectedPath}
             onSelect={selectRequest}
             onNewRequest={newRequest}
+            onNewFolder={newFolder}
+            onMove={moveItem}
           />
         </aside>
         <section class="detail">
@@ -249,7 +325,7 @@
               onSave={saveRequest}
               onSend={sendRequest}
             >
-              <ResponsePane {runs} />
+              <ResponsePane {runs} {sending} />
             </RequestView>
           {:else}
             <p class="hint">Select a request in the sidebar.</p>
@@ -312,16 +388,24 @@
     align-items: center;
     margin-bottom: 8px;
   }
+  .head-actions { display: flex; align-items: center; gap: 2px; }
   .new-root {
+    display: flex;
+    align-items: center;
     border: none;
     background: none;
     color: #999;
     font-size: 16px;
     cursor: pointer;
-    padding: 1px 9px;
+    padding: 3px 8px;
     border-radius: 5px;
   }
   .new-root:hover { color: #4caf7d; background: #f4faf6; }
+  .sidebar.root-droppable {
+    background: #f4faf6;
+    outline: 1px dashed #4caf7d;
+    outline-offset: -4px;
+  }
   .env-label {
     border: none;
     background: none;

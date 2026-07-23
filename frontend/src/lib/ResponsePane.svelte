@@ -1,8 +1,10 @@
 <script lang="ts">
   import type { RunRecord, ApiResponse } from './types';
   import CodeViewer from './CodeViewer.svelte';
+  import primroseLogo from '../assets/images/primrose-logo.svg';
 
   export let runs: RunRecord[];
+  export let sending = false;
 
   type Tab = 'response' | 'headers' | 'timeline';
   type Mode = 'json' | 'raw' | 'image';
@@ -78,7 +80,11 @@
     {/each}
   </nav>
 
-  {#if !current}
+  {#if sending}
+    <div class="loading">
+      <img class="spinner" src={primroseLogo} alt="loading" />
+    </div>
+  {:else if !current}
     <p class="empty">Send the request to see the response.</p>
   {:else}
     <div class="status-line">
@@ -292,4 +298,20 @@
   .timeline button.viewing { background: #fdf7dc; }
 
   .empty { color: #aaa; font-size: 13px; }
+
+  .loading {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .spinner {
+    width: 56px;
+    height: 56px;
+    animation: primrose-spin 1.6s linear infinite;
+  }
+  @keyframes primrose-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
 </style>

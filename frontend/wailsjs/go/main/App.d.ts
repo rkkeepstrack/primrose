@@ -4,11 +4,15 @@ import {collection} from '../models';
 import {env} from '../models';
 import {httpclient} from '../models';
 
+export function CreateFolder(arg1:string,arg2:string):Promise<string>;
+
 export function CreateRequest(arg1:string,arg2:string,arg3:collection.Request):Promise<string>;
 
 export function GetTree(arg1:string):Promise<collection.Collection>;
 
 export function ListEnvironments(arg1:string):Promise<Array<env.Environment>>;
+
+export function MoveItem(arg1:string,arg2:string):Promise<string>;
 
 export function OpenCollection(arg1:string):Promise<collection.Collection>;
 

@@ -5,6 +5,7 @@
   import CodeEditor from './CodeEditor.svelte';
   import { extractEnvVars, extractDynamicVars } from './varUtils';
   import { splitUrl, buildUrl, queryFromUrl } from './urlQuery';
+  import primroseLogo from '../assets/images/primrose-logo.svg';
 
   export let request: ApiRequest;
   export let draftName: string | null = null; // non-null while creating a new request
@@ -124,7 +125,10 @@
       Save{dirty ? ' •' : ''}
     </button>
     <button class="action send" disabled={sending} on:click={onSend} title="⌘↵">
-      {sending ? 'Sending…' : 'Send'}
+      {#if sending}
+        <img class="send-spinner" src={primroseLogo} alt="" />
+      {/if}
+      Send
     </button>
   </div>
 
@@ -347,7 +351,21 @@
   }
   .action.send:hover { background: #429e70; }
   .action.send:active { background: #3a8d63; }
-  .action.send:disabled { opacity: 0.6; cursor: default; }
+  .action.send:disabled { opacity: 0.8; cursor: default; }
+  .action.send {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .send-spinner {
+    width: 15px;
+    height: 15px;
+    animation: primrose-spin 1.6s linear infinite;
+  }
+  @keyframes primrose-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
 
   .tabs {
     display: flex;

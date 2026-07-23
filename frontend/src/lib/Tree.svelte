@@ -6,11 +6,37 @@
   export let selectedPath: string | null = null;
   export let onSelect: (node: TreeNode) => void;
   export let onNewRequest: (dirPath: string) => void;
+  export let onNewFolder: (dirPath: string) => void;
+  export let onMove: (src: string, destDir: string) => void;
 
   let open: Record<string, boolean> = {};
+  let dropTarget: string | null = null;
 
   function toggle(node: TreeNode) {
     open[node.path] = !open[node.path];
+  }
+
+  function dragStart(e: DragEvent, node: TreeNode) {
+    e.dataTransfer?.setData('application/x-primrose-path', node.path);
+    e.dataTransfer!.effectAllowed = 'move';
+  }
+
+  function dragOver(e: DragEvent, node: TreeNode) {
+    if (!e.dataTransfer?.types.includes('application/x-primrose-path')) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    dropTarget = node.path;
+  }
+
+  function drop(e: DragEvent, node: TreeNode) {
+    e.preventDefault();
+    e.stopPropagation();
+    dropTarget = null;
+    const src = e.dataTransfer?.getData('application/x-primrose-path');
+    if (src && src !== node.path) {
+      open[node.path] = true;
+      onMove(src, node.path);
+    }
   }
 </script>
 
@@ -18,7 +44,17 @@
   {#each nodes as node (node.path)}
     <li>
       {#if node.isFolder}
-        <div class="folder-row">
+        <div
+          class="folder-row"
+          class:droppable={dropTarget === node.path}
+          role="treeitem"
+          aria-selected="false"
+          draggable="true"
+          on:dragstart={(e) => dragStart(e, node)}
+          on:dragover={(e) => dragOver(e, node)}
+          on:dragleave={() => (dropTarget = null)}
+          on:drop={(e) => drop(e, node)}
+        >
           <button class="row folder" on:click={() => toggle(node)}>
             <svg
               class="caret"
@@ -32,20 +68,39 @@
             <span class="name">{node.name}</span>
           </button>
           <button
-            class="folder-add"
+            class="hover-btn"
+            title="New folder in {node.name}"
+            on:click={() => { open[node.path] = true; onNewFolder(node.path); }}
+          >
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3">
+              <path d="M1.5 4.5 a1 1 0 0 1 1-1 h3.5 l1.5 1.8 h6 a1 1 0 0 1 1 1 v6.2 a1 1 0 0 1 -1 1 h-11 a1 1 0 0 1 -1-1 z" />
+              <path d="M8 7.6 v4 M6 9.6 h4" stroke-linecap="round" />
+            </svg>
+          </button>
+          <button
+            class="hover-btn"
             title="New request in {node.name}"
             on:click={() => { open[node.path] = true; onNewRequest(node.path); }}
           >+</button>
         </div>
         {#if open[node.path] && node.children?.length}
           <div class="children">
-            <Tree nodes={node.children} {selectedPath} {onSelect} {onNewRequest} />
+            <Tree
+              nodes={node.children}
+              {selectedPath}
+              {onSelect}
+              {onNewRequest}
+              {onNewFolder}
+              {onMove}
+            />
           </div>
         {/if}
       {:else}
         <button
           class="row request"
           class:selected={node.path === selectedPath}
+          draggable="true"
+          on:dragstart={(e) => dragStart(e, node)}
           on:click={() => onSelect(node)}
         >
           <span class="method method-{node.method}">{node.method}</span>
@@ -83,26 +138,33 @@
   .row:hover {
     background: #f5f5f5;
   }
+  .row.selected {
+    background: #fdf7dc;
+  }
   .folder-row {
     display: flex;
     align-items: center;
+    border-radius: 6px;
+  }
+  .folder-row.droppable {
+    background: #f4faf6;
+    outline: 1px dashed #4caf7d;
   }
   .folder-row .row { flex: 1; min-width: 0; }
-  .folder-add {
+  .hover-btn {
+    display: flex;
+    align-items: center;
     border: none;
     background: none;
     color: transparent;
     font-size: 14px;
     cursor: pointer;
-    padding: 2px 8px;
+    padding: 2px 6px;
     border-radius: 5px;
     flex-shrink: 0;
   }
-  .folder-row:hover .folder-add { color: #b0b0b0; }
-  .folder-add:hover { color: #4caf7d !important; background: #f4faf6; }
-  .row.selected {
-    background: #fdf7dc;
-  }
+  .folder-row:hover .hover-btn { color: #b0b0b0; }
+  .hover-btn:hover { color: #4caf7d !important; background: #f4faf6; }
   .caret {
     flex-shrink: 0;
     color: #a0a0a0;

@@ -65,6 +65,16 @@ func (a *App) CreateRequest(dir, name string, r collection.Request) (string, err
 	return collection.CreateRequest(dir, name, &r)
 }
 
+// CreateFolder creates a subfolder inside dir.
+func (a *App) CreateFolder(dir, name string) (string, error) {
+	return collection.CreateFolder(dir, name)
+}
+
+// MoveItem moves a request file or folder into destDir.
+func (a *App) MoveItem(src, destDir string) (string, error) {
+	return collection.MoveItem(src, destDir)
+}
+
 // SaveRequest writes a request back to its TOML file.
 func (a *App) SaveRequest(path string, r collection.Request) error {
 	return collection.WriteRequest(path, &r)
