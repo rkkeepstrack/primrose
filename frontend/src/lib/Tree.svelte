@@ -32,14 +32,9 @@
     // widest hue span that stays clear of the yellow selection color:
     // green -> teal -> blue -> purple -> pink, ~23° per recency step so
     // neighbouring entries are clearly distinct
-    const hue = 140 + (1 - h) * 210; // 140 (green) -> 350 (pink)
-    const alpha = 0.04 + 0.06 * h;
-    // colored left bar + faint tint: reads clearly different from the
-    // solid yellow selection highlight
-    return (
-      `background: hsla(${hue.toFixed(0)}, 80%, 52%, ${alpha.toFixed(3)});` +
-      `box-shadow: inset 3px 0 0 hsla(${hue.toFixed(0)}, 75%, 55%, 0.85)`
-    );
+    const hue = 190 + (1 - h) * 170; // 190 (teal-blue) -> 360 (red)
+    const alpha = 0.05 + 0.07 * h;
+    return `background: hsla(${hue.toFixed(0)}, 80%, 52%, ${alpha.toFixed(3)})`;
   }
 
   function dragStart(e: DragEvent, node: TreeNode) {
@@ -218,6 +213,7 @@
   }
   .row-wrap.selected {
     background: #fdf7dc;
+    box-shadow: inset 3px 0 0 #e8a94c;
   }
   .row-wrap.selected .hover-btn {
     color: #444;
