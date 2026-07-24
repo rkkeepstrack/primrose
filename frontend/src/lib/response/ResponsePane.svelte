@@ -13,8 +13,19 @@
   export let runs: RunRecord[];
 
   type Tab = 'response' | 'headers' | 'timeline';
+  const TABS: Tab[] = ['response', 'headers', 'timeline'];
   let tab: Tab = 'response';
   let viewedIdx = 0;
+
+  // ⌘5–7 switch the response tabs (⌘1–4 belong to the request pane)
+  function onKeydown(e: KeyboardEvent) {
+    if (!(e.metaKey || e.ctrlKey)) return;
+    const n = Number(e.key);
+    if (n >= 5 && n <= 4 + TABS.length) {
+      e.preventDefault();
+      tab = TABS[n - 5];
+    }
+  }
 
   let lastRuns = runs;
   $: if (runs !== lastRuns) {
@@ -25,9 +36,11 @@
   $: current = runs[viewedIdx] ?? null;
 </script>
 
+<svelte:window on:keydown={onKeydown} />
+
 <div class="response-pane">
   <TabBar
-    tabs={['response', 'headers', 'timeline']}
+    tabs={TABS}
     active={tab}
     onSelect={(t) => (tab = t as Tab)}
     accent="var(--orange)"

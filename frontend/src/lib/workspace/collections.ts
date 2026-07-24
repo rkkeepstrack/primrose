@@ -6,7 +6,7 @@ import { errMsg } from '../shared/errors';
 import { GetTree, OpenCollectionDialog } from '../../../wailsjs/go/main/App';
 import { loadEnvironments } from './environments';
 import { maybeAbandonDraft, stashCurrentEdit } from './drafts';
-import { activeIdx, activeRoot, clearSelection, collections, envView, error } from './state';
+import { activeIdx, activeRoot, clearSelection, collections, envView, error, shortcutsView } from './state';
 
 export async function openCollectionViaDialog() {
   error.set('');
@@ -30,9 +30,10 @@ export async function openCollectionViaDialog() {
 }
 
 export async function switchCollection(i: number) {
-  if (i === get(activeIdx) && !get(envView)) return;
+  if (i === get(activeIdx) && !get(envView) && !get(shortcutsView)) return;
   if (!(await maybeAbandonDraft())) return;
   envView.set(false);
+  shortcutsView.set(false);
   if (i === get(activeIdx)) return;
   stashCurrentEdit();
   activeIdx.set(i);

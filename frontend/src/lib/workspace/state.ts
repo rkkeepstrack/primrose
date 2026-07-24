@@ -14,6 +14,7 @@ export const dirty = writable(false);
 export const sending = writable(false);
 export const error = writable('');
 export const envView = writable(false);
+export const shortcutsView = writable(false);
 export const environments = writable<Record<string, Environment[]>>({});
 export const restored = writable(false);
 // the open request was modified on disk while it had unsaved edits here

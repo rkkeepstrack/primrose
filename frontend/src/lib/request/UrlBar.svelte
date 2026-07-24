@@ -74,13 +74,25 @@
         onChange={setUrl}
       />
     </div>
-    <button class="action save" class:dirty={$dirty} on:click={saveRequest} title="⌘S">
-      Save{$dirty ? ' •' : ''}
+    <button class="action save" class:dirty={$dirty} on:click={saveRequest} title="Save (⌘S)" aria-label="Save">
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round">
+        <path d="M2.5 3.5 a1 1 0 0 1 1-1 h8 l2 2 v8 a1 1 0 0 1 -1 1 h-9 a1 1 0 0 1 -1-1 z" />
+        <path d="M5 2.8 v3.2 h5.5 v-3.2 M4.5 13.3 v-4.3 h7 v4.3" />
+      </svg>
+      {#if $dirty}<span class="save-dot"></span>{/if}
     </button>
     {#if $sending}
-      <button class="action cancel" on:click={cancelRequest}>Cancel</button>
+      <button class="action cancel" on:click={cancelRequest} title="Cancel request" aria-label="Cancel">
+        <svg width="13" height="13" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+          <path d="M2.5 2.5 L9.5 9.5 M9.5 2.5 L2.5 9.5" />
+        </svg>
+      </button>
     {:else}
-      <button class="action send" on:click={sendRequest} title="⌘↵">Send</button>
+      <button class="action send" on:click={sendRequest} title="Send (⌘↵)" aria-label="Send">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor">
+          <path d="M3.5 2 L11.5 7 L3.5 12 Z" />
+        </svg>
+      </button>
     {/if}
   </div>
 {/if}
@@ -176,14 +188,17 @@
   .method-popup button { text-align: left; }
 
   .action {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
     border: 1px solid var(--border);
     border-radius: 8px;
     background: #fff;
-    font-size: 13px;
-    font-family: inherit;
     color: var(--text-muted);
     cursor: pointer;
-    padding: 0 16px;
+    padding: 0;
   }
   .action:hover { background: #f7f7f7; }
   .action.save.dirty {
@@ -191,12 +206,19 @@
     background: var(--yellow-bg);
     color: var(--text);
   }
+  .save-dot {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--orange-strong);
+  }
   .action.send {
     border: none;
     background: var(--green);
     color: #fff;
-    font-weight: 500;
-    padding: 0 20px;
     transition: background 0.1s ease;
   }
   .action.send:hover { background: var(--green-dark); }
@@ -205,8 +227,6 @@
     border: none;
     background: var(--red);
     color: #fff;
-    font-weight: 500;
-    padding: 0 16px;
     transition: background 0.1s ease;
   }
   .action.cancel:hover { background: var(--red-dark); }

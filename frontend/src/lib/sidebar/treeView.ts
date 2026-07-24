@@ -10,6 +10,48 @@ import { activeIdx, collections, dirty, selectedPath } from '../workspace/state'
 export const search = writable('');
 export const recentFilterOn = writable(false);
 
+// folder expansion state, shared by all tree levels
+export const expanded = writable<Record<string, boolean>>({});
+
+export function toggleFolder(path: string) {
+  expanded.update((e) => ({ ...e, [path]: !e[path] }));
+}
+
+export function expandFolder(path: string) {
+  expanded.update((e) => ({ ...e, [path]: true }));
+}
+
+// Folders opened automatically while hopping (⌥↑/⌥↓); they collapse again
+// once the hop moves out of them. User-opened folders are never touched.
+let autoExpanded = new Set<string>();
+
+export function revealRequest(path: string, root: string) {
+  const ancestors: string[] = [];
+  let p = path;
+  for (;;) {
+    const i = p.lastIndexOf('/');
+    if (i <= root.length) break;
+    p = p.slice(0, i);
+    ancestors.push(p);
+  }
+  expanded.update((e) => {
+    const next = { ...e };
+    for (const dir of [...autoExpanded]) {
+      if (!ancestors.includes(dir)) {
+        next[dir] = false;
+        autoExpanded.delete(dir);
+      }
+    }
+    for (const dir of ancestors) {
+      if (!next[dir]) {
+        next[dir] = true;
+        autoExpanded.add(dir);
+      }
+    }
+    return next;
+  });
+}
+
 // while searching, every folder is force-expanded so matches stay visible
 export const forceOpen = derived(search, ($s) => $s.trim().length > 0);
 
@@ -42,6 +84,20 @@ export const visibleTree = derived(
     return filterTree(flat, $search);
   }
 );
+
+// the visible requests flattened depth-first — the order ⌥↑/⌥↓ hop in and
+// what Enter in the search opens (first entry)
+export const flatRequests = derived(visibleTree, ($tree) => {
+  const out: TreeNode[] = [];
+  const walk = (nodes: TreeNode[]) => {
+    for (const n of nodes) {
+      if (n.isFolder) walk(n.children ?? []);
+      else out.push(n);
+    }
+  };
+  walk($tree);
+  return out;
+});
 
 // path -> 0..1 recency rank (1 = most recent)
 export const heat = derived(recentPaths, ($recents) =>

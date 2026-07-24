@@ -8,12 +8,25 @@
   import { request } from '../workspace/state';
 
   type Tab = 'query' | 'body' | 'headers' | 'env';
+  const TABS: Tab[] = ['query', 'body', 'headers', 'env'];
   let tab: Tab = 'query';
+
+  // ⌘1–4 switch the request tabs (⌘5–7 belong to the response pane)
+  function onKeydown(e: KeyboardEvent) {
+    if (!(e.metaKey || e.ctrlKey)) return;
+    const n = Number(e.key);
+    if (n >= 1 && n <= TABS.length) {
+      e.preventDefault();
+      tab = TABS[n - 1];
+    }
+  }
 </script>
+
+<svelte:window on:keydown={onKeydown} />
 
 {#if $request}
   <TabBar
-    tabs={['query', 'body', 'headers', 'env']}
+    tabs={TABS}
     active={tab}
     onSelect={(t) => (tab = t as Tab)}
   />

@@ -5,7 +5,7 @@
   import Tree from './Tree.svelte';
   import TreeRow from './TreeRow.svelte';
   import { acceptPathDrag, carriesPath, readPathDrag } from './dnd';
-  import { dirtyPaths, forceOpen, heat, heatStyle } from './treeView';
+  import { dirtyPaths, expanded, expandFolder, forceOpen, heat, heatStyle, toggleFolder } from './treeView';
   import { newRequest, selectRequest } from '../workspace/requests';
   import { selectedPath } from '../workspace/state';
   import { deleteItem, duplicateItem, moveItem, newFolder, renameItem } from '../workspace/treeOps';
@@ -13,13 +13,8 @@
   export let nodes: TreeNode[];
   export let root = true; // false for nested (recursive) levels
 
-  let open: Record<string, boolean> = {};
   let dropTarget: string | null = null;
   let menuFor: string | null = null;
-
-  function toggle(node: TreeNode) {
-    open[node.path] = !open[node.path];
-  }
 
   function folderDragOver(e: DragEvent, node: TreeNode) {
     if (!carriesPath(e)) return;
@@ -33,7 +28,7 @@
     dropTarget = null;
     const src = readPathDrag(e);
     if (src && src !== node.path) {
-      open[node.path] = true;
+      expandFolder(node.path);
       moveItem(src, node.path);
     }
   }
@@ -63,10 +58,10 @@
           onDragLeave={() => (dropTarget = null)}
           onDrop={(e) => folderDrop(e, node)}
         >
-          <button class="row folder" on:click={() => toggle(node)}>
+          <button class="row folder" on:click={() => toggleFolder(node.path)}>
             <svg
               class="caret"
-              class:open={$forceOpen || open[node.path]}
+              class:open={$forceOpen || $expanded[node.path]}
               width="10"
               height="10"
               viewBox="0 0 10 10"
@@ -78,7 +73,7 @@
           <button
             class="hover-btn"
             title="New folder in {node.name}"
-            on:click={() => { open[node.path] = true; newFolder(node.path); }}
+            on:click={() => { expandFolder(node.path); newFolder(node.path); }}
           >
             <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3">
               <path d="M1.5 4.5 a1 1 0 0 1 1-1 h3.5 l1.5 1.8 h6 a1 1 0 0 1 1 1 v6.2 a1 1 0 0 1 -1 1 h-11 a1 1 0 0 1 -1-1 z" />
@@ -88,10 +83,10 @@
           <button
             class="hover-btn"
             title="New request in {node.name}"
-            on:click={() => { open[node.path] = true; newRequest(node.path); }}
+            on:click={() => { expandFolder(node.path); newRequest(node.path); }}
           >+</button>
         </TreeRow>
-        {#if ($forceOpen || open[node.path]) && node.children?.length}
+        {#if ($forceOpen || $expanded[node.path]) && node.children?.length}
           <div class="children">
             <Tree nodes={node.children} root={false} />
           </div>

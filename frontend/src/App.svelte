@@ -13,6 +13,8 @@
   import { pickEnvironment, saveEnvVars } from './lib/workspace/environments';
   import { persistSession, restoreSession } from './lib/workspace/session';
   import { initExternalSync } from './lib/workspace/sync';
+  import ShortcutsPanel from './lib/shortcuts/ShortcutsPanel.svelte';
+  import { shortcutsView } from './lib/workspace/state';
   import { activeEnvName, activeIdx, collections, envView, envs, error, request, restored } from './lib/workspace/state';
 
   onMount(() => {
@@ -20,9 +22,19 @@
     restoreSession();
   });
 
+  function onGlobalKeydown(e: KeyboardEvent) {
+    if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+      e.preventDefault();
+      envView.set(false);
+      shortcutsView.update((v) => !v);
+    }
+  }
+
   // persist open collections + active tab whenever they change
   $: if ($restored && $collections && $activeIdx >= 0) persistSession();
 </script>
+
+<svelte:window on:keydown={onGlobalKeydown} />
 
 <div class="app">
   <div class="titlebar">
@@ -43,6 +55,11 @@
         Environment ×
       </button>
     {/if}
+    {#if $shortcutsView}
+      <button class="col-tab shortcuts-tab" on:click={() => shortcutsView.set(false)}>
+        Shortcuts ×
+      </button>
+    {/if}
   </header>
 
   {#if $error}
@@ -59,6 +76,8 @@
       <p>Open a collection folder to get started.</p>
       <button class="primary" on:click={openCollectionViaDialog}>Open Collection…</button>
     </div>
+  {:else if $shortcutsView}
+    <ShortcutsPanel />
   {:else if $envView}
     <EnvironmentEditor
       environments={$envs}
@@ -144,6 +163,13 @@
     color: #999;
   }
   .env-tab { margin-left: auto; }
+  .shortcuts-tab {
+    margin-left: auto;
+    background: var(--green-bg);
+    border-color: var(--green-border);
+    color: var(--green-text);
+  }
+  .env-tab + .shortcuts-tab { margin-left: 0; }
 
   .main {
     display: grid;

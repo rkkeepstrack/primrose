@@ -13,3 +13,7 @@
 13. migration for bruno collections
 14. on hovering in the response timeline tab, i want the preview to switch with the hovered item, so as a user, i can see what exact request that run refers to without having to open it.
 15. full screen on double click on the header, same as it would work with native windows, linux or macos
+16. environment variables in this call should be editable and saveable from the response env tab
+17. in response env tab - switch around the positioning of env and dynamic variables. also call the tab 'Variables'
+18. app menus: currently, the app has the standard system menus like edit and window. maybe it's a good idea to visualize the shortcuts and the functionality there as well
+19. allow closing collections and other tabs like environment or shortcuts with cmd+w. these tabs should behave like native tabs, macos has something like that i guess
