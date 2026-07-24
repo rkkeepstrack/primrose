@@ -36,7 +36,7 @@
   }
 </script>
 
-<table class="kv">
+<table class="kv-table kv">
   <thead><tr><th>Name</th><th>Value</th><th></th></tr></thead>
   <tbody>
     {#each rows as row, i}
@@ -58,21 +58,10 @@
 
 <style>
   .kv {
-    border-collapse: collapse;
-    width: 100%;
     max-width: 620px;
-    font-size: 13px;
   }
-  th, td {
-    border: 1px solid #e5e5e5;
+  .kv td {
     padding: 0;
-    text-align: left;
-  }
-  th {
-    font-weight: 600;
-    color: #666;
-    background: #fafafa;
-    padding: 7px 12px;
   }
   td input {
     width: 100%;
@@ -86,7 +75,7 @@
   }
   td input:focus {
     outline: none;
-    background: #fdf7dc;
+    background: var(--yellow-bg);
   }
   td.actions {
     width: 34px;
@@ -100,7 +89,7 @@
     cursor: pointer;
     padding: 4px 10px;
   }
-  .remove:hover { color: #d98282; }
+  .remove:hover { color: var(--red); }
   .add {
     border: none;
     background: none;
@@ -110,5 +99,5 @@
     cursor: pointer;
     padding: 6px 12px;
   }
-  .add:hover { color: #4caf7d; }
+  .add:hover { color: var(--green); }
 </style>

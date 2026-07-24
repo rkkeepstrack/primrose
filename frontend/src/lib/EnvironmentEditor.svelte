@@ -65,7 +65,7 @@
   <section class="env-detail">
     {#if active && draft}
       <div class="toolbar">
-        <input class="search" placeholder="Search for Variables or Values…" bind:value={search} />
+        <input class="search text-input" placeholder="Search for Variables or Values…" bind:value={search} />
         <button class="save" class:dirty on:click={save} disabled={!dirty}>
           Save{dirty ? ' •' : ''}
         </button>
@@ -108,9 +108,9 @@
   }
   .env-list button:hover { background: #f5f5f5; }
   .env-list button.active {
-    color: #3d9469;
+    color: var(--green-text);
     font-weight: 600;
-    background: #f4faf6;
+    background: var(--green-bg);
   }
   .env-detail {
     padding: 16px 20px;
@@ -125,14 +125,7 @@
   }
   .search {
     flex: 1;
-    border: 1px solid #e0e0e0;
-    border-radius: 6px;
-    padding: 7px 12px;
-    font-size: 13px;
-    font-family: inherit;
-    background: #fafafa;
   }
-  .search:focus { outline: none; border-color: #ecdfa8; background: #fff; }
   .save {
     border: 1px solid #e0e0e0;
     border-radius: 6px;
@@ -145,8 +138,8 @@
   }
   .save:disabled { opacity: 0.5; cursor: default; }
   .save.dirty {
-    border-color: #ecdfa8;
-    background: #fdf7dc;
+    border-color: var(--yellow-border);
+    background: var(--yellow-bg);
     color: #333;
   }
   .note { color: #bbb; font-size: 12px; margin: 0; }

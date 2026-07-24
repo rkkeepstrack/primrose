@@ -1,22 +1,50 @@
 package collection
 
 import (
-	"encoding/json"
 	"os"
+	"path/filepath"
 	"testing"
 )
 
-func TestOpenSampleCollection(t *testing.T) {
-	col, err := Open("../../sample-collection")
+// newFixture builds a small collection on disk:
+//
+//	root/
+//	├── primrose.toml
+//	├── environments/staging.toml   (excluded from the tree)
+//	├── get-teasers.toml
+//	└── teasers/create-teaser.toml
+func newFixture(t *testing.T) string {
+	t.Helper()
+	root := t.TempDir()
+	writeFile(t, filepath.Join(root, "primrose.toml"), "name = \"Fixture\"\n")
+	writeFile(t, filepath.Join(root, "environments", "staging.toml"),
+		"[vars]\ncms_api_url = \"https://staging.example.com\"\n")
+	writeFile(t, filepath.Join(root, "get-teasers.toml"),
+		"method = \"GET\"\nurl = \"{{cms_api_url}}/teasers\"\n\n[query]\nteaserGalleryId = \"500070228\"\n")
+	writeFile(t, filepath.Join(root, "teasers", "create-teaser.toml"),
+		"method = \"POST\"\nurl = \"{{cms_api_url}}/teasers\"\n\n[headers]\nContent-Type = \"application/json\"\n\n[body]\ntype = \"json\"\ncontent = '''\n{ \"title\": \"hi\" }\n'''\n")
+	return root
+}
+
+func writeFile(t *testing.T, path, content string) {
+	t.Helper()
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestOpen(t *testing.T) {
+	root := newFixture(t)
+	col, err := Open(root)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if col.Name != "Sample Collection" {
+	if col.Name != "Fixture" {
 		t.Errorf("name = %q", col.Name)
 	}
-	b, _ := json.MarshalIndent(col.Tree, "", "  ")
-	t.Logf("tree:\n%s", b)
-
 	// folders first, then requests; environments/ excluded
 	if len(col.Tree) != 2 {
 		t.Fatalf("expected 2 root nodes, got %d", len(col.Tree))
@@ -37,6 +65,20 @@ func TestOpenSampleCollection(t *testing.T) {
 	}
 }
 
+func TestOpenCreatesManifest(t *testing.T) {
+	root := t.TempDir()
+	col, err := Open(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if col.Name != filepath.Base(root) {
+		t.Errorf("name should default to folder name, got %q", col.Name)
+	}
+	if _, err := os.Stat(filepath.Join(root, "primrose.toml")); err != nil {
+		t.Error("manifest should have been created")
+	}
+}
+
 func TestWriteRequestRoundTrip(t *testing.T) {
 	tmp := t.TempDir() + "/req.toml"
 	orig := &Request{
@@ -53,9 +95,43 @@ func TestWriteRequestRoundTrip(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if got.URL != orig.URL || got.Query["b c"] != "two words" || got.Body.Content != orig.Body.Content+"\n" && got.Body.Content != orig.Body.Content {
+	if got.URL != orig.URL || got.Query["b c"] != "two words" {
 		t.Errorf("round trip mismatch:\norig: %+v\ngot:  %+v", orig, got)
 	}
-	raw, _ := os.ReadFile(tmp)
-	t.Logf("file:\n%s", raw)
+	if got.Body.Content != orig.Body.Content && got.Body.Content != orig.Body.Content+"\n" {
+		t.Errorf("body mismatch: %q", got.Body.Content)
+	}
+}
+
+// Escaping edge cases: values that are invalid TOML with naive Go quoting.
+func TestWriteRequestEscaping(t *testing.T) {
+	tmp := t.TempDir() + "/esc.toml"
+	orig := &Request{
+		Method: "POST",
+		URL:    "https://x.io/päth?q=ümlaut",
+		Headers: map[string]string{
+			"X-Weird":   "tab\there \"quoted\" back\\slash",
+			"X-Control": "bell\x07end",
+		},
+		Body: Body{Type: "text", Content: "contains ''' triple quotes\nand a second line"},
+	}
+	if err := WriteRequest(tmp, orig); err != nil {
+		t.Fatal(err)
+	}
+	got, err := ReadRequest(tmp)
+	if err != nil {
+		t.Fatalf("wrote invalid TOML: %v", err)
+	}
+	if got.Headers["X-Weird"] != orig.Headers["X-Weird"] {
+		t.Errorf("weird header: %q", got.Headers["X-Weird"])
+	}
+	if got.Headers["X-Control"] != orig.Headers["X-Control"] {
+		t.Errorf("control header: %q", got.Headers["X-Control"])
+	}
+	if got.URL != orig.URL {
+		t.Errorf("unicode url: %q", got.URL)
+	}
+	if got.Body.Content != orig.Body.Content {
+		t.Errorf("triple-quote body: %q", got.Body.Content)
+	}
 }

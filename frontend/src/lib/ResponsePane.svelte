@@ -1,31 +1,13 @@
 <script lang="ts">
+  import { onDestroy } from 'svelte';
   import type { RunRecord, ApiResponse } from './types';
   import CodeViewer from './CodeViewer.svelte';
+  import TabBar from './TabBar.svelte';
   import primroseLogo from '../assets/images/primrose-logo.svg';
-
-  import { onDestroy } from 'svelte';
+  import { sending } from './workspace/state';
+  import { fmtElapsed, fmtSize, fmtTime, prettyJson, statusClass } from './format';
 
   export let runs: RunRecord[];
-  export let sending = false;
-
-  // live elapsed timer while a request is in flight
-  let elapsedMs = 0;
-  let timer: ReturnType<typeof setInterval> | null = null;
-
-  $: if (sending && !timer) {
-    const startedAt = Date.now();
-    elapsedMs = 0;
-    timer = setInterval(() => (elapsedMs = Date.now() - startedAt), 53);
-  } else if (!sending && timer) {
-    clearInterval(timer);
-    timer = null;
-  }
-  onDestroy(() => timer && clearInterval(timer));
-
-  function fmtElapsed(ms: number): string {
-    if (ms < 1000) return `${ms} ms`;
-    return `${(ms / 1000).toFixed(1)} s`;
-  }
 
   type Tab = 'response' | 'headers' | 'timeline';
   type Mode = 'json' | 'raw' | 'image';
@@ -46,11 +28,12 @@
   function autoMode(r: ApiResponse | null): Mode {
     if (!r) return 'raw';
     if (r.contentType?.startsWith('image/')) return 'image';
-    if (isJson(r)) return 'json';
+    if (looksLikeJson(r)) return 'json';
     return 'raw';
   }
 
-  function isJson(r: ApiResponse): boolean {
+  // heuristic: trusts the content type, falls back to attempting a parse
+  function looksLikeJson(r: ApiResponse): boolean {
     if (r.contentType?.includes('json')) return true;
     try {
       JSON.parse(r.body);
@@ -67,41 +50,32 @@
     modeTouched = true;
   }
 
-  function pretty(body: string): string {
-    try {
-      return JSON.stringify(JSON.parse(body), null, 2);
-    } catch {
-      return body;
-    }
-  }
+  // live elapsed timer while a request is in flight; ~50ms keeps the display
+  // fluid without excessive redraws
+  const TIMER_TICK_MS = 53;
+  let elapsedMs = 0;
+  let timer: ReturnType<typeof setInterval> | null = null;
 
-  function statusClass(status: number): string {
-    if (status >= 200 && status < 300) return 'ok';
-    if (status >= 400) return 'err';
-    return 'other';
+  $: if ($sending && !timer) {
+    const startedAt = Date.now();
+    elapsedMs = 0;
+    timer = setInterval(() => (elapsedMs = Date.now() - startedAt), TIMER_TICK_MS);
+  } else if (!$sending && timer) {
+    clearInterval(timer);
+    timer = null;
   }
-
-  function fmtTime(d: Date): string {
-    return d.toLocaleTimeString();
-  }
-
-  function fmtSize(n: number): string {
-    if (n < 1024) return `${n} B`;
-    if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
-    return `${(n / 1024 / 1024).toFixed(1)} MB`;
-  }
+  onDestroy(() => timer && clearInterval(timer));
 </script>
 
 <div class="response-pane">
-  <nav class="tabs">
-    {#each ['response', 'headers', 'timeline'] as t}
-      <button class:active={tab === t} on:click={() => (tab = t as Tab)}>
-        {t[0].toUpperCase() + t.slice(1)}
-      </button>
-    {/each}
-  </nav>
+  <TabBar
+    tabs={['response', 'headers', 'timeline']}
+    active={tab}
+    onSelect={(t) => (tab = t as Tab)}
+    accent="var(--orange)"
+  />
 
-  {#if sending}
+  {#if $sending}
     <div class="loading">
       <img class="spinner" src={primroseLogo} alt="loading" />
       <span class="elapsed">{fmtElapsed(elapsedMs)}</span>
@@ -152,14 +126,14 @@
         {:else if current.response.bodyBase64}
           <p class="empty">Binary response ({current.response.contentType || 'unknown type'}, {fmtSize(current.response.size)}) — try the image mode.</p>
         {:else if mode === 'json'}
-          <CodeViewer value={pretty(current.response.body)} lang="json" />
+          <CodeViewer value={prettyJson(current.response.body)} lang="json" />
         {:else}
           <CodeViewer value={current.response.body} lang="text" />
         {/if}
       {/if}
     {:else if tab === 'headers'}
       {#if current.response}
-        <table class="kv">
+        <table class="kv-table headers-table">
           <tbody>
             {#each Object.entries(current.response.headers) as [k, v] (k)}
               <tr><td class="hk">{k}</td><td>{v}</td></tr>
@@ -198,26 +172,6 @@
     min-height: 0;
     height: 100%;
   }
-  .tabs {
-    display: flex;
-    gap: 18px;
-    border-bottom: 1px solid #eee;
-  }
-  .tabs button {
-    border: none;
-    background: none;
-    font-size: 13px;
-    font-family: inherit;
-    cursor: pointer;
-    padding: 6px 2px;
-    color: #888;
-    border-bottom: 2px solid transparent;
-    margin-bottom: -1px;
-  }
-  .tabs button.active {
-    color: #333;
-    border-bottom-color: #e0a869;
-  }
 
   .status-line {
     display: flex;
@@ -226,21 +180,21 @@
     font-size: 13px;
   }
   .status { font-weight: 600; }
-  .status.ok { color: #4caf7d; }
-  .status.err { color: #d98282; }
-  .status.other { color: #e0a869; }
-  .meta { color: #aaa; font-size: 12px; }
+  .status.ok { color: var(--green); }
+  .status.err { color: var(--red); }
+  .status.other { color: var(--orange); }
+  .meta { color: var(--text-disabled); font-size: 12px; }
   .final-url {
-    color: #aaa;
+    color: var(--text-disabled);
     font-size: 12px;
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-family: var(--mono);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
   .old-run {
-    color: #b8a23f;
-    background: #fdf7dc;
+    color: var(--yellow-text);
+    background: var(--yellow-bg);
     border-radius: 4px;
     padding: 2px 8px;
     font-size: 12px;
@@ -261,9 +215,9 @@
     border-radius: 4px;
   }
   .mode-switch button.on {
-    color: #4caf7d;
+    color: var(--green);
     font-weight: 600;
-    background: #f4faf6;
+    background: var(--green-bg);
   }
 
   .image-wrap {
@@ -276,25 +230,21 @@
   }
 
   .error-body {
-    color: #b06a6a;
+    color: var(--red-text);
     font-size: 12.5px;
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-family: var(--mono);
     white-space: pre-wrap;
     margin: 0;
   }
 
-  .kv {
-    border-collapse: collapse;
-    width: 100%;
+  .headers-table {
     font-size: 12.5px;
   }
-  .kv td {
-    border: 1px solid #e5e5e5;
+  .headers-table td {
     padding: 6px 10px;
-    color: #444;
     word-break: break-all;
   }
-  .kv .hk { font-weight: 600; color: #666; width: 220px; }
+  .headers-table .hk { font-weight: 600; color: var(--text-muted); width: 220px; }
 
   .timeline {
     list-style: none;
@@ -316,10 +266,10 @@
     font-family: inherit;
     text-align: left;
   }
-  .timeline button:hover { background: #f5f5f5; }
-  .timeline button.viewing { background: #fdf7dc; }
+  .timeline button:hover { background: var(--bg-hover); }
+  .timeline button.viewing { background: var(--yellow-bg); }
 
-  .empty { color: #aaa; font-size: 13px; }
+  .empty { color: var(--text-disabled); font-size: 13px; }
 
   .loading {
     flex: 1;
@@ -329,15 +279,15 @@
     justify-content: center;
     gap: 14px;
   }
-  .elapsed {
-    font-size: 13px;
-    color: #999;
-    font-variant-numeric: tabular-nums;
-  }
   .spinner {
     width: 56px;
     height: 56px;
     animation: primrose-spin 1.6s linear infinite;
+  }
+  .elapsed {
+    font-size: 13px;
+    color: #999;
+    font-variant-numeric: tabular-nums;
   }
   @keyframes primrose-spin {
     from { transform: rotate(0deg); }

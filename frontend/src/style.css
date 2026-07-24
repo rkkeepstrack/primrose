@@ -1,8 +1,45 @@
+:root {
+    /* primrose palette */
+    --green: #4caf7d;
+    --green-dark: #429e70;
+    --green-darker: #3a8d63;
+    --green-text: #3d9469;
+    --green-bg: #f4faf6;
+    --green-border: #bfe3cd;
+    --blue: #6b9fdb;
+    --orange: #e0a869;
+    --orange-strong: #e8a94c;
+    --tan: #c9a86b;
+    --red: #d98282;
+    --red-dark: #c96f6f;
+    --red-bg: #fdf0f0;
+    --red-text: #b06a6a;
+    --yellow-bg: #fdf7dc;
+    --yellow-border: #ecdfa8;
+    --yellow-bg-light: #fffdf2;
+    --yellow-text: #b8a23f;
+
+    /* neutrals */
+    --text: #333;
+    --text-strong: #1d1d1d;
+    --text-soft: #444;
+    --text-muted: #666;
+    --text-faint: #888;
+    --text-disabled: #aaa;
+    --border: #e0e0e0;
+    --border-soft: #e5e5e5;
+    --border-faint: #eee;
+    --bg-hover: #f5f5f5;
+    --bg-soft: #fafafa;
+
+    --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
 html,
 body {
     margin: 0;
     background: #fff;
-    color: #333;
+    color: var(--text);
     font-family: system-ui, -apple-system, sans-serif;
     font-size: 14px;
     -webkit-font-smoothing: antialiased;
@@ -10,4 +47,57 @@ body {
 
 #app {
     height: 100vh;
+}
+
+/* ---- shared component classes (used across Svelte components) ---- */
+
+/* HTTP method colors */
+.method-GET { color: var(--green); }
+.method-POST { color: var(--blue); }
+.method-PUT { color: var(--orange); }
+.method-PATCH { color: var(--tan); }
+.method-DELETE { color: var(--red); }
+.method-HEAD, .method-OPTIONS { color: #999; }
+
+/* borderless icon/text button base */
+.btn-plain {
+    border: none;
+    background: none;
+    font-family: inherit;
+    cursor: pointer;
+}
+
+/* single-line text input */
+.text-input {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 7px 12px;
+    font-size: 13px;
+    font-family: inherit;
+    color: var(--text);
+    background: var(--bg-soft);
+}
+.text-input:focus {
+    outline: none;
+    border-color: var(--yellow-border);
+    background: #fff;
+}
+
+/* key-value / header tables */
+.kv-table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 13px;
+}
+.kv-table th,
+.kv-table td {
+    border: 1px solid var(--border-soft);
+    padding: 7px 12px;
+    text-align: left;
+    color: var(--text-soft);
+}
+.kv-table th {
+    font-weight: 600;
+    color: var(--text-muted);
+    background: var(--bg-soft);
 }

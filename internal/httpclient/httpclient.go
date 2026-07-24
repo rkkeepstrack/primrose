@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"io"
 	"net/http"
+	neturl "net/url"
 	"sort"
 	"strings"
 	"time"
@@ -72,7 +73,7 @@ func SendCtx(ctx context.Context, r *collection.Request) (*Response, error) {
 		sort.Strings(keys)
 		var params []string
 		for _, k := range keys {
-			params = append(params, k+"="+r.Query[k])
+			params = append(params, neturl.QueryEscape(k)+"="+neturl.QueryEscape(r.Query[k]))
 		}
 		sep := "?"
 		if strings.Contains(url, "?") {

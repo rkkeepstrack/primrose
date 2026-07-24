@@ -1,7 +1,9 @@
 import type { ApiRequest } from './types';
 
-export const ENV_VAR_RE = /\{\{([A-Za-z_][A-Za-z0-9_]*)\}\}/g;
-export const DYNAMIC_VAR_RE = /\/:([A-Za-z_][A-Za-z0-9_]*)/g;
+// NOTE: the same patterns exist in Go (internal/collection/resolve.go) — they
+// are the {{env}} / :dynamic syntax contract between frontend and backend.
+const ENV_VAR_RE = /\{\{([A-Za-z_][A-Za-z0-9_]*)\}\}/g;
+const DYNAMIC_VAR_RE = /\/:([A-Za-z_][A-Za-z0-9_]*)/g;
 
 // Env vars referenced anywhere in the request, in order of first appearance.
 export function extractEnvVars(r: ApiRequest): string[] {

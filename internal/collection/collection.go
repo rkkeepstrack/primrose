@@ -17,8 +17,8 @@ type Manifest struct {
 
 // Node is one entry in the sidebar tree.
 type Node struct {
-	Name     string  `json:"name"`     // display name (filename without .toml for requests)
-	Path     string  `json:"path"`     // absolute path on disk
+	Name     string  `json:"name"` // display name (filename without .toml for requests)
+	Path     string  `json:"path"` // absolute path on disk
 	IsFolder bool    `json:"isFolder"`
 	Method   string  `json:"method,omitempty"` // set for requests
 	Children []*Node `json:"children,omitempty"`
@@ -41,8 +41,8 @@ type Request struct {
 
 // Collection is an opened collection folder.
 type Collection struct {
-	Name string `json:"name"`
-	Root string `json:"root"`
+	Name string  `json:"name"`
+	Root string  `json:"root"`
 	Tree []*Node `json:"tree"`
 }
 

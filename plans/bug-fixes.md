@@ -7,3 +7,7 @@
 7. cant save collections: the save button just always appears as if there are changes and doesnt do anything if clicked
 8. cant resize request browser
 9. env variables should be allowed in either form: camelCase, kebab-case, snake_case, SCREAMING_SNAKE_CASE
+10. continuity: if i define a variable with {{}} or :, it should be allowed to use it anywhere. that means, in the value or key of query params, in the value or key of headers, in body params.
+11. body parsing: maybe this can also be done with code mirror? a json compiler or json parsing would be great there, so there's direct user feedback
+12. there's no button to create a new collection, just to open one.
+13. migration for bruno collections

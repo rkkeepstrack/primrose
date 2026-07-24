@@ -19,6 +19,7 @@ type App struct {
 
 	sendMu     sync.Mutex
 	cancelSend context.CancelFunc
+	sendSeq    uint64
 }
 
 // NewApp creates a new App application struct
@@ -105,11 +106,17 @@ func (a *App) SaveRequest(path string, r collection.Request) error {
 func (a *App) SendRequest(r collection.Request, envVars, dynamicVars map[string]string) (*httpclient.Response, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 	a.sendMu.Lock()
+	a.sendSeq++
+	seq := a.sendSeq
 	a.cancelSend = cancel
 	a.sendMu.Unlock()
 	defer func() {
 		a.sendMu.Lock()
-		a.cancelSend = nil
+		// only clear the slot if it still belongs to this send — a newer
+		// send may have replaced it in the meantime
+		if a.sendSeq == seq {
+			a.cancelSend = nil
+		}
 		a.sendMu.Unlock()
 		cancel()
 	}()

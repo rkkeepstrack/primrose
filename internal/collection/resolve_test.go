@@ -4,11 +4,11 @@ import "testing"
 
 func TestResolve(t *testing.T) {
 	r := &Request{
-		Method: "GET",
-		URL:    "{{base}}/api/v1/{{tenant}}/teasers/:teaserId",
-		Query:  map[string]string{"gallery": "{{galleryId}}"},
+		Method:  "GET",
+		URL:     "{{base}}/api/v1/{{tenant}}/teasers/:teaserId",
+		Query:   map[string]string{"gallery": "{{galleryId}}"},
 		Headers: map[string]string{"X-Api-Key": "{{key}}"},
-		Body:   Body{Type: "json", Content: `{"tenant": "{{tenant}}"}`},
+		Body:    Body{Type: "json", Content: `{"tenant": "{{tenant}}"}`},
 	}
 	got := Resolve(r,
 		map[string]string{"base": "https://x.io", "tenant": "hb", "galleryId": "42"},

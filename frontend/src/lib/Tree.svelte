@@ -1,19 +1,17 @@
 <script lang="ts">
+  // Recursive tree: expansion state and the folder/request row contents.
+  // Row chrome (selection, heat, dnd, ⋮ menu) lives in TreeRow.
   import type { TreeNode } from './types';
   import Tree from './Tree.svelte';
+  import TreeRow from './TreeRow.svelte';
+  import { acceptPathDrag, carriesPath, readPathDrag } from './dnd';
+  import { dirtyPaths, forceOpen, heat, heatStyle } from './treeView';
+  import { newRequest, selectRequest } from './workspace/requests';
+  import { selectedPath } from './workspace/state';
+  import { deleteItem, duplicateItem, moveItem, newFolder, renameItem } from './workspace/treeOps';
 
   export let nodes: TreeNode[];
-  export let selectedPath: string | null = null;
-  export let onSelect: (node: TreeNode) => void;
-  export let onNewRequest: (dirPath: string) => void;
-  export let onNewFolder: (dirPath: string) => void;
-  export let onMove: (src: string, destDir: string) => void;
-  export let onRename: (node: TreeNode) => void;
-  export let onDuplicate: (node: TreeNode) => void;
-  export let onDelete: (node: TreeNode) => void;
-  export let forceOpen = false; // expand everything while searching
-  export let heat: Record<string, number> = {}; // path -> 0..1 recency
-  export let dirtyPaths: Set<string> = new Set(); // unsaved edits
+  export let root = true; // false for nested (recursive) levels
 
   let open: Record<string, boolean> = {};
   let dropTarget: string | null = null;
@@ -23,76 +21,52 @@
     open[node.path] = !open[node.path];
   }
 
-  // Recency as a subtle hue journey: most recent is teal, wandering through
-  // blue and purple to pink for the oldest touches. Deliberately distinct
-  // from the yellow selection highlight.
-  function heatStyle(path: string): string {
-    const h = heat[path];
-    if (!h) return '';
-    // widest hue span that stays clear of the yellow selection color:
-    // green -> teal -> blue -> purple -> pink, ~23° per recency step so
-    // neighbouring entries are clearly distinct
-    // true heatmap semantics: warm when fresh, cooling with age.
-    // newest = orange (35°, blending into the yellow/orange selection),
-    // aging through coral/pink/purple/blue to teal (190°)
-    const hue = (395 - (1 - h) * 205) % 360;
-    // intensity fades linearly with age, ending near zero so the oldest
-    // entry melts into the white bg; starts gentler now that the fresh
-    // end sits in warm territory
-    const alpha = 0.11 * h;
-    return `background: hsla(${hue.toFixed(0)}, 80%, 52%, ${alpha.toFixed(3)})`;
-  }
-
-  function dragStart(e: DragEvent, node: TreeNode) {
-    e.dataTransfer?.setData('application/x-primrose-path', node.path);
-    e.dataTransfer!.effectAllowed = 'move';
-  }
-
-  function dragOver(e: DragEvent, node: TreeNode) {
-    if (!e.dataTransfer?.types.includes('application/x-primrose-path')) return;
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
+  function folderDragOver(e: DragEvent, node: TreeNode) {
+    if (!carriesPath(e)) return;
+    acceptPathDrag(e);
     dropTarget = node.path;
   }
 
-  function drop(e: DragEvent, node: TreeNode) {
+  function folderDrop(e: DragEvent, node: TreeNode) {
     e.preventDefault();
     e.stopPropagation();
     dropTarget = null;
-    const src = e.dataTransfer?.getData('application/x-primrose-path');
+    const src = readPathDrag(e);
     if (src && src !== node.path) {
       open[node.path] = true;
-      onMove(src, node.path);
+      moveItem(src, node.path);
     }
   }
 
-  function menuAction(action: (n: TreeNode) => void, node: TreeNode) {
-    menuFor = null;
-    action(node);
+  function rowProps(node: TreeNode) {
+    return {
+      node,
+      menuOpen: menuFor === node.path,
+      onMenuToggle: () => (menuFor = menuFor === node.path ? null : node.path),
+      onRename: () => { menuFor = null; renameItem(node); },
+      onDuplicate: () => { menuFor = null; duplicateItem(node); },
+      onDelete: () => { menuFor = null; deleteItem(node); },
+    };
   }
 </script>
 
 <svelte:window on:click={() => (menuFor = null)} />
 
-<ul class="tree">
+<ul class="tree" role={root ? 'tree' : 'group'}>
   {#each nodes as node (node.path)}
     <li>
       {#if node.isFolder}
-        <div
-          class="row-wrap"
-          class:droppable={dropTarget === node.path}
-          role="treeitem"
-          aria-selected="false"
-          draggable="true"
-          on:dragstart={(e) => dragStart(e, node)}
-          on:dragover={(e) => dragOver(e, node)}
-          on:dragleave={() => (dropTarget = null)}
-          on:drop={(e) => drop(e, node)}
+        <TreeRow
+          {...rowProps(node)}
+          droppable={dropTarget === node.path}
+          onDragOver={(e) => folderDragOver(e, node)}
+          onDragLeave={() => (dropTarget = null)}
+          onDrop={(e) => folderDrop(e, node)}
         >
           <button class="row folder" on:click={() => toggle(node)}>
             <svg
               class="caret"
-              class:open={forceOpen || open[node.path]}
+              class:open={$forceOpen || open[node.path]}
               width="10"
               height="10"
               viewBox="0 0 10 10"
@@ -104,7 +78,7 @@
           <button
             class="hover-btn"
             title="New folder in {node.name}"
-            on:click={() => { open[node.path] = true; onNewFolder(node.path); }}
+            on:click={() => { open[node.path] = true; newFolder(node.path); }}
           >
             <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3">
               <path d="M1.5 4.5 a1 1 0 0 1 1-1 h3.5 l1.5 1.8 h6 a1 1 0 0 1 1 1 v6.2 a1 1 0 0 1 -1 1 h-11 a1 1 0 0 1 -1-1 z" />
@@ -114,74 +88,28 @@
           <button
             class="hover-btn"
             title="New request in {node.name}"
-            on:click={() => { open[node.path] = true; onNewRequest(node.path); }}
+            on:click={() => { open[node.path] = true; newRequest(node.path); }}
           >+</button>
-          <div class="menu-wrap">
-            <button
-              class="hover-btn"
-              title="More…"
-              on:click|stopPropagation={() => (menuFor = menuFor === node.path ? null : node.path)}
-            >⋮</button>
-            {#if menuFor === node.path}
-              <div class="menu">
-                <button on:click={() => menuAction(onRename, node)}>Rename</button>
-                <button on:click={() => menuAction(onDuplicate, node)}>Duplicate</button>
-                <button class="danger" on:click={() => menuAction(onDelete, node)}>Delete</button>
-              </div>
-            {/if}
-          </div>
-        </div>
-        {#if (forceOpen || open[node.path]) && node.children?.length}
+        </TreeRow>
+        {#if ($forceOpen || open[node.path]) && node.children?.length}
           <div class="children">
-            <Tree
-              nodes={node.children}
-              {selectedPath}
-              {onSelect}
-              {onNewRequest}
-              {onNewFolder}
-              {onMove}
-              {onRename}
-              {onDuplicate}
-              {onDelete}
-              {forceOpen}
-              {heat}
-              {dirtyPaths}
-            />
+            <Tree nodes={node.children} root={false} />
           </div>
         {/if}
       {:else}
-        <div
-          class="row-wrap"
-          class:selected={node.path === selectedPath}
-          style={node.path === selectedPath ? '' : heatStyle(node.path)}
+        <TreeRow
+          {...rowProps(node)}
+          selected={node.path === $selectedPath}
+          heatBg={heatStyle($heat[node.path])}
         >
-          <button
-            class="row request"
-            draggable="true"
-            on:dragstart={(e) => dragStart(e, node)}
-            on:click={() => onSelect(node)}
-          >
+          <button class="row request" on:click={() => selectRequest(node)}>
             <span class="method method-{node.method}">{node.method}</span>
             <span class="name">{node.name}</span>
-            {#if dirtyPaths.has(node.path)}
+            {#if $dirtyPaths.has(node.path)}
               <span class="dirty-dot" title="Unsaved changes"></span>
             {/if}
           </button>
-          <div class="menu-wrap">
-            <button
-              class="hover-btn"
-              title="More…"
-              on:click|stopPropagation={() => (menuFor = menuFor === node.path ? null : node.path)}
-            >⋮</button>
-            {#if menuFor === node.path}
-              <div class="menu">
-                <button on:click={() => menuAction(onRename, node)}>Rename</button>
-                <button on:click={() => menuAction(onDuplicate, node)}>Duplicate</button>
-                <button class="danger" on:click={() => menuAction(onDelete, node)}>Delete</button>
-              </div>
-            {/if}
-          </div>
-        </div>
+        </TreeRow>
       {/if}
     </li>
   {/each}
@@ -207,32 +135,9 @@
     cursor: pointer;
     font-size: 13px;
     font-family: inherit;
-    color: #444;
+    color: var(--text-soft);
     text-align: left;
   }
-  .row-wrap {
-    display: flex;
-    align-items: center;
-  }
-  .row-wrap:hover:not(.selected) {
-    background: #f5f5f5;
-  }
-  .row-wrap.selected {
-    background: #fdf7dc;
-    box-shadow: inset 3px 0 0 #e8a94c;
-  }
-  .row-wrap.selected .hover-btn {
-    color: #444;
-  }
-  .row-wrap.selected .name {
-    font-weight: 600;
-    color: #1d1d1d;
-  }
-  .row-wrap.droppable {
-    background: #f4faf6;
-    outline: 1px dashed #4caf7d;
-  }
-  .row-wrap .row { flex: 1; min-width: 0; }
   .hover-btn {
     display: flex;
     align-items: center;
@@ -245,37 +150,10 @@
     border-radius: 5px;
     flex-shrink: 0;
   }
-  .row-wrap:hover .hover-btn { color: #444; }
-  .hover-btn:hover { color: #4caf7d !important; background: #f4faf6; }
-  .menu-wrap { position: relative; }
-  .menu {
-    position: absolute;
-    right: 0;
-    top: calc(100% + 2px);
-    background: #fff;
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-    padding: 4px;
-    z-index: 20;
-    display: flex;
-    flex-direction: column;
-    min-width: 120px;
+  .hover-btn:hover {
+    color: var(--green) !important;
+    background: var(--green-bg);
   }
-  .menu button {
-    border: none;
-    background: none;
-    text-align: left;
-    font-size: 13px;
-    font-family: inherit;
-    color: #444;
-    padding: 6px 10px;
-    border-radius: 5px;
-    cursor: pointer;
-  }
-  .menu button:hover { background: #f5f5f5; }
-  .menu button.danger { color: #d98282; }
-  .menu button.danger:hover { background: #fdf0f0; }
   .caret {
     flex-shrink: 0;
     color: #a0a0a0;
@@ -290,10 +168,6 @@
     min-width: 44px;
     letter-spacing: 0.02em;
   }
-  .method-GET { color: #4caf7d; }
-  .method-POST { color: #6b9fdb; }
-  .method-PUT { color: #e0a869; }
-  .method-DELETE { color: #d98282; }
   .name {
     white-space: nowrap;
     overflow: hidden;
@@ -303,7 +177,7 @@
     width: 7px;
     height: 7px;
     border-radius: 50%;
-    background: #e8a94c;
+    background: var(--orange-strong);
     flex-shrink: 0;
     margin-left: auto;
   }

@@ -5,10 +5,11 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
-	"strconv"
 	"strings"
 
 	"github.com/BurntSushi/toml"
+
+	"primrose/internal/tomlutil"
 )
 
 // Environment is one file in a collection's environments/ directory.
@@ -75,25 +76,7 @@ func Save(root, name string, vars map[string]string) error {
 	}
 	sort.Strings(keys)
 	for _, k := range keys {
-		key := k
-		if !isBareKey(k) {
-			key = strconv.Quote(k)
-		}
-		fmt.Fprintf(&b, "%s = %s\n", key, strconv.Quote(vars[k]))
+		fmt.Fprintf(&b, "%s = %s\n", tomlutil.Key(k), tomlutil.String(vars[k]))
 	}
 	return os.WriteFile(filepath.Join(dir, name+".toml"), []byte(b.String()), 0o644)
-}
-
-func isBareKey(k string) bool {
-	if k == "" {
-		return false
-	}
-	for _, c := range k {
-		ok := c == '-' || c == '_' ||
-			(c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9')
-		if !ok {
-			return false
-		}
-	}
-	return true
 }

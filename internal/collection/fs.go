@@ -75,16 +75,13 @@ func DuplicateItem(path string) (string, error) {
 		ext = filepath.Ext(base)
 		base = strings.TrimSuffix(base, ext)
 	}
-	dest := ""
-	for i := 0; ; i++ {
-		suffix := "-copy"
-		if i > 0 {
-			suffix = fmt.Sprintf("-copy-%d", i+1)
-		}
-		dest = filepath.Join(dir, base+suffix+ext)
+	// first free name wins: "x-copy", then "x-copy-2", "x-copy-3", …
+	dest := filepath.Join(dir, base+"-copy"+ext)
+	for n := 2; ; n++ {
 		if _, err := os.Stat(dest); os.IsNotExist(err) {
 			break
 		}
+		dest = filepath.Join(dir, fmt.Sprintf("%s-copy-%d%s", base, n, ext))
 	}
 	if info.IsDir() {
 		return dest, copyDir(path, dest)
