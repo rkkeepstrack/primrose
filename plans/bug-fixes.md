@@ -11,3 +11,4 @@
 11. body parsing: maybe this can also be done with code mirror? a json compiler or json parsing would be great there, so there's direct user feedback
 12. there's no button to create a new collection, just to open one.
 13. migration for bruno collections
+14. on hovering in the response timeline tab, i want the preview to switch with the hovered item, so as a user, i can see what exact request that run refers to without having to open it.

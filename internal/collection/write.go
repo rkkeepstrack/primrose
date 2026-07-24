@@ -54,7 +54,7 @@ func WriteRequest(path string, r *Request) error {
 		if len(m) == 0 {
 			return
 		}
-		b.WriteString("\n[" + name + "]\n")
+		fmt.Fprintf(&b, "\n[%s]\n", name)
 		keys := make([]string, 0, len(m))
 		for k := range m {
 			keys = append(keys, k)
