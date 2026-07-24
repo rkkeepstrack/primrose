@@ -13,7 +13,7 @@
   let view: EditorView | null = null;
 
   const theme = EditorView.theme({
-    '&': { fontSize: '13px', height: '100%', backgroundColor: 'transparent' },
+    '&': { fontSize: '12px', height: '100%', backgroundColor: 'transparent' },
     '.cm-content': {
       fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
       color: '#444',
@@ -45,6 +45,26 @@
     '&.cm-focused': { outline: 'none' },
   });
 
+  // count the folded region's direct children (top-level commas at depth 0),
+  // ignoring anything nested or inside strings
+  function countDirectItems(text: string): number {
+    if (!text.trim()) return 0;
+    let depth = 0;
+    let inString = false;
+    let escaped = false;
+    let count = 1;
+    for (const c of text) {
+      if (escaped) { escaped = false; continue; }
+      if (c === '\\') { escaped = true; continue; }
+      if (c === '"') { inString = !inString; continue; }
+      if (inString) continue;
+      if (c === '{' || c === '[') depth++;
+      else if (c === '}' || c === ']') depth--;
+      else if (c === ',' && depth === 0) count++;
+    }
+    return count;
+  }
+
   // clearly visible fold chevrons instead of the near-invisible defaults
   function foldMarker(open: boolean): HTMLElement {
     const el = document.createElement('span');
@@ -62,7 +82,17 @@
     const ext = [
       lineNumbers(),
       highlightSpecialChars(),
-      codeFolding(),
+      codeFolding({
+        preparePlaceholder: (state, range) =>
+          countDirectItems(state.sliceDoc(range.from, range.to)),
+        placeholderDOM: (view, onclick, prepared) => {
+          const el = document.createElement('span');
+          el.className = 'cm-foldPlaceholder';
+          el.textContent = prepared > 0 ? `… ${prepared} ${prepared === 1 ? 'item' : 'items'}` : '…';
+          el.onclick = onclick;
+          return el;
+        },
+      }),
       foldGutter({ markerDOM: foldMarker }),
       syntaxHighlighting(jsonHighlightStyle),
       EditorState.readOnly.of(true),
