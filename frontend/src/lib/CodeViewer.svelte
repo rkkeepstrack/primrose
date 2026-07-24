@@ -93,7 +93,7 @@
   }
 
   function buildFoldCounts(state: EditorState) {
-    const builder = new RangeSetBuilder<Decoration>();
+    const widgets: { pos: number; count: number }[] = [];
     foldedRanges(state).between(0, state.doc.length, (from, to) => {
       const count = countDirectItems(state.sliceDoc(from, to));
       if (count === 0) return;
@@ -102,8 +102,15 @@
       const line = state.doc.lineAt(to);
       if (pos < line.to && '}]'.includes(state.sliceDoc(pos, pos + 1))) pos++;
       if (pos < line.to && state.sliceDoc(pos, pos + 1) === ',') pos++;
-      builder.add(pos, pos, Decoration.widget({ widget: new FoldCountWidget(count), side: 1 }));
+      widgets.push({ pos, count });
     });
+    // widget positions (after closing brackets) are not in fold-start order
+    // when folds nest — RangeSetBuilder requires sorted adds
+    widgets.sort((a, b) => a.pos - b.pos);
+    const builder = new RangeSetBuilder<Decoration>();
+    for (const w of widgets) {
+      builder.add(w.pos, w.pos, Decoration.widget({ widget: new FoldCountWidget(w.count), side: 1 }));
+    }
     return builder.finish();
   }
 
