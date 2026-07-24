@@ -9,8 +9,8 @@
     syntaxHighlighting,
     foldedRanges,
   } from '@codemirror/language';
-  import { Decoration, WidgetType, ViewPlugin, type ViewUpdate } from '@codemirror/view';
-  import { RangeSetBuilder } from '@codemirror/state';
+  import { Decoration, WidgetType } from '@codemirror/view';
+  import { RangeSetBuilder, StateField } from '@codemirror/state';
   import { jsonHighlightStyle } from './jsonHighlight';
 
   export let value: string;
@@ -92,32 +92,28 @@
     }
   }
 
-  const foldCountPlugin = ViewPlugin.fromClass(
-    class {
-      decorations = Decoration.none;
-      constructor(v: EditorView) {
-        this.decorations = this.build(v);
-      }
-      update(u: ViewUpdate) {
-        this.decorations = this.build(u.view);
-      }
-      build(v: EditorView) {
-        const builder = new RangeSetBuilder<Decoration>();
-        foldedRanges(v.state).between(0, v.state.doc.length, (from, to) => {
-          const count = countDirectItems(v.state.sliceDoc(from, to));
-          if (count === 0) return;
-          // place the note after the closing bracket (and a trailing comma)
-          let pos = to;
-          const line = v.state.doc.lineAt(to);
-          if (pos < line.to && '}]'.includes(v.state.sliceDoc(pos, pos + 1))) pos++;
-          if (pos < line.to && v.state.sliceDoc(pos, pos + 1) === ',') pos++;
-          builder.add(pos, pos, Decoration.widget({ widget: new FoldCountWidget(count), side: 1 }));
-        });
-        return builder.finish();
-      }
-    },
-    { decorations: (v) => v.decorations }
-  );
+  function buildFoldCounts(state: EditorState) {
+    const builder = new RangeSetBuilder<Decoration>();
+    foldedRanges(state).between(0, state.doc.length, (from, to) => {
+      const count = countDirectItems(state.sliceDoc(from, to));
+      if (count === 0) return;
+      // place the note after the closing bracket (and a trailing comma)
+      let pos = to;
+      const line = state.doc.lineAt(to);
+      if (pos < line.to && '}]'.includes(state.sliceDoc(pos, pos + 1))) pos++;
+      if (pos < line.to && state.sliceDoc(pos, pos + 1) === ',') pos++;
+      builder.add(pos, pos, Decoration.widget({ widget: new FoldCountWidget(count), side: 1 }));
+    });
+    return builder.finish();
+  }
+
+  // a StateField (not a ViewPlugin): derived purely from state, so it can
+  // never go stale when fold ranges elsewhere in the doc change
+  const foldCountField = StateField.define({
+    create: buildFoldCounts,
+    update: (_, tr) => buildFoldCounts(tr.state),
+    provide: (f) => EditorView.decorations.from(f),
+  });
 
   // small gray disclosure triangles, DevTools style
   function foldMarker(open: boolean): HTMLElement {
@@ -137,7 +133,7 @@
       highlightSpecialChars(),
       codeFolding(),
       foldGutter({ markerDOM: foldMarker }),
-      foldCountPlugin,
+      foldCountField,
       syntaxHighlighting(jsonHighlightStyle),
       EditorState.readOnly.of(true),
       EditorView.lineWrapping,
