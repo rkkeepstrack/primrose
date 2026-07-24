@@ -12,9 +12,13 @@
   import { runs } from './lib/workspace/drafts';
   import { pickEnvironment, saveEnvVars } from './lib/workspace/environments';
   import { persistSession, restoreSession } from './lib/workspace/session';
+  import { initExternalSync } from './lib/workspace/sync';
   import { activeEnvName, activeIdx, collections, envView, envs, error, request, restored } from './lib/workspace/state';
 
-  onMount(restoreSession);
+  onMount(() => {
+    initExternalSync();
+    restoreSession();
+  });
 
   // persist open collections + active tab whenever they change
   $: if ($restored && $collections && $activeIdx >= 0) persistSession();

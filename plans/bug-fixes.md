@@ -12,3 +12,4 @@
 12. there's no button to create a new collection, just to open one.
 13. migration for bruno collections
 14. on hovering in the response timeline tab, i want the preview to switch with the hovered item, so as a user, i can see what exact request that run refers to without having to open it.
+15. full screen on double click on the header, same as it would work with native windows, linux or macos

@@ -10,6 +10,7 @@ import { refreshTree } from './collections';
 import { maybeAbandonDraft, newDraftKey, stashCurrentEdit } from './drafts';
 import {
   dirty,
+  diskChanged,
   draftDir,
   draftName,
   error,
@@ -21,6 +22,7 @@ import {
 export async function selectRequest(node: TreeNode) {
   if (!(await maybeAbandonDraft())) return;
   error.set('');
+  diskChanged.set(false);
   stashCurrentEdit();
   draftDir.set(null);
   draftName.set(null);
@@ -87,6 +89,7 @@ export async function saveRequest() {
       return;
     }
     dirty.set(false);
+    diskChanged.set(false);
     const path = get(selectedPath);
     if (path) dropEdit(path);
     await refreshTree(); // new file or method badge

@@ -6,7 +6,8 @@
   import { setMethod, setUrl } from './requestEdit';
   import { saveRequest } from '../workspace/requests';
   import { cancelRequest, sendRequest } from '../workspace/send';
-  import { dirty, draftName, request, sending } from '../workspace/state';
+  import { keepMyEdits, reloadFromDisk } from '../workspace/sync';
+  import { dirty, diskChanged, draftName, request, sending } from '../workspace/state';
 
   let methodOpen = false;
 
@@ -30,6 +31,13 @@
 <svelte:window on:keydown={handleKeydown} />
 
 {#if $request}
+  {#if $diskChanged}
+    <div class="disk-notice">
+      <span>This request changed on disk while you have unsaved edits.</span>
+      <button class="notice-btn" on:click={reloadFromDisk}>Load disk version</button>
+      <button class="notice-btn keep" on:click={keepMyEdits}>Keep my edits</button>
+    </div>
+  {/if}
   {#if $draftName !== null}
     <div class="draft-row">
       <span class="draft-label">New request</span>
@@ -78,6 +86,30 @@
 {/if}
 
 <style>
+  .disk-notice {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 12.5px;
+    color: var(--yellow-text);
+    background: var(--yellow-bg);
+    border: 1px solid var(--yellow-border);
+    border-radius: 6px;
+    padding: 6px 12px;
+  }
+  .notice-btn {
+    border: 1px solid var(--yellow-border);
+    border-radius: 5px;
+    background: #fff;
+    font-size: 12px;
+    font-family: inherit;
+    color: var(--text);
+    cursor: pointer;
+    padding: 3px 10px;
+  }
+  .notice-btn:hover { background: var(--yellow-bg-light); }
+  .notice-btn.keep { margin-left: auto; }
+
   .draft-row {
     display: flex;
     align-items: center;

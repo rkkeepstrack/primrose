@@ -9,13 +9,15 @@ import (
 	"primrose/internal/collection"
 	"primrose/internal/env"
 	"primrose/internal/httpclient"
+	"primrose/internal/watch"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 // App struct
 type App struct {
-	ctx context.Context
+	ctx     context.Context
+	watcher *watch.Service
 
 	sendMu     sync.Mutex
 	cancelSend context.CancelFunc
@@ -29,6 +31,26 @@ func NewApp() *App {
 
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
+	// external edits to open collections (git pull, other editors) are
+	// pushed to the frontend as "collection:changed" events
+	w, err := watch.New(func(root string) {
+		runtime.EventsEmit(a.ctx, "collection:changed", root)
+	})
+	if err == nil {
+		a.watcher = w
+	}
+}
+
+func (a *App) shutdown(_ context.Context) {
+	if a.watcher != nil {
+		a.watcher.Close()
+	}
+}
+
+func (a *App) watchCollection(root string) {
+	if a.watcher != nil {
+		_ = a.watcher.AddRoot(root)
+	}
 }
 
 // OpenCollectionDialog shows a folder picker and opens the chosen collection.
@@ -43,12 +65,20 @@ func (a *App) OpenCollectionDialog() (*collection.Collection, error) {
 	if dir == "" {
 		return nil, nil
 	}
-	return collection.Open(dir)
+	col, err := collection.Open(dir)
+	if err == nil {
+		a.watchCollection(dir)
+	}
+	return col, err
 }
 
 // OpenCollection opens a collection from a known path (e.g. recents).
 func (a *App) OpenCollection(root string) (*collection.Collection, error) {
-	return collection.Open(root)
+	col, err := collection.Open(root)
+	if err == nil {
+		a.watchCollection(root)
+	}
+	return col, err
 }
 
 // GetTree rescans a collection folder and returns the fresh tree.
