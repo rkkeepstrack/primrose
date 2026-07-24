@@ -4,6 +4,7 @@
   import { EditorState } from '@codemirror/state';
   import { json } from '@codemirror/lang-json';
   import { foldGutter, codeFolding, syntaxHighlighting } from '@codemirror/language';
+  import { indentationMarkers } from '@replit/codemirror-indentation-markers';
   import { jsonHighlightStyle } from './jsonHighlight';
 
   export let value: string;
@@ -65,16 +66,15 @@
     return count;
   }
 
-  // clearly visible fold chevrons instead of the near-invisible defaults
+  // small gray disclosure triangles, DevTools style
   function foldMarker(open: boolean): HTMLElement {
     const el = document.createElement('span');
     el.style.cssText =
       'display:inline-flex;align-items:center;justify-content:center;' +
-      'width:14px;height:14px;cursor:pointer;color:#8a8a8a;';
+      'width:12px;height:12px;cursor:pointer;color:#9a9a9a;';
     el.innerHTML =
-      `<svg width="11" height="11" viewBox="0 0 10 10" style="transform:rotate(${open ? 90 : 0}deg)">` +
-      '<path d="M3 1.5 L7.5 5 L3 8.5" fill="none" stroke="currentColor" stroke-width="1.6" ' +
-      'stroke-linecap="round" stroke-linejoin="round"/></svg>';
+      `<svg width="8" height="8" viewBox="0 0 8 8" style="transform:rotate(${open ? 90 : 0}deg)">` +
+      '<path d="M1.5 0.5 L6.5 4 L1.5 7.5 Z" fill="currentColor"/></svg>';
     return el;
   }
 
@@ -99,7 +99,16 @@
       EditorView.lineWrapping,
       theme,
     ];
-    if (lang === 'json') ext.push(json());
+    if (lang === 'json') {
+      ext.push(
+        json(),
+        // vertical guides connecting matching brackets across nesting levels
+        indentationMarkers({
+          hideFirstIndent: true,
+          colors: { light: '#e4e4e4', activeLight: '#c8c8c8' },
+        })
+      );
+    }
     return ext;
   }
 
