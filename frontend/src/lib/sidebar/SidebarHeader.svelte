@@ -3,19 +3,20 @@
   // quick-switch dropdown.
   import { newRequest } from '../workspace/requests';
   import { pickEnvironment } from '../workspace/environments';
-  import { activeEnvName, activeRoot, envs, envView } from '../workspace/state';
+  import { activeEnvName, activeRoot, envs } from '../workspace/state';
+  import { openEnvironmentTab } from '../workspace/collections';
   import { newFolder } from '../workspace/treeOps';
 
   let envMenuOpen = false;
 
   function pick(name: string) {
     envMenuOpen = false;
-    pickEnvironment(name);
+    if ($activeRoot) pickEnvironment($activeRoot, name);
   }
 
   function openEditor() {
     envMenuOpen = false;
-    envView.set(true);
+    if ($activeRoot) openEnvironmentTab($activeRoot);
   }
 </script>
 

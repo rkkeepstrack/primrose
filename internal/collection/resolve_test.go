@@ -43,11 +43,11 @@ func TestResolve(t *testing.T) {
 func TestResolveDynamicDelimiters(t *testing.T) {
 	dyn := map[string]string{"id": "7", "pass": "nope"}
 	cases := []struct{ in, want string }{
-		{"https://x.io/users/:id", "https://x.io/users/7"},   // after /
-		{"?g=:id", "?g=7"},                                   // after =
-		{"&x=:id", "&x=7"},                                   // after &
-		{":id", "7"},                                         // start of string
-		{"a=1,:id", "a=1,7"},                                 // after comma
+		{"https://x.io/users/:id", "https://x.io/users/7"}, // after /
+		{"?g=:id", "?g=7"},   // after =
+		{"&x=:id", "&x=7"},   // after &
+		{":id", "7"},         // start of string
+		{"a=1,:id", "a=1,7"}, // after comma
 		{"https://user:pass@x.io", "https://user:pass@x.io"}, // basic auth untouched
 		{"https://x.io:8080/p", "https://x.io:8080/p"},       // port untouched
 		{"/users/:id-copy", "/users/7-copy"},                 // hyphen ends the name

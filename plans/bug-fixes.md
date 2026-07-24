@@ -42,11 +42,11 @@ its own project, and the review pass (H) after A–C have landed.
 
 ## C. Env tab rework (follow-up to B)
 
-- [ ] request env tab: switch positioning of env and dynamic variables
+- [x] request env tab: switch positioning of env and dynamic variables
       (dynamic first), rename the tab to 'Variables'
-- [ ] environment variables in this call should be editable and saveable
+- [x] environment variables in this call should be editable and saveable
       from the request's Variables tab
-- [ ] environment view should open in a tab next to the collections instead
+- [x] environment view should open in a tab next to the collections instead
       of on the right side; background color should be purplish
 
 ## D. Native / window integration — one Wails batch

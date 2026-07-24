@@ -7,8 +7,8 @@
   import { setHeaders, setQuery } from './requestEdit';
   import { request } from '../workspace/state';
 
-  type Tab = 'query' | 'body' | 'headers' | 'env';
-  const TABS: Tab[] = ['query', 'body', 'headers', 'env'];
+  type Tab = 'query' | 'body' | 'headers' | 'variables';
+  const TABS: Tab[] = ['query', 'body', 'headers', 'variables'];
   let tab: Tab = 'query';
 
   // ⌘1–4 switch the request tabs (⌘5–7 belong to the response pane)

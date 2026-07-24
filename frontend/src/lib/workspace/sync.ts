@@ -7,6 +7,7 @@ import { normalizeUrlAndQuery } from '../shared/urlQuery';
 import { dropEdit } from '../shared/stores';
 import { GetTree, ReadRequest } from '../../../wailsjs/go/main/App';
 import { EventsOn } from '../../../wailsjs/runtime/runtime';
+import { dropCollection } from './collections';
 import { loadEnvironments } from './environments';
 import {
   clearSelection,
@@ -31,7 +32,10 @@ async function handleExternalChange(root: string) {
     collections.set(cols);
     await loadEnvironments(root);
   } catch {
-    return; // collection folder itself may be gone mid-operation
+    // the folder is gone (renamed/deleted externally): drop the collection —
+    // the user can simply reopen it under its new name
+    dropCollection(root);
+    return;
   }
 
   // reconcile the open request if it lives in this collection

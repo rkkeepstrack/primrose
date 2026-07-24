@@ -10,11 +10,6 @@ import (
 	"github.com/BurntSushi/toml"
 )
 
-// Manifest is the primrose.toml at a collection root.
-type Manifest struct {
-	Name string `toml:"name" json:"name"`
-}
-
 // Node is one entry in the sidebar tree.
 type Node struct {
 	Name     string  `json:"name"` // display name (filename without .toml for requests)
@@ -48,8 +43,9 @@ type Collection struct {
 
 const manifestFile = "primrose.toml"
 
-// Open loads a collection folder. If no primrose.toml exists yet, one is
-// created so the folder is marked as a collection from then on.
+// Open loads a collection folder. The folder's own name is the collection
+// name; primrose.toml is only the marker that makes a folder a collection
+// (created on first open if missing).
 func Open(root string) (*Collection, error) {
 	info, err := os.Stat(root)
 	if err != nil {
@@ -59,35 +55,19 @@ func Open(root string) (*Collection, error) {
 		return nil, fmt.Errorf("%s is not a directory", root)
 	}
 
-	var m Manifest
 	manifestPath := filepath.Join(root, manifestFile)
-	if _, err := toml.DecodeFile(manifestPath, &m); err != nil {
-		if !os.IsNotExist(err) {
-			return nil, fmt.Errorf("reading %s: %w", manifestFile, err)
-		}
-		m.Name = filepath.Base(root)
-		if err := writeManifest(manifestPath, m); err != nil {
+	if _, err := os.Stat(manifestPath); os.IsNotExist(err) {
+		marker := "# marks this folder as a primrose collection\n"
+		if err := os.WriteFile(manifestPath, []byte(marker), 0o644); err != nil {
 			return nil, err
 		}
-	}
-	if m.Name == "" {
-		m.Name = filepath.Base(root)
 	}
 
 	tree, err := scanDir(root)
 	if err != nil {
 		return nil, err
 	}
-	return &Collection{Name: m.Name, Root: root, Tree: tree}, nil
-}
-
-func writeManifest(path string, m Manifest) error {
-	f, err := os.Create(path)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-	return toml.NewEncoder(f).Encode(m)
+	return &Collection{Name: filepath.Base(root), Root: root, Tree: tree}, nil
 }
 
 // scanDir builds the tree for one directory level, folders first,

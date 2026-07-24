@@ -11,6 +11,7 @@
   } from '../workspace/environments';
   import { envEditorDirty } from '../workspace/state';
 
+  export let root: string;
   export let environments: Environment[];
   export let activeName: string | null;
   export let onSelect: (name: string) => void;
@@ -22,10 +23,10 @@
   let draftFor: string | null = null;
   let menuFor: string | null = null;
 
-  function menuAction(action: (name: string) => void, name: string) {
+  function menuAction(action: (root: string, name: string) => void, name: string) {
     menuFor = null;
     draftFor = null; // the list may change under us — rebuild the draft
-    action(name);
+    action(root, name);
   }
 
   $: active = environments.find((e) => e.name === activeName) ?? null;

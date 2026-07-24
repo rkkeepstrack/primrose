@@ -42,8 +42,8 @@ func TestOpen(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if col.Name != "Fixture" {
-		t.Errorf("name = %q", col.Name)
+	if col.Name != filepath.Base(root) {
+		t.Errorf("name should be the folder name, got %q", col.Name)
 	}
 	// folders first, then requests; environments/ excluded
 	if len(col.Tree) != 2 {

@@ -60,3 +60,4 @@ export function pruneEdits(keep: string[]) {
 export function setDynamicVar(path: string, name: string, value: string) {
   dynamicVars.update((d) => ({ ...d, [path]: { ...(d[path] ?? {}), [name]: value } }));
 }
+
