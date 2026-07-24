@@ -3,12 +3,8 @@
   import { EditorView, lineNumbers, highlightSpecialChars } from '@codemirror/view';
   import { EditorState } from '@codemirror/state';
   import { json } from '@codemirror/lang-json';
-  import {
-    foldGutter,
-    codeFolding,
-    syntaxHighlighting,
-    defaultHighlightStyle,
-  } from '@codemirror/language';
+  import { foldGutter, codeFolding, syntaxHighlighting } from '@codemirror/language';
+  import { jsonHighlightStyle } from './jsonHighlight';
 
   export let value: string;
   export let lang: 'json' | 'text' = 'text';
@@ -68,7 +64,7 @@
       highlightSpecialChars(),
       codeFolding(),
       foldGutter({ markerDOM: foldMarker }),
-      syntaxHighlighting(defaultHighlightStyle),
+      syntaxHighlighting(jsonHighlightStyle),
       EditorState.readOnly.of(true),
       EditorView.lineWrapping,
       theme,

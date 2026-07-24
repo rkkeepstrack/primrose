@@ -13,7 +13,8 @@
   import { EditorState } from '@codemirror/state';
   import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
   import { json } from '@codemirror/lang-json';
-  import { syntaxHighlighting, defaultHighlightStyle } from '@codemirror/language';
+  import { syntaxHighlighting } from '@codemirror/language';
+  import { jsonHighlightStyle } from './jsonHighlight';
 
   export let value: string;
   export let onChange: (value: string) => void;
@@ -84,7 +85,7 @@
     } else {
       ext.push(EditorView.lineWrapping);
       if (lang === 'json') {
-        ext.push(json(), syntaxHighlighting(defaultHighlightStyle));
+        ext.push(json(), syntaxHighlighting(jsonHighlightStyle));
       }
     }
     return ext;
