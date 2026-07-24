@@ -19,10 +19,9 @@
       fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
       color: '#444',
       lineHeight: '1.65',
-      paddingTop: '8px',
-      paddingBottom: '8px',
+      padding: '8px 12px',
     },
-    '.cm-line': { padding: '0 12px' },
+    // no per-line padding: it breaks indentation-marker alignment
     '.cm-gutters': {
       backgroundColor: 'transparent',
       color: '#b8b8b8',
@@ -34,12 +33,12 @@
     '.cm-lineNumbers .cm-gutterElement': { padding: '0 6px 0 14px', minWidth: '32px' },
     '.cm-foldGutter .cm-gutterElement': { padding: '0 6px 0 2px' },
     '.cm-foldPlaceholder': {
-      background: '#fdf7dc',
-      border: '1px solid #ecdfa8',
-      color: '#8a7a33',
-      borderRadius: '4px',
-      padding: '0 6px',
-      margin: '0 4px',
+      background: 'transparent',
+      border: 'none',
+      color: '#999',
+      fontStyle: 'italic',
+      padding: '0 2px',
+      cursor: 'pointer',
     },
     '.cm-activeLine': { backgroundColor: 'transparent' },
     '.cm-scroller': { overflow: 'auto' },
@@ -88,7 +87,8 @@
         placeholderDOM: (view, onclick, prepared) => {
           const el = document.createElement('span');
           el.className = 'cm-foldPlaceholder';
-          el.textContent = prepared > 0 ? `… ${prepared} ${prepared === 1 ? 'item' : 'items'}` : '…';
+          el.textContent =
+            prepared > 0 ? `… // ${prepared} ${prepared === 1 ? 'item' : 'items'}` : '…';
           el.onclick = onclick;
           return el;
         },
