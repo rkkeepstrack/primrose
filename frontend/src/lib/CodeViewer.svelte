@@ -13,7 +13,7 @@
   let view: EditorView | null = null;
 
   const theme = EditorView.theme({
-    '&': { fontSize: '12px', height: '100%', backgroundColor: 'transparent' },
+    '&': { fontSize: '11px', height: '100%', backgroundColor: 'transparent' },
     '.cm-content': {
       fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
       color: '#444',
