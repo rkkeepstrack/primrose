@@ -9,6 +9,7 @@ import { CreateRequest, ReadRequest, SaveRequest } from '../../../wailsjs/go/mai
 import { refreshTree } from './collections';
 import { maybeAbandonDraft, newDraftKey, stashCurrentEdit } from './drafts';
 import {
+  clearSelection,
   dirty,
   diskChanged,
   draftDir,
@@ -64,6 +65,15 @@ export async function newRequest(dir: string) {
   draftName.set('');
   newDraftKey();
   dirty.set(true);
+}
+
+// Esc: close the open request; unsaved edits are stashed (orange dot),
+// an unsaved draft asks for confirmation since it has no file to return to.
+export async function closeRequest() {
+  if (!get(request)) return;
+  if (!(await maybeAbandonDraft())) return;
+  stashCurrentEdit();
+  clearSelection();
 }
 
 export async function saveRequest() {

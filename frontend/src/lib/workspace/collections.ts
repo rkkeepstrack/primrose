@@ -4,7 +4,7 @@ import { get } from 'svelte/store';
 import type { Collection } from '../shared/types';
 import { errMsg } from '../shared/errors';
 import { GetTree, OpenCollectionDialog } from '../../../wailsjs/go/main/App';
-import { loadEnvironments } from './environments';
+import { closeEnvView, loadEnvironments } from './environments';
 import { maybeAbandonDraft, stashCurrentEdit } from './drafts';
 import { activeIdx, activeRoot, clearSelection, collections, envView, error, shortcutsView } from './state';
 
@@ -32,7 +32,7 @@ export async function openCollectionViaDialog() {
 export async function switchCollection(i: number) {
   if (i === get(activeIdx) && !get(envView) && !get(shortcutsView)) return;
   if (!(await maybeAbandonDraft())) return;
-  envView.set(false);
+  if (get(envView) && !(await closeEnvView())) return;
   shortcutsView.set(false);
   if (i === get(activeIdx)) return;
   stashCurrentEdit();

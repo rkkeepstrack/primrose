@@ -92,13 +92,23 @@
 >
   <SidebarHeader />
   <div class="search-row">
-    <input
-      class="search text-input"
-      placeholder="Search (⌘P)"
-      bind:value={$search}
-      bind:this={searchEl}
-      on:keydown={onSearchKeydown}
-    />
+    <div class="search-wrap">
+      <input
+        class="search text-input"
+        placeholder="Search (⌘P)"
+        bind:value={$search}
+        bind:this={searchEl}
+        on:keydown={onSearchKeydown}
+      />
+      {#if $search}
+        <button
+          class="search-clear"
+          title="Clear search"
+          aria-label="Clear search"
+          on:click={() => { search.set(''); searchEl.focus(); }}
+        >×</button>
+      {/if}
+    </div>
     <button
       class="heat-toggle"
       class:on={$recentFilterOn}
@@ -128,9 +138,33 @@
     gap: 6px;
     margin-bottom: 12px;
   }
+  .search-wrap {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+    display: flex;
+  }
   .search {
     flex: 1;
     min-width: 0;
+    padding-right: 26px;
+  }
+  .search-clear {
+    position: absolute;
+    right: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+    border: none;
+    background: none;
+    color: var(--text-disabled);
+    font-size: 15px;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+  .search-clear:hover {
+    color: var(--text-soft);
+    background: var(--bg-hover);
   }
   .heat-toggle {
     border: none;

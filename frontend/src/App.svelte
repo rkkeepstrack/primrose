@@ -15,6 +15,9 @@
   import { initExternalSync } from './lib/workspace/sync';
   import ShortcutsPanel from './lib/shortcuts/ShortcutsPanel.svelte';
   import { shortcutsView } from './lib/workspace/state';
+  import { closeRequest } from './lib/workspace/requests';
+  import { closeEnvView } from './lib/workspace/environments';
+  import { dialog } from './lib/ui/dialogs';
   import { activeEnvName, activeIdx, collections, envView, envs, error, request, restored } from './lib/workspace/state';
 
   onMount(() => {
@@ -25,8 +28,22 @@
   function onGlobalKeydown(e: KeyboardEvent) {
     if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
       e.preventDefault();
-      envView.set(false);
-      shortcutsView.update((v) => !v);
+      (async () => {
+        if ($envView && !(await closeEnvView())) return;
+        shortcutsView.update((v) => !v);
+      })();
+      return;
+    }
+    if (e.key === 'Escape') {
+      if ($dialog) return; // the dialog owns Escape while open
+      const t = e.target as HTMLElement;
+      // first Esc leaves the field you're typing in; the next one closes
+      if (t.closest('.cm-editor')) {
+        (t.closest('.cm-editor')?.querySelector('.cm-content') as HTMLElement)?.blur();
+        return;
+      }
+      if (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA') return; // inputs handle their own Esc
+      closeRequest();
     }
   }
 
@@ -51,7 +68,7 @@
     {/each}
     <button class="col-tab open-btn" on:click={openCollectionViaDialog}>+ Open Collection</button>
     {#if $envView}
-      <button class="col-tab env-tab active" on:click={() => envView.set(false)}>
+      <button class="col-tab env-tab active" on:click={closeEnvView}>
         Environment ×
       </button>
     {/if}

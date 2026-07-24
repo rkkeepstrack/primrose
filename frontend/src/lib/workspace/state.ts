@@ -19,6 +19,8 @@ export const environments = writable<Record<string, Environment[]>>({});
 export const restored = writable(false);
 // the open request was modified on disk while it had unsaved edits here
 export const diskChanged = writable(false);
+// the environment editor has unsaved variable edits
+export const envEditorDirty = writable(false);
 
 // draft state for a new, not-yet-saved request
 export const draftDir = writable<string | null>(null);

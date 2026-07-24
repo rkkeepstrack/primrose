@@ -1,6 +1,9 @@
 <script lang="ts">
+  import { onDestroy } from 'svelte';
   import type { Environment } from '../shared/types';
   import KeyValueEditor from '../ui/KeyValueEditor.svelte';
+  import { confirmDialog } from '../ui/dialogs';
+  import { envEditorDirty } from '../workspace/state';
 
   export let environments: Environment[];
   export let activeName: string | null;
@@ -31,7 +34,24 @@
       )
     : {};
 
-  $: dirty = active && draft && JSON.stringify(draft) !== JSON.stringify(active.vars);
+  // key-order-insensitive comparison — the draft is rebuilt in row order,
+  // which JSON.stringify would flag as a change even when values match
+  function sameVars(a: Record<string, string>, b: Record<string, string>): boolean {
+    const ka = Object.keys(a).sort();
+    const kb = Object.keys(b).sort();
+    return ka.length === kb.length && ka.every((k, i) => k === kb[i] && a[k] === b[k]);
+  }
+
+  $: dirty = active && draft ? !sameVars(draft, active.vars) : false;
+  $: envEditorDirty.set(dirty);
+  onDestroy(() => envEditorDirty.set(false));
+
+  async function pick(name: string) {
+    if (name === activeName) return;
+    if (dirty && !(await confirmDialog('Discard unsaved environment changes?'))) return;
+    draftFor = null; // force a fresh draft for the newly picked environment
+    onSelect(name);
+  }
 
   function handleChange(entries: Record<string, string>) {
     if (!draft) return;
@@ -54,7 +74,7 @@
 <div class="env-editor">
   <aside class="env-list">
     {#each environments as e (e.name)}
-      <button class:active={e.name === activeName} on:click={() => onSelect(e.name)}>
+      <button class:active={e.name === activeName} on:click={() => pick(e.name)}>
         {e.name}
       </button>
     {:else}

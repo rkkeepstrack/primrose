@@ -1,19 +1,91 @@
-1. no way to delete requests or folders
-2. when opening a request and then trying to closing it without saving or opening another request, nothing happens. it should be possible to cancel the step of creating a new request
-3. darwin signing warning when building: This darwin build contains the use of private APIs. This will not pass Apple's AppStore approval process. Please use it only as a test build for testing and debug purposes.
-4. code review check (SOLID, Clean Code, Test coverage, redundancy check, sanity check)
-5. environment does not work as intended, it should open in a tab next to the collections instead of on the other side on the right. background color should be purplish.
-6. dynamic variables should not start with /:, just with :
-7. cant save collections: the save button just always appears as if there are changes and doesnt do anything if clicked
-8. cant resize request browser
-9. env variables should be allowed in either form: camelCase, kebab-case, snake_case, SCREAMING_SNAKE_CASE
-10. continuity: if i define a variable with {{}} or :, it should be allowed to use it anywhere. that means, in the value or key of query params, in the value or key of headers, in body params.
-11. body parsing: maybe this can also be done with code mirror? a json compiler or json parsing would be great there, so there's direct user feedback
-12. there's no button to create a new collection, just to open one.
-13. migration for bruno collections
-14. on hovering in the response timeline tab, i want the preview to switch with the hovered item, so as a user, i can see what exact request that run refers to without having to open it.
-15. full screen on double click on the header, same as it would work with native windows, linux or macos
-16. environment variables in this call should be editable and saveable from the response env tab
-17. in response env tab - switch around the positioning of env and dynamic variables. also call the tab 'Variables'
-18. app menus: currently, the app has the standard system menus like edit and window. maybe it's a good idea to visualize the shortcuts and the functionality there as well
-19. allow closing collections and other tabs like environment or shortcuts with cmd+w. these tabs should behave like native tabs, macos has something like that i guess
+# Bug fixes & improvements
+
+Sorted into batches that touch the same code and should be fixed together.
+Suggested order: A → B → C, then G + F, then D + E, Bruno migration (E2) as
+its own project, and the review pass (H) after A–C have landed.
+
+## A. Broken today — quick bug batch
+
+- [x] environment save button always appears dirty and seemingly does nothing
+      (draft vs. saved vars compared via key-order-sensitive JSON.stringify;
+      draft not resynced after save)
+- [x] when opening a request and then trying to close it without saving or
+      opening another request, nothing happens. it should be possible to
+      cancel the step of creating a new request
+- [x] delete search button is missing (something like an x)
+- [x] VERIFY: no way to delete requests or folders — confirmed stale, delete
+      and draft-discard already work — the ⋮ menu has Delete
+      now; entry probably predates it (or means keyboard delete?)
+
+## B. Variable semantics — single batch (same regexes/resolver in Go
+## resolve.go, TS vars.ts, CodeMirror highlighting, plus tests)
+
+- [ ] dynamic variables should not start with /:, just with :
+      (care: must not eat ports like https://x.io:8080 — require : to follow
+      /, =, & or start-of-segment)
+- [ ] env variable names should be allowed in either form: camelCase,
+      kebab-case, snake_case, SCREAMING_SNAKE_CASE
+- [ ] continuity: a variable defined with {{}} or : should be usable
+      anywhere — key or value of query params and headers, body params
+      (dynamic vars are currently URL-only)
+- [ ] creating new environments: "+ new environment" in the environment
+      editor's list (name prompt → writes empty environments/<name>.toml,
+      selects it)
+- [ ] quick environment switching inside a collection: clicking the env
+      label in the sidebar offers a dropdown to pick the active environment
+      directly (with an "Edit environments…" entry opening the editor),
+      instead of always jumping to the editor
+- [ ] show environments in the sidebar tree: the environments/ folder is
+      currently excluded by the scanner — show it (env files instead of a
+      method badge get an env marker; clicking one opens the environment
+      editor with that env selected; ⋮ rename/duplicate/delete apply,
+      drag & drop into/out of environments/ changes what a file *is*, so
+      either disallow it or accept the semantics)
+
+## C. Env tab rework (follow-up to B)
+
+- [ ] request env tab: switch positioning of env and dynamic variables
+      (dynamic first), rename the tab to 'Variables'
+- [ ] environment variables in this call should be editable and saveable
+      from the request's Variables tab
+- [ ] environment view should open in a tab next to the collections instead
+      of on the right side; background color should be purplish
+
+## D. Native / window integration — one Wails batch
+
+- [ ] full screen / zoom on double click on the header, same as native
+      windows on macOS/Windows/Linux
+- [ ] app menus: replace/extend the standard system menus (Edit, Window…)
+      so functionality and shortcuts are visible there as well
+- [ ] allow closing collections and the environment/shortcuts tabs with ⌘W;
+      tabs should behave like native macOS tabs
+      (implies: closable collections, which don't exist yet)
+- [ ] darwin signing warning when building ("use of private APIs … will not
+      pass AppStore approval") — comes from TitleBarHiddenInset; harmless
+      unless targeting the App Store; decide & document in this batch
+
+## E. Collection management
+
+- [ ] there's no button to create a new collection, just to open one
+- [ ] migration for bruno collections (big — own project, needs a .bru
+      parser)
+
+## F. Viewer / response enhancements — one CodeMirror batch
+
+- [ ] body parsing: JSON linting in the body editor for direct user
+      feedback (@codemirror/lint + jsonParseLinter)
+- [ ] ResponseViewer: search inside the json response; also VS-Code-style
+      sticky scroll — the enclosing top-level element stays pinned while
+      scrolling (note: search is easy via @codemirror/search, sticky scroll
+      is genuinely hard in CM6)
+- [ ] on hovering in the response timeline tab, the preview should switch to
+      the hovered item so the run can be inspected without opening it
+
+## G. Sidebar
+
+- [ ] can't resize request browser (sidebar width is fixed — reuse SplitPane)
+
+## H. Process (not a fix)
+
+- [ ] recurring code review check (SOLID, Clean Code, test coverage,
+      redundancy check, sanity check) — run after batches A–C have landed
