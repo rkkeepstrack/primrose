@@ -2,8 +2,8 @@
 // mutate them live in the sibling modules (collections, requests, send, …).
 
 import { derived, writable } from 'svelte/store';
-import type { ApiRequest, Collection, Environment } from '../types';
-import { selectedEnvNames } from '../stores';
+import type { ApiRequest, Collection, Environment } from '../shared/types';
+import { selectedEnvNames } from '../shared/stores';
 
 export const collections = writable<Collection[]>([]);
 export const activeIdx = writable(0);

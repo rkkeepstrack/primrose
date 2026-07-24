@@ -24,8 +24,13 @@
 <svelte:window on:keydown={onKeydown} />
 
 {#if $dialog}
-  <div class="backdrop" role="presentation" on:click={() => close($dialog.kind === 'prompt' ? null : false)}>
-    <div class="dialog" role="dialog" on:click|stopPropagation>
+  <!-- clicking the backdrop (but not the dialog itself) dismisses -->
+  <div
+    class="backdrop"
+    role="presentation"
+    on:click={(e) => e.target === e.currentTarget && close($dialog.kind === 'prompt' ? null : false)}
+  >
+    <div class="dialog" role="dialog" aria-modal="true" tabindex="-1">
       <p class="message">{$dialog.message}</p>
       {#if $dialog.kind === 'prompt'}
         <!-- svelte-ignore a11y_autofocus -->

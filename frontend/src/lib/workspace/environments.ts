@@ -1,9 +1,9 @@
 // Per-collection environments: loading, selecting, saving.
 
 import { get } from 'svelte/store';
-import type { Environment } from '../types';
-import { errMsg } from '../errors';
-import { selectedEnvNames } from '../stores';
+import type { Environment } from '../shared/types';
+import { errMsg } from '../shared/errors';
+import { selectedEnvNames } from '../shared/stores';
 import { ListEnvironments, SaveEnvironment } from '../../../wailsjs/go/main/App';
 import { activeRoot, environments, error } from './state';
 

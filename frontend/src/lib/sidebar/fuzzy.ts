@@ -1,4 +1,4 @@
-import type { TreeNode } from './types';
+import type { TreeNode } from '../shared/types';
 
 // Subsequence fuzzy match: every query char must appear in order.
 export function fuzzyMatch(query: string, text: string): boolean {

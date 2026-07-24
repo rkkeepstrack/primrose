@@ -1,9 +1,9 @@
 <script lang="ts">
   // The request-level Env tab: which {{env}} and /:dynamic variables this
   // call uses, with session-only editing for the dynamic ones.
-  import { extractDynamicVars, extractEnvVars } from './varUtils';
-  import { dynamicVars, setDynamicVar } from './stores';
-  import { activeEnvVars, request, selectedPath } from './workspace/state';
+  import { extractDynamicVars, extractEnvVars } from './vars';
+  import { dynamicVars, setDynamicVar } from '../shared/stores';
+  import { activeEnvVars, request, selectedPath } from '../workspace/state';
 
   $: usedEnvVars = $request ? extractEnvVars($request) : [];
   $: usedDynamicVars = $request ? extractDynamicVars($request.url) : [];

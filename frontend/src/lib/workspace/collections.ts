@@ -1,8 +1,8 @@
 // Opening, switching and rescanning collections.
 
 import { get } from 'svelte/store';
-import type { Collection } from '../types';
-import { errMsg } from '../errors';
+import type { Collection } from '../shared/types';
+import { errMsg } from '../shared/errors';
 import { GetTree, OpenCollectionDialog } from '../../../wailsjs/go/main/App';
 import { loadEnvironments } from './environments';
 import { maybeAbandonDraft, stashCurrentEdit } from './drafts';

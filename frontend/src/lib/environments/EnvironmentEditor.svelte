@@ -1,6 +1,6 @@
 <script lang="ts">
-  import type { Environment } from './types';
-  import KeyValueEditor from './KeyValueEditor.svelte';
+  import type { Environment } from '../shared/types';
+  import KeyValueEditor from '../ui/KeyValueEditor.svelte';
 
   export let environments: Environment[];
   export let activeName: string | null;

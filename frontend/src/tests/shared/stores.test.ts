@@ -9,8 +9,8 @@ import {
   stashEdit,
   dropEdit,
   pruneEdits,
-} from '../stores';
-import type { ApiRequest } from '../types';
+} from '../../lib/shared/stores';
+import type { ApiRequest } from '../../lib/shared/types';
 
 const fakeReq = { method: 'GET', url: '' } as ApiRequest;
 

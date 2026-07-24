@@ -1,14 +1,14 @@
 <script lang="ts">
   // Recursive tree: expansion state and the folder/request row contents.
   // Row chrome (selection, heat, dnd, ⋮ menu) lives in TreeRow.
-  import type { TreeNode } from './types';
+  import type { TreeNode } from '../shared/types';
   import Tree from './Tree.svelte';
   import TreeRow from './TreeRow.svelte';
   import { acceptPathDrag, carriesPath, readPathDrag } from './dnd';
   import { dirtyPaths, forceOpen, heat, heatStyle } from './treeView';
-  import { newRequest, selectRequest } from './workspace/requests';
-  import { selectedPath } from './workspace/state';
-  import { deleteItem, duplicateItem, moveItem, newFolder, renameItem } from './workspace/treeOps';
+  import { newRequest, selectRequest } from '../workspace/requests';
+  import { selectedPath } from '../workspace/state';
+  import { deleteItem, duplicateItem, moveItem, newFolder, renameItem } from '../workspace/treeOps';
 
   export let nodes: TreeNode[];
   export let root = true; // false for nested (recursive) levels

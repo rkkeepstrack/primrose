@@ -1,8 +1,8 @@
 <script lang="ts">
   // Root-level actions (new request / new folder) and the environment button.
-  import { newRequest } from './workspace/requests';
-  import { activeEnvName, activeRoot, envView } from './workspace/state';
-  import { newFolder } from './workspace/treeOps';
+  import { newRequest } from '../workspace/requests';
+  import { activeEnvName, activeRoot, envView } from '../workspace/state';
+  import { newFolder } from '../workspace/treeOps';
 </script>
 
 <div class="sidebar-head">

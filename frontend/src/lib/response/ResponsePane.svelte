@@ -1,10 +1,10 @@
 <script lang="ts">
   import { onDestroy } from 'svelte';
-  import type { RunRecord, ApiResponse } from './types';
-  import CodeViewer from './CodeViewer.svelte';
-  import TabBar from './TabBar.svelte';
-  import primroseLogo from '../assets/images/primrose-logo.svg';
-  import { sending } from './workspace/state';
+  import type { RunRecord, ApiResponse } from '../shared/types';
+  import CodeViewer from '../editor/CodeViewer.svelte';
+  import TabBar from '../ui/TabBar.svelte';
+  import primroseLogo from '../../assets/images/primrose-logo.svg';
+  import { sending } from '../workspace/state';
   import { fmtElapsed, fmtSize, fmtTime, prettyJson, statusClass } from './format';
 
   export let runs: RunRecord[];

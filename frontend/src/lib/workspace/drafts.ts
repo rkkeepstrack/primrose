@@ -2,8 +2,8 @@
 // collection operations.
 
 import { derived, get } from 'svelte/store';
-import { confirmDialog } from '../dialogs';
-import { runHistory, stashEdit } from '../stores';
+import { confirmDialog } from '../ui/dialogs';
+import { runHistory, stashEdit } from '../shared/stores';
 import { dirty, draftDir, request, selectedPath } from './state';
 
 // each draft gets its own run-history bucket so two unsaved drafts never mix

@@ -2,9 +2,9 @@
 // URL bar and query tab stay two views of the same state.
 
 import { get } from 'svelte/store';
-import type { ApiRequest } from './types';
-import { buildUrl, queryFromUrl, splitUrl } from './urlQuery';
-import { dirty, request } from './workspace/state';
+import type { ApiRequest } from '../shared/types';
+import { buildUrl, queryFromUrl, splitUrl } from '../shared/urlQuery';
+import { dirty, request } from '../workspace/state';
 
 export function edit(mutate: (r: ApiRequest) => void) {
   const r = get(request);

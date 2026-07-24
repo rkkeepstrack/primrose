@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { splitUrl, buildUrl, queryFromUrl, normalizeUrlAndQuery } from '../urlQuery';
+import { splitUrl, buildUrl, queryFromUrl, normalizeUrlAndQuery } from '../../lib/shared/urlQuery';
 
 describe('splitUrl', () => {
   it('splits base and pairs', () => {

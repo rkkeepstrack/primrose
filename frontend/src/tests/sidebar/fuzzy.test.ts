@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { fuzzyMatch, filterTree } from '../fuzzy';
-import type { TreeNode } from '../types';
+import { fuzzyMatch, filterTree } from '../../lib/sidebar/fuzzy';
+import type { TreeNode } from '../../lib/shared/types';
 
 describe('fuzzyMatch', () => {
   it('matches subsequences case-insensitively', () => {

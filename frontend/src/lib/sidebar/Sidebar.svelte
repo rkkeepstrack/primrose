@@ -2,11 +2,11 @@
   // Layout shell: header, search row, tree, and the root drop zone.
   import Tree from './Tree.svelte';
   import SidebarHeader from './SidebarHeader.svelte';
-  import primroseLogo from '../assets/images/primrose-logo.svg';
+  import primroseLogo from '../../assets/images/primrose-logo.svg';
   import { acceptPathDrag, carriesPath, readPathDrag } from './dnd';
   import { recentFilterOn, resetFilters, search, visibleTree } from './treeView';
-  import { activeRoot } from './workspace/state';
-  import { moveItem } from './workspace/treeOps';
+  import { activeRoot } from '../workspace/state';
+  import { moveItem } from '../workspace/treeOps';
 
   let lastRoot: string | null = null;
   $: if ($activeRoot !== lastRoot) {

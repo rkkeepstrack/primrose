@@ -1,7 +1,7 @@
 <script lang="ts">
-  import CodeEditor from './CodeEditor.svelte';
+  import CodeEditor from '../editor/CodeEditor.svelte';
   import { setBodyContent, setBodyType } from './requestEdit';
-  import { request } from './workspace/state';
+  import { request } from '../workspace/state';
 </script>
 
 {#if $request}

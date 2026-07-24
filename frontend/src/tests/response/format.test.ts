@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { fmtSize, fmtElapsed, prettyJson, statusClass } from '../format';
+import { fmtSize, fmtElapsed, prettyJson, statusClass } from '../../lib/response/format';
 
 describe('fmtSize', () => {
   it('formats bytes, KB and MB', () => {

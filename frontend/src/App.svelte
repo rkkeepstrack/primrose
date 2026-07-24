@@ -1,12 +1,12 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import Sidebar from './lib/Sidebar.svelte';
-  import UrlBar from './lib/UrlBar.svelte';
-  import SplitPane from './lib/SplitPane.svelte';
-  import RequestView from './lib/RequestView.svelte';
-  import ResponsePane from './lib/ResponsePane.svelte';
-  import EnvironmentEditor from './lib/EnvironmentEditor.svelte';
-  import Dialog from './lib/Dialog.svelte';
+  import Sidebar from './lib/sidebar/Sidebar.svelte';
+  import UrlBar from './lib/request/UrlBar.svelte';
+  import SplitPane from './lib/ui/SplitPane.svelte';
+  import RequestView from './lib/request/RequestView.svelte';
+  import ResponsePane from './lib/response/ResponsePane.svelte';
+  import EnvironmentEditor from './lib/environments/EnvironmentEditor.svelte';
+  import Dialog from './lib/ui/Dialog.svelte';
   import primroseLogo from './assets/images/primrose-logo.svg';
   import { openCollectionViaDialog, switchCollection } from './lib/workspace/collections';
   import { runs } from './lib/workspace/drafts';

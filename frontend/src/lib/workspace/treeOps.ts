@@ -2,10 +2,10 @@
 // delete — each followed by a tree rescan.
 
 import { get } from 'svelte/store';
-import type { TreeNode } from '../types';
-import { errMsg } from '../errors';
-import { confirmDialog, promptDialog } from '../dialogs';
-import { dropEdit, renameRecent } from '../stores';
+import type { TreeNode } from '../shared/types';
+import { errMsg } from '../shared/errors';
+import { confirmDialog, promptDialog } from '../ui/dialogs';
+import { dropEdit, renameRecent } from '../shared/stores';
 import {
   CreateFolder,
   DeleteItem,

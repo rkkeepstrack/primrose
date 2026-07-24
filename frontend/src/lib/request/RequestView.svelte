@@ -1,11 +1,11 @@
 <script lang="ts">
   // The left pane of the detail split: tab bar plus the active panel.
-  import KeyValueEditor from './KeyValueEditor.svelte';
-  import TabBar from './TabBar.svelte';
+  import KeyValueEditor from '../ui/KeyValueEditor.svelte';
+  import TabBar from '../ui/TabBar.svelte';
   import BodyEditor from './BodyEditor.svelte';
   import EnvPanel from './EnvPanel.svelte';
   import { setHeaders, setQuery } from './requestEdit';
-  import { request } from './workspace/state';
+  import { request } from '../workspace/state';
 
   type Tab = 'query' | 'body' | 'headers' | 'env';
   let tab: Tab = 'query';

@@ -1,10 +1,10 @@
 // Selecting, drafting and saving requests.
 
 import { get } from 'svelte/store';
-import type { ApiRequest, TreeNode } from '../types';
-import { errMsg } from '../errors';
-import { normalizeUrlAndQuery } from '../urlQuery';
-import { dropEdit, touchRecent, unsavedEdits } from '../stores';
+import type { ApiRequest, TreeNode } from '../shared/types';
+import { errMsg } from '../shared/errors';
+import { normalizeUrlAndQuery } from '../shared/urlQuery';
+import { dropEdit, touchRecent, unsavedEdits } from '../shared/stores';
 import { CreateRequest, ReadRequest, SaveRequest } from '../../../wailsjs/go/main/App';
 import { refreshTree } from './collections';
 import { maybeAbandonDraft, newDraftKey, stashCurrentEdit } from './drafts';

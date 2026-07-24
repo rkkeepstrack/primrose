@@ -1,8 +1,8 @@
 <script lang="ts">
   // Row chrome shared by folder and request rows: the wrapper with hover/
   // selection/heat states, drag & drop wiring, and the ⋮ context menu.
-  import type { TreeNode } from './types';
-  import ContextMenu from './ContextMenu.svelte';
+  import type { TreeNode } from '../shared/types';
+  import ContextMenu from '../ui/ContextMenu.svelte';
   import { startPathDrag } from './dnd';
 
   export let node: TreeNode;

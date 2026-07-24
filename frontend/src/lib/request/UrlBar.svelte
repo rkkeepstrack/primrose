@@ -1,12 +1,12 @@
 <script lang="ts">
   // Full-width request toolbar: method picker, URL editor, Save/Send/Cancel,
   // draft-name row, and the ⌘S / ⌘↵ shortcuts.
-  import { METHODS } from './types';
-  import CodeEditor from './CodeEditor.svelte';
+  import { METHODS } from '../shared/types';
+  import CodeEditor from '../editor/CodeEditor.svelte';
   import { setMethod, setUrl } from './requestEdit';
-  import { saveRequest } from './workspace/requests';
-  import { cancelRequest, sendRequest } from './workspace/send';
-  import { dirty, draftName, request, sending } from './workspace/state';
+  import { saveRequest } from '../workspace/requests';
+  import { cancelRequest, sendRequest } from '../workspace/send';
+  import { dirty, draftName, request, sending } from '../workspace/state';
 
   let methodOpen = false;
 

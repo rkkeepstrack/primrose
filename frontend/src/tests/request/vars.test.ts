@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { extractEnvVars, extractDynamicVars } from '../varUtils';
-import type { ApiRequest } from '../types';
+import { extractEnvVars, extractDynamicVars } from '../../lib/request/vars';
+import type { ApiRequest } from '../../lib/shared/types';
 
 function req(partial: Partial<ApiRequest>): ApiRequest {
   return {

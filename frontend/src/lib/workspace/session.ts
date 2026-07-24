@@ -1,7 +1,7 @@
 // Restoring and persisting which collections are open across restarts.
 
 import { get } from 'svelte/store';
-import type { Collection } from '../types';
+import type { Collection } from '../shared/types';
 import { LoadUIState, OpenCollection, SaveUIState } from '../../../wailsjs/go/main/App';
 import { appstate } from '../../../wailsjs/go/models';
 import { loadEnvironments } from './environments';

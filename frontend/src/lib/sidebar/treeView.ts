@@ -2,10 +2,10 @@
 // recent-only mode, recency heat and unsaved-edit markers.
 
 import { derived, writable } from 'svelte/store';
-import type { TreeNode } from './types';
+import type { TreeNode } from '../shared/types';
 import { filterTree } from './fuzzy';
-import { RECENT_MAX, recentPaths, unsavedEdits } from './stores';
-import { activeIdx, collections, dirty, selectedPath } from './workspace/state';
+import { RECENT_MAX, recentPaths, unsavedEdits } from '../shared/stores';
+import { activeIdx, collections, dirty, selectedPath } from '../workspace/state';
 
 export const search = writable('');
 export const recentFilterOn = writable(false);

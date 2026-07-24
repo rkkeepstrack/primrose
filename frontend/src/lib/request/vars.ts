@@ -1,4 +1,4 @@
-import type { ApiRequest } from './types';
+import type { ApiRequest } from '../shared/types';
 
 // NOTE: the same patterns exist in Go (internal/collection/resolve.go) — they
 // are the {{env}} / :dynamic syntax contract between frontend and backend.

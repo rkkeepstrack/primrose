@@ -1,8 +1,8 @@
 // Executing the open request and cancelling it mid-flight.
 
 import { get } from 'svelte/store';
-import { errMsg } from '../errors';
-import { dynamicVars, recordRun } from '../stores';
+import { errMsg } from '../shared/errors';
+import { dynamicVars, recordRun } from '../shared/stores';
 import { CancelRequest, SendRequest } from '../../../wailsjs/go/main/App';
 import { historyKey } from './drafts';
 import { activeEnvVars, error, request, selectedPath, sending } from './state';
