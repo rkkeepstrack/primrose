@@ -143,16 +143,7 @@
       EditorView.lineWrapping,
       theme,
     ];
-    if (lang === 'json') {
-      ext.push(
-        json(),
-        // vertical guides connecting matching brackets across nesting levels
-        indentationMarkers({
-          hideFirstIndent: true,
-          colors: { light: '#e4e4e4', activeLight: '#c8c8c8' },
-        })
-      );
-    }
+    if (lang === 'json') ext.push(json());
     return ext;
   }
 
