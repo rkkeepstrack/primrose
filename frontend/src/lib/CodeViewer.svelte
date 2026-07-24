@@ -17,25 +17,57 @@
   let view: EditorView | null = null;
 
   const theme = EditorView.theme({
-    '&': { fontSize: '12.5px', height: '100%', backgroundColor: 'transparent' },
-    '.cm-content': { fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', color: '#444' },
+    '&': { fontSize: '13px', height: '100%', backgroundColor: 'transparent' },
+    '.cm-content': {
+      fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
+      color: '#444',
+      lineHeight: '1.65',
+      paddingTop: '8px',
+      paddingBottom: '8px',
+    },
+    '.cm-line': { padding: '0 12px' },
     '.cm-gutters': {
       backgroundColor: 'transparent',
-      color: '#c4c4c4',
+      color: '#b8b8b8',
       border: 'none',
-      borderRight: '1px solid #f0f0f0',
+      borderRight: '1px solid #eee',
+      lineHeight: '1.65',
+      paddingTop: '8px',
+    },
+    '.cm-lineNumbers .cm-gutterElement': { padding: '0 6px 0 14px', minWidth: '32px' },
+    '.cm-foldGutter .cm-gutterElement': { padding: '0 6px 0 2px' },
+    '.cm-foldPlaceholder': {
+      background: '#fdf7dc',
+      border: '1px solid #ecdfa8',
+      color: '#8a7a33',
+      borderRadius: '4px',
+      padding: '0 6px',
+      margin: '0 4px',
     },
     '.cm-activeLine': { backgroundColor: 'transparent' },
     '.cm-scroller': { overflow: 'auto' },
     '&.cm-focused': { outline: 'none' },
   });
 
+  // clearly visible fold chevrons instead of the near-invisible defaults
+  function foldMarker(open: boolean): HTMLElement {
+    const el = document.createElement('span');
+    el.style.cssText =
+      'display:inline-flex;align-items:center;justify-content:center;' +
+      'width:14px;height:14px;cursor:pointer;color:#8a8a8a;';
+    el.innerHTML =
+      `<svg width="11" height="11" viewBox="0 0 10 10" style="transform:rotate(${open ? 90 : 0}deg)">` +
+      '<path d="M3 1.5 L7.5 5 L3 8.5" fill="none" stroke="currentColor" stroke-width="1.6" ' +
+      'stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    return el;
+  }
+
   function extensions() {
     const ext = [
       lineNumbers(),
       highlightSpecialChars(),
       codeFolding(),
-      foldGutter(),
+      foldGutter({ markerDOM: foldMarker }),
       syntaxHighlighting(defaultHighlightStyle),
       EditorState.readOnly.of(true),
       EditorView.lineWrapping,
