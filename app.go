@@ -187,3 +187,18 @@ func (a *App) ListEnvironments(root string) ([]env.Environment, error) {
 func (a *App) SaveEnvironment(root, name string, vars map[string]string) error {
 	return env.Save(root, name, vars)
 }
+
+// DeleteEnvironment removes an environment file.
+func (a *App) DeleteEnvironment(root, name string) error {
+	return env.Delete(root, name)
+}
+
+// RenameEnvironment renames an environment.
+func (a *App) RenameEnvironment(root, oldName, newName string) error {
+	return env.Rename(root, oldName, newName)
+}
+
+// DuplicateEnvironment copies an environment, returns the new name.
+func (a *App) DuplicateEnvironment(root, name string) (string, error) {
+	return env.Duplicate(root, name)
+}

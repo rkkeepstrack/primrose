@@ -62,7 +62,18 @@ func List(root string) ([]Environment, error) {
 }
 
 // Save writes an environment file (creating environments/ if needed).
+// The name is sanitized to a safe filename.
 func Save(root, name string, vars map[string]string) error {
+	name = strings.Trim(strings.Map(func(c rune) rune {
+		switch c {
+		case '/', '\\', ':', 0:
+			return '-'
+		}
+		return c
+	}, strings.TrimSpace(name)), ". ")
+	if name == "" {
+		return fmt.Errorf("environment name must not be empty")
+	}
 	dir := filepath.Join(root, dirName)
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return err
@@ -79,4 +90,44 @@ func Save(root, name string, vars map[string]string) error {
 		fmt.Fprintf(&b, "%s = %s\n", tomlutil.Key(k), tomlutil.String(vars[k]))
 	}
 	return os.WriteFile(filepath.Join(dir, name+".toml"), []byte(b.String()), 0o644)
+}
+
+// path of an environment file.
+func envPath(root, name string) string {
+	return filepath.Join(root, dirName, name+".toml")
+}
+
+// Delete removes an environment file.
+func Delete(root, name string) error {
+	return os.Remove(envPath(root, name))
+}
+
+// Rename renames an environment, refusing to overwrite.
+func Rename(root, oldName, newName string) error {
+	newName = strings.TrimSpace(newName)
+	if newName == "" {
+		return fmt.Errorf("environment name must not be empty")
+	}
+	dest := envPath(root, newName)
+	if _, err := os.Stat(dest); err == nil {
+		return fmt.Errorf("an environment named %q already exists", newName)
+	}
+	return os.Rename(envPath(root, oldName), dest)
+}
+
+// Duplicate copies an environment to "<name>-copy" (then "-copy-2", …) and
+// returns the new name.
+func Duplicate(root, name string) (string, error) {
+	data, err := os.ReadFile(envPath(root, name))
+	if err != nil {
+		return "", err
+	}
+	newName := name + "-copy"
+	for n := 2; ; n++ {
+		if _, err := os.Stat(envPath(root, newName)); os.IsNotExist(err) {
+			break
+		}
+		newName = fmt.Sprintf("%s-copy-%d", name, n)
+	}
+	return newName, os.WriteFile(envPath(root, newName), data, 0o644)
 }

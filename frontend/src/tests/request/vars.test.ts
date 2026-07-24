@@ -26,20 +26,42 @@ describe('extractEnvVars', () => {
     expect(vars).toEqual(['base', 'tenant', 'galleryId', 'key']);
   });
 
+  it('allows camelCase, kebab-case, snake_case and SCREAMING_SNAKE_CASE', () => {
+    const vars = extractEnvVars(
+      req({ url: '{{camelCase}}/{{kebab-case}}/{{snake_case}}/{{SCREAMING_SNAKE}}' })
+    );
+    expect(vars).toEqual(['camelCase', 'kebab-case', 'snake_case', 'SCREAMING_SNAKE']);
+  });
+
   it('ignores malformed tokens', () => {
     expect(extractEnvVars(req({ url: '{{1bad}} {{}} {{good_1}}' }))).toEqual(['good_1']);
   });
 });
 
 describe('extractDynamicVars', () => {
-  it('finds /:vars in the URL path only', () => {
-    expect(extractDynamicVars('{{base}}/teasers/:teaserId/items/:itemId')).toEqual([
-      'teaserId',
-      'itemId',
-    ]);
+  it('finds :vars after delimiters anywhere in the request', () => {
+    const vars = extractDynamicVars(
+      req({
+        url: '{{base}}/teasers/:teaserId?g=:gallery',
+        query: { ':dynKey': ':dynValue' },
+        headers: { 'X-Trace': 'a=1,:trace' },
+        body: { type: 'json', content: '{"id": :bodyId}' },
+      })
+    );
+    expect(vars).toEqual(['teaserId', 'gallery', 'dynKey', 'dynValue', 'trace', 'bodyId']);
   });
 
-  it('does not match ports or bare colons', () => {
-    expect(extractDynamicVars('https://x.io:8080/path')).toEqual([]);
+  it('does not match schemes, ports, basic auth or mid-value colons', () => {
+    const vars = extractDynamicVars(
+      req({
+        url: 'https://user:pass@x.io:8080/path',
+        headers: { Authorization: 'Bearer abc:def' },
+      })
+    );
+    expect(vars).toEqual([]);
+  });
+
+  it('hyphen ends a dynamic name', () => {
+    expect(extractDynamicVars(req({ url: '/users/:id-copy' }))).toEqual(['id']);
   });
 });

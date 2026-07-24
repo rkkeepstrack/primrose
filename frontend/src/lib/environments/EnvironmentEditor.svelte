@@ -2,17 +2,31 @@
   import { onDestroy } from 'svelte';
   import type { Environment } from '../shared/types';
   import KeyValueEditor from '../ui/KeyValueEditor.svelte';
-  import { confirmDialog } from '../ui/dialogs';
+  import ContextMenu from '../ui/ContextMenu.svelte';
+  import { confirmDialog, promptDialog } from '../ui/dialogs';
+  import {
+    deleteEnvironment,
+    duplicateEnvironment,
+    renameEnvironment,
+  } from '../workspace/environments';
   import { envEditorDirty } from '../workspace/state';
 
   export let environments: Environment[];
   export let activeName: string | null;
   export let onSelect: (name: string) => void;
   export let onSaveVars: (name: string, vars: Record<string, string>) => void;
+  export let onCreate: (name: string) => void;
 
   let search = '';
   let draft: Record<string, string> | null = null;
   let draftFor: string | null = null;
+  let menuFor: string | null = null;
+
+  function menuAction(action: (name: string) => void, name: string) {
+    menuFor = null;
+    draftFor = null; // the list may change under us — rebuild the draft
+    action(name);
+  }
 
   $: active = environments.find((e) => e.name === activeName) ?? null;
 
@@ -46,6 +60,14 @@
   $: envEditorDirty.set(dirty);
   onDestroy(() => envEditorDirty.set(false));
 
+  async function createEnv() {
+    if (dirty && !(await confirmDialog('Discard unsaved environment changes?'))) return;
+    const name = await promptDialog('Environment name:');
+    if (!name?.trim()) return;
+    draftFor = null;
+    onCreate(name.trim());
+  }
+
   async function pick(name: string) {
     if (name === activeName) return;
     if (dirty && !(await confirmDialog('Discard unsaved environment changes?'))) return;
@@ -66,20 +88,36 @@
     }
   }
 
-  function save() {
-    if (active && draft) onSaveVars(active.name, draft);
+  async function save() {
+    if (!active || !draft) return;
+    await onSaveVars(active.name, draft);
+    // resync from the saved file so the rows show the alphabetical order
+    // the file was written in
+    draftFor = null;
   }
 </script>
+
+<svelte:window on:click={() => (menuFor = null)} />
 
 <div class="env-editor">
   <aside class="env-list">
     {#each environments as e (e.name)}
-      <button class:active={e.name === activeName} on:click={() => pick(e.name)}>
-        {e.name}
-      </button>
+      <div class="env-row" class:active={e.name === activeName}>
+        <button class="env-name" on:click={() => pick(e.name)}>
+          {e.name}
+        </button>
+        <ContextMenu
+          open={menuFor === e.name}
+          onToggle={() => (menuFor = menuFor === e.name ? null : e.name)}
+          onRename={() => menuAction(renameEnvironment, e.name)}
+          onDuplicate={() => menuAction(duplicateEnvironment, e.name)}
+          onDelete={() => menuAction(deleteEnvironment, e.name)}
+        />
+      </div>
     {:else}
-      <p class="empty">No environments yet.<br />Add TOML files under <code>environments/</code>.</p>
+      <p class="empty">No environments yet.</p>
     {/each}
+    <button class="new-env" on:click={createEnv}>+ New environment</button>
   </aside>
 
   <section class="env-detail">
@@ -115,7 +153,26 @@
     flex-direction: column;
     gap: 2px;
   }
-  .env-list button {
+  .env-row {
+    display: flex;
+    align-items: center;
+  }
+  .env-row:hover:not(.active) { background: var(--bg-hover); }
+  .env-row.active {
+    background: var(--green-bg);
+    box-shadow: inset 3px 0 0 var(--green);
+  }
+  .env-row.active .env-name {
+    font-weight: 600;
+    color: var(--text-strong);
+  }
+  .env-row.active :global(.hover-btn),
+  .env-row:hover :global(.hover-btn) {
+    color: var(--text-soft);
+  }
+  .env-name {
+    flex: 1;
+    min-width: 0;
     border: none;
     background: none;
     text-align: left;
@@ -123,15 +180,24 @@
     font-family: inherit;
     color: #666;
     padding: 6px 10px;
-    border-radius: 6px;
     cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
-  .env-list button:hover { background: #f5f5f5; }
-  .env-list button.active {
-    color: var(--green-text);
-    font-weight: 600;
-    background: var(--green-bg);
+  .new-env {
+    margin-top: 6px;
+    border: none;
+    background: none;
+    text-align: left;
+    font-family: inherit;
+    cursor: pointer;
+    padding: 6px 10px;
+    border-radius: 6px;
+    color: #999;
+    font-size: 12px;
   }
+  .new-env:hover { color: var(--green); background: var(--green-bg); }
   .env-detail {
     padding: 16px 20px;
     overflow-y: auto;
@@ -164,5 +230,4 @@
   }
   .note { color: #bbb; font-size: 12px; margin: 0; }
   .empty { color: #aaa; font-size: 13px; }
-  code { font-size: 12px; }
 </style>

@@ -4,8 +4,14 @@ import { get } from 'svelte/store';
 import type { Environment } from '../shared/types';
 import { errMsg } from '../shared/errors';
 import { selectedEnvNames } from '../shared/stores';
-import { ListEnvironments, SaveEnvironment } from '../../../wailsjs/go/main/App';
-import { confirmDialog } from '../ui/dialogs';
+import {
+  DeleteEnvironment,
+  DuplicateEnvironment,
+  ListEnvironments,
+  RenameEnvironment,
+  SaveEnvironment,
+} from '../../../wailsjs/go/main/App';
+import { confirmDialog, promptDialog } from '../ui/dialogs';
 import { activeRoot, environments, envEditorDirty, envView, error } from './state';
 
 // closes the environment view, asking first if there are unsaved edits;
@@ -32,6 +38,65 @@ export function pickEnvironment(name: string) {
   const root = get(activeRoot);
   if (!root) return;
   selectedEnvNames.update((s) => ({ ...s, [root]: name }));
+}
+
+export async function createEnvironment(name: string) {
+  const root = get(activeRoot);
+  if (!root) return;
+  error.set('');
+  try {
+    await SaveEnvironment(root, name, {});
+    await loadEnvironments(root);
+    pickEnvironment(name);
+  } catch (e) {
+    error.set(errMsg(e));
+  }
+}
+
+export async function deleteEnvironment(name: string) {
+  const root = get(activeRoot);
+  if (!root) return;
+  if (!(await confirmDialog(`Delete environment "${name}"?`, true))) return;
+  error.set('');
+  try {
+    await DeleteEnvironment(root, name);
+    // drop a stale selection so activeEnvName falls back to the first env
+    selectedEnvNames.update(({ [root]: sel, ...rest }) =>
+      sel === name ? rest : { ...rest, [root]: sel }
+    );
+    await loadEnvironments(root);
+  } catch (e) {
+    error.set(errMsg(e));
+  }
+}
+
+export async function renameEnvironment(name: string) {
+  const root = get(activeRoot);
+  if (!root) return;
+  const newName = await promptDialog('New name:', name);
+  if (!newName?.trim() || newName === name) return;
+  error.set('');
+  try {
+    await RenameEnvironment(root, name, newName);
+    selectedEnvNames.update((s) =>
+      s[root] === name ? { ...s, [root]: newName } : s
+    );
+    await loadEnvironments(root);
+  } catch (e) {
+    error.set(errMsg(e));
+  }
+}
+
+export async function duplicateEnvironment(name: string) {
+  const root = get(activeRoot);
+  if (!root) return;
+  error.set('');
+  try {
+    await DuplicateEnvironment(root, name);
+    await loadEnvironments(root);
+  } catch (e) {
+    error.set(errMsg(e));
+  }
 }
 
 export async function saveEnvVars(name: string, vars: Record<string, string>) {

@@ -20,27 +20,25 @@ its own project, and the review pass (H) after A–C have landed.
 ## B. Variable semantics — single batch (same regexes/resolver in Go
 ## resolve.go, TS vars.ts, CodeMirror highlighting, plus tests)
 
-- [ ] dynamic variables should not start with /:, just with :
+- [x] dynamic variables should not start with /:, just with :
       (care: must not eat ports like https://x.io:8080 — require : to follow
       /, =, & or start-of-segment)
-- [ ] env variable names should be allowed in either form: camelCase,
+- [x] env variable names should be allowed in either form: camelCase,
       kebab-case, snake_case, SCREAMING_SNAKE_CASE
-- [ ] continuity: a variable defined with {{}} or : should be usable
+- [x] continuity: a variable defined with {{}} or : should be usable
       anywhere — key or value of query params and headers, body params
       (dynamic vars are currently URL-only)
-- [ ] creating new environments: "+ new environment" in the environment
+- [x] creating new environments: "+ new environment" in the environment
       editor's list (name prompt → writes empty environments/<name>.toml,
       selects it)
-- [ ] quick environment switching inside a collection: clicking the env
+- [x] quick environment switching inside a collection: clicking the env
       label in the sidebar offers a dropdown to pick the active environment
       directly (with an "Edit environments…" entry opening the editor),
       instead of always jumping to the editor
-- [ ] show environments in the sidebar tree: the environments/ folder is
-      currently excluded by the scanner — show it (env files instead of a
-      method badge get an env marker; clicking one opens the environment
-      editor with that env selected; ⋮ rename/duplicate/delete apply,
-      drag & drop into/out of environments/ changes what a file *is*, so
-      either disallow it or accept the semantics)
+- [x] DECIDED: environments/ must never show in the sidebar tree (stays
+      excluded). Guards instead: creating/renaming a folder to
+      "environments" at the collection root is rejected, and moves
+      into/out of environments/ are rejected (no identity crossings)
 
 ## C. Env tab rework (follow-up to B)
 

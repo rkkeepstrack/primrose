@@ -1,26 +1,35 @@
 import type { ApiRequest } from '../shared/types';
 
 // NOTE: the same patterns exist in Go (internal/collection/resolve.go) — they
-// are the {{env}} / :dynamic syntax contract between frontend and backend.
-const ENV_VAR_RE = /\{\{([A-Za-z_][A-Za-z0-9_]*)\}\}/g;
-const DYNAMIC_VAR_RE = /\/:([A-Za-z_][A-Za-z0-9_]*)/g;
+// are the variable syntax contract between frontend and backend.
+//
+// Env {{vars}} allow kebab-case (hyphens) on top of word characters.
+// Dynamic :vars are recognized only after a delimiter (start, /, =, &, ?,
+// comma or whitespace) so schemes, basic auth, ports and colons inside
+// header values never match; their names take no hyphens, so a literal
+// -suffix after a variable stays expressible.
+const ENV_VAR_RE = /\{\{([A-Za-z_][A-Za-z0-9_-]*)\}\}/g;
+const DYNAMIC_VAR_RE = /(?:^|[/=&?,\s]):([A-Za-z_][A-Za-z0-9_]*)/g;
 
-// Env vars referenced anywhere in the request, in order of first appearance.
-export function extractEnvVars(r: ApiRequest): string[] {
-  const haystack = [
+function requestHaystack(r: ApiRequest): string {
+  return [
     r.url,
     ...Object.entries(r.query).flat(),
     ...Object.entries(r.headers).flat(),
     r.body.content,
   ].join('\n');
+}
+
+// Env vars referenced anywhere in the request, in order of first appearance.
+export function extractEnvVars(r: ApiRequest): string[] {
   const seen = new Set<string>();
-  for (const m of haystack.matchAll(ENV_VAR_RE)) seen.add(m[1]);
+  for (const m of requestHaystack(r).matchAll(ENV_VAR_RE)) seen.add(m[1]);
   return [...seen];
 }
 
-// Dynamic /:vars in the URL path, in order of appearance.
-export function extractDynamicVars(url: string): string[] {
+// Dynamic :vars used anywhere in the request, in order of appearance.
+export function extractDynamicVars(r: ApiRequest): string[] {
   const seen = new Set<string>();
-  for (const m of url.matchAll(DYNAMIC_VAR_RE)) seen.add(m[1]);
+  for (const m of requestHaystack(r).matchAll(DYNAMIC_VAR_RE)) seen.add(m[1]);
   return [...seen];
 }

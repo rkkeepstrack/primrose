@@ -6,7 +6,7 @@
   import { activeEnvVars, request, selectedPath } from '../workspace/state';
 
   $: usedEnvVars = $request ? extractEnvVars($request) : [];
-  $: usedDynamicVars = $request ? extractDynamicVars($request.url) : [];
+  $: usedDynamicVars = $request ? extractDynamicVars($request) : [];
   $: dynValues = ($selectedPath && $dynamicVars[$selectedPath]) || {};
 </script>
 
@@ -33,7 +33,7 @@
 
 <h4 class="env-heading">Dynamic variables in this call</h4>
 {#if usedDynamicVars.length === 0}
-  <p class="empty">No <span class="var-token">/:dynamicVariables</span> in the URL.</p>
+  <p class="empty">No <span class="var-token">:dynamicVariables</span> in this request.</p>
 {:else}
   <table class="kv-table env-table">
     <thead><tr><th>Name</th><th>Value</th></tr></thead>

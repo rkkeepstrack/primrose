@@ -3,3 +3,4 @@ node_modules/
 frontend/dist/*
 !frontend/dist/gitkeep
 .DS_Store
+sample-collection/

@@ -57,3 +57,34 @@ func TestListSkipsNonToml(t *testing.T) {
 		t.Fatalf("want just 'a', got %v", envs)
 	}
 }
+
+func TestDeleteRenameDuplicate(t *testing.T) {
+	root := t.TempDir()
+	if err := Save(root, "staging", map[string]string{"a": "1"}); err != nil {
+		t.Fatal(err)
+	}
+
+	dup, err := Duplicate(root, "staging")
+	if err != nil || dup != "staging-copy" {
+		t.Fatalf("dup = %q, %v", dup, err)
+	}
+	dup2, _ := Duplicate(root, "staging")
+	if dup2 != "staging-copy-2" {
+		t.Errorf("dup2 = %q", dup2)
+	}
+
+	if err := Rename(root, "staging-copy-2", "prod"); err != nil {
+		t.Fatal(err)
+	}
+	if err := Rename(root, "prod", "staging"); err == nil {
+		t.Error("rename onto existing env should fail")
+	}
+
+	if err := Delete(root, "prod"); err != nil {
+		t.Fatal(err)
+	}
+	envs, _ := List(root)
+	if len(envs) != 2 {
+		t.Errorf("want staging + staging-copy, got %v", envs)
+	}
+}

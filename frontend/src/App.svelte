@@ -16,7 +16,7 @@
   import ShortcutsPanel from './lib/shortcuts/ShortcutsPanel.svelte';
   import { shortcutsView } from './lib/workspace/state';
   import { closeRequest } from './lib/workspace/requests';
-  import { closeEnvView } from './lib/workspace/environments';
+  import { closeEnvView, createEnvironment } from './lib/workspace/environments';
   import { dialog } from './lib/ui/dialogs';
   import { activeEnvName, activeIdx, collections, envView, envs, error, request, restored } from './lib/workspace/state';
 
@@ -101,6 +101,7 @@
       activeName={$activeEnvName}
       onSelect={pickEnvironment}
       onSaveVars={saveEnvVars}
+      onCreate={createEnvironment}
     />
   {:else}
     <div class="main">

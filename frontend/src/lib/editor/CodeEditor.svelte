@@ -25,13 +25,16 @@
   let host: HTMLDivElement;
   let view: EditorView | null = null;
 
-  // {{envVar}} and /:dynamicVar tinted green, per the mockups
+  // {{envVar}} and :dynamicVar tinted green, per the mockups; patterns
+  // mirror the Go/TS variable syntax contract (see request/vars.ts).
+  // decorate() marks only the variable itself, not the preceding delimiter.
+  const varMark = Decoration.mark({ class: 'cm-primrose-var' });
   const varMatcher = new MatchDecorator({
-    regexp: /(\{\{[A-Za-z_][A-Za-z0-9_]*\}\})|(\/(:[A-Za-z_][A-Za-z0-9_]*))/g,
-    decoration: (m) =>
-      m[1]
-        ? Decoration.mark({ class: 'cm-primrose-var' })
-        : Decoration.mark({ class: 'cm-primrose-dynvar' }),
+    regexp: /(\{\{[A-Za-z_][A-Za-z0-9_-]*\}\})|(^|[/=&?,\s])(:[A-Za-z_][A-Za-z0-9_]*)/g,
+    decorate: (add, from, to, m) => {
+      if (m[1]) add(from, to, varMark);
+      else add(from + m[2].length, to, varMark);
+    },
   });
 
   const varHighlighter = ViewPlugin.fromClass(
@@ -60,7 +63,6 @@
     '&.cm-focused': { outline: 'none' },
     '.cm-activeLine': { backgroundColor: 'transparent' },
     '.cm-primrose-var': { color: '#3d9469', fontWeight: '600' },
-    '.cm-primrose-dynvar': { color: '#3d9469', fontWeight: '600' },
     '.cm-placeholder': { color: '#bbb' },
   });
 

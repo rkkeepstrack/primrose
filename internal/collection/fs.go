@@ -7,11 +7,33 @@ import (
 	"strings"
 )
 
+// reservedFolder reports whether creating/renaming to name inside dir would
+// collide with the reserved environments/ directory at a collection root.
+func reservedFolder(dir, name string) bool {
+	return name == "environments" && isCollectionRoot(dir)
+}
+
+// insideEnvironments reports whether path lies in a collection's reserved
+// environments/ directory.
+func insideEnvironments(path string) bool {
+	dir := filepath.Dir(path)
+	for base := filepath.Base(dir); base != "." && base != string(filepath.Separator); base = filepath.Base(dir) {
+		if base == "environments" && isCollectionRoot(filepath.Dir(dir)) {
+			return true
+		}
+		dir = filepath.Dir(dir)
+	}
+	return false
+}
+
 // CreateFolder creates a new subfolder and returns its path.
 func CreateFolder(dir, name string) (string, error) {
 	name = sanitizeName(name)
 	if name == "" {
 		return "", fmt.Errorf("folder name must not be empty")
+	}
+	if reservedFolder(dir, name) {
+		return "", fmt.Errorf("%q is reserved for environments at the collection root", name)
 	}
 	path := filepath.Join(dir, name)
 	if _, err := os.Stat(path); err == nil {
@@ -32,6 +54,9 @@ func RenameItem(path, newName string) (string, error) {
 	info, err := os.Stat(path)
 	if err != nil {
 		return "", err
+	}
+	if info.IsDir() && reservedFolder(filepath.Dir(path), newName) {
+		return "", fmt.Errorf("%q is reserved for environments at the collection root", newName)
 	}
 	if !info.IsDir() {
 		newName += ".toml"
@@ -126,6 +151,10 @@ func MoveItem(src, destDir string) (string, error) {
 	dest := filepath.Join(destDir, base)
 	if dest == src {
 		return src, nil
+	}
+	// environments/ is not part of the request tree: no crossings
+	if insideEnvironments(src) || insideEnvironments(dest) {
+		return "", fmt.Errorf("cannot move items into or out of environments/")
 	}
 	if strings.HasPrefix(destDir+string(os.PathSeparator), src+string(os.PathSeparator)) {
 		return "", fmt.Errorf("cannot move a folder into itself")
