@@ -3,7 +3,7 @@
   // Row chrome (selection, heat, dnd, ⋮ menu) lives in TreeRow.
   import ChevronRight from '@lucide/svelte/icons/chevron-right';
   import FolderPlus from '@lucide/svelte/icons/folder-plus';
-  import type { TreeNode } from '../shared/types';
+  import { abbrevMethod, type TreeNode } from '../shared/types';
   import Tree from './Tree.svelte';
   import TreeRow from './TreeRow.svelte';
   import { acceptPathDrag, carriesPath, readPathDrag } from './dnd';
@@ -93,7 +93,7 @@
           heatBg={heatStyle($heat[node.path])}
         >
           <button class="row request" on:click={() => selectRequest(node)}>
-            <span class="method method-{node.method}">{node.method}</span>
+            <span class="method method-{node.method}" title={node.method}>{abbrevMethod(node.method)}</span>
             <span class="name">{node.name}</span>
             {#if $dirtyPaths.has(node.path)}
               <span class="dirty-dot" title="Unsaved changes"></span>
@@ -112,7 +112,10 @@
     padding: 0;
   }
   .children {
-    margin-left: 16px;
+    /* guide line sits under the parent folder's caret center (8px row
+       padding + half the 14px caret); border + margin keep the 16px indent */
+    margin: 5px 0 5px 15px;
+    border-left: 1px solid var(--border);
   }
   .row {
     display: flex;
@@ -128,6 +131,11 @@
     color: var(--text-soft);
     text-align: left;
   }
+
+  .row.request {
+      margin-left: 5px;
+  }
+
   .hover-btn {
     display: flex;
     align-items: center;
@@ -155,7 +163,7 @@
   .method {
     font-weight: 600;
     font-size: 11px;
-    min-width: 44px;
+    min-width: 30px;
     letter-spacing: 0.02em;
   }
   .name {

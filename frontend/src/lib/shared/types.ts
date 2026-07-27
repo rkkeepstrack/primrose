@@ -46,6 +46,17 @@ export interface RunRecord {
 
 export const METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'] as const;
 
+// compact labels for tight spots like the sidebar tree
+const METHOD_ABBREV: Record<string, string> = {
+  PATCH: 'PAT',
+  DELETE: 'DEL',
+  OPTIONS: 'OPT',
+};
+
+export function abbrevMethod(method: string | undefined): string {
+  return METHOD_ABBREV[method ?? ''] ?? method ?? '';
+}
+
 export interface Environment {
   name: string;
   path: string;
