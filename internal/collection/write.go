@@ -66,6 +66,7 @@ func WriteRequest(path string, r *Request) error {
 	}
 	writeSection("query", r.Query)
 	writeSection("headers", r.Headers)
+	writeSection("vars", r.Vars)
 
 	if r.Body.Content != "" {
 		b.WriteString("\n[body]\n")

@@ -1,16 +1,17 @@
 <script lang="ts">
-  // The request-level Variables tab: dynamic :vars (session-only) first,
-  // then the {{env}} variables this call uses — editable, with an explicit
-  // save that writes to the current environment file. Missing variables can
-  // be filled in and are created on save.
+  // The request-level Variables tab: dynamic :vars (saved with the request,
+  // like environment variables at request scope) first, then the {{env}}
+  // variables this call uses — editable, with an explicit save that writes
+  // to the current environment file. Missing variables can be filled in and
+  // are created on save.
   import { extractDynamicVars, extractEnvVars } from './vars';
-  import { dynamicVars, setDynamicVar } from '../shared/stores';
+  import { setVar } from './requestEdit';
   import { saveEnvironment } from '../workspace/environments';
   import { activeEnvName, activeEnvVars, activeRoot, envs, inheritedHeaders, request, selectedPath } from '../workspace/state';
 
   $: usedEnvVars = $request ? extractEnvVars($request, Object.values($inheritedHeaders)) : [];
   $: usedDynamicVars = $request ? extractDynamicVars($request) : [];
-  $: dynValues = ($selectedPath && $dynamicVars[$selectedPath]) || {};
+  $: dynValues = $request?.vars ?? {};
 
   // draft of edited env values, keyed by var name; reset when the request
   // or the active environment changes
@@ -53,16 +54,16 @@
           <td>{name}</td>
           <td class="cell-input">
             <input
-              placeholder="session value…"
+              placeholder="value… (saved with the request)"
               value={dynValues[name] ?? ''}
-              on:input={(e) => $selectedPath && setDynamicVar($selectedPath, name, e.currentTarget.value)}
+              on:input={(e) => setVar(name, e.currentTarget.value)}
             />
           </td>
         </tr>
       {/each}
     </tbody>
   </table>
-  <p class="note">Dynamic values live in this session only — they are never saved to files.</p>
+  <p class="note">Dynamic values are saved with the request (⌘S) — like environment variables, scoped to this call.</p>
 {/if}
 
 <div class="env-head">

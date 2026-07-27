@@ -43,3 +43,16 @@ export function setBodyType(t: 'json' | 'text') {
 export function setBodyContent(c: string) {
   edit((r) => (r.body.content = c));
 }
+
+// dynamic :var values live on the request and persist with it; an empty
+// value drops the key so saved files stay clean
+export function setVar(name: string, value: string) {
+  edit((r) => {
+    if (value === '') {
+      const { [name]: _, ...rest } = r.vars;
+      r.vars = rest;
+    } else {
+      r.vars = { ...r.vars, [name]: value };
+    }
+  });
+}

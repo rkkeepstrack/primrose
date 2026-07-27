@@ -23,6 +23,8 @@ export interface ApiRequest {
   query: Record<string, string>;
   headers: Record<string, string>;
   body: RequestBody;
+  // values for the request's :dynamic variables, saved with the request
+  vars: Record<string, string>;
 }
 
 export interface ApiResponse {

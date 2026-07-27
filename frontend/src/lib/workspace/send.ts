@@ -2,10 +2,10 @@
 
 import { get } from 'svelte/store';
 import { errMsg } from '../shared/errors';
-import { dynamicVars, recordRun } from '../shared/stores';
+import { recordRun } from '../shared/stores';
 import { CancelRequest, SendRequest } from '../../../wailsjs/go/main/App';
 import { historyKey } from './drafts';
-import { activeEnvVars, activeRoot, error, inheritedHeaders, request, selectedPath, sending } from './state';
+import { activeEnvVars, activeRoot, error, inheritedHeaders, request, sending } from './state';
 
 export async function sendRequest() {
   const req = get(request);
@@ -14,8 +14,8 @@ export async function sendRequest() {
   sending.set(true);
   const key = historyKey();
   try {
-    const dynValues = get(dynamicVars)[get(selectedPath) ?? ''] ?? {};
-    const resp = await SendRequest(req as never, get(activeEnvVars), dynValues, get(inheritedHeaders), get(activeRoot) ?? '');
+    // dynamic :var values live on the request itself (saved to its TOML)
+    const resp = await SendRequest(req as never, get(activeEnvVars), req.vars ?? {}, get(inheritedHeaders), get(activeRoot) ?? '');
     recordRun(key, { at: new Date(), response: resp, error: null });
   } catch (e) {
     const msg = errMsg(e);

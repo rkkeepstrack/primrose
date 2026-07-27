@@ -11,9 +11,6 @@ export function recordRun(path: string, run: RunRecord) {
 // Selected environment name per collection root. Session-only.
 export const selectedEnvNames = writable<Record<string, string>>({});
 
-// Dynamic /:var values per request path. Session-only, never persisted.
-export const dynamicVars = writable<Record<string, Record<string, string>>>({});
-
 // Recency heatmap: the last 10 opened requests, most recent first.
 // Session-only, never persisted.
 export const RECENT_MAX = 10;
@@ -55,9 +52,5 @@ export function pruneEdits(keep: string[]) {
   unsavedEdits.update((e) =>
     Object.fromEntries(Object.entries(e).filter(([p]) => keepSet.has(p)))
   );
-}
-
-export function setDynamicVar(path: string, name: string, value: string) {
-  dynamicVars.update((d) => ({ ...d, [path]: { ...(d[path] ?? {}), [name]: value } }));
 }
 

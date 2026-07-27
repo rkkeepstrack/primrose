@@ -33,6 +33,7 @@ export async function selectRequest(node: TreeNode) {
       dirty.set(true);
     } else {
       const r = (await ReadRequest(node.path)) as ApiRequest;
+      r.vars = r.vars ?? {}; // absent in files from before request vars existed
       // URL is the source of truth for query params in the UI
       const norm = normalizeUrlAndQuery(r.url, r.query);
       r.url = norm.url;
@@ -56,6 +57,7 @@ export async function newRequest(dir: string) {
     query: {},
     headers: {},
     body: { type: 'json', content: '' },
+    vars: {},
   });
   selectedPath.set(null);
   draftDir.set(dir);

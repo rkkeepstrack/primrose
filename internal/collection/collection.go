@@ -32,6 +32,9 @@ type Request struct {
 	Query   map[string]string `toml:"query" json:"query"`
 	Headers map[string]string `toml:"headers" json:"headers"`
 	Body    Body              `toml:"body" json:"body"`
+	// values for the request's :dynamic variables — request-scoped
+	// equivalents of environment variables
+	Vars map[string]string `toml:"vars" json:"vars"`
 }
 
 // Collection is an opened collection folder.

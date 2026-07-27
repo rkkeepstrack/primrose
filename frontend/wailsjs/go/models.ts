@@ -112,6 +112,7 @@ export namespace collection {
 	    query: Record<string, string>;
 	    headers: Record<string, string>;
 	    body: Body;
+	    vars: Record<string, string>;
 	
 	    static createFrom(source: any = {}) {
 	        return new Request(source);
@@ -124,6 +125,7 @@ export namespace collection {
 	        this.query = source["query"];
 	        this.headers = source["headers"];
 	        this.body = this.convertValues(source["body"], Body);
+	        this.vars = source["vars"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
