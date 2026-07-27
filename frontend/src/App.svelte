@@ -1,5 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import FolderOpen from '@lucide/svelte/icons/folder-open';
+  import PackagePlus from '@lucide/svelte/icons/package-plus';
   import Sidebar from './lib/sidebar/Sidebar.svelte';
   import CollectionSplash from './lib/collection/CollectionSplash.svelte';
   import UrlBar from './lib/request/UrlBar.svelte';
@@ -142,11 +144,7 @@
         aria-label="New collection"
         on:click={createCollectionViaDialog}
       >
-        <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3">
-          <path d="M2.5 5.2 L8 2.6 L13.5 5.2 V10.8 L8 13.4 L2.5 10.8 Z" stroke-linejoin="round" />
-          <path d="M2.5 5.2 L8 7.8 L13.5 5.2 M8 7.8 V13.4" />
-          <path d="M11.4 1.2 v3.6 M9.6 3 h3.6" stroke-linecap="round" stroke-width="1.4" />
-        </svg>
+        <PackagePlus size={15} strokeWidth={2} />
       </button>
       <button
         class="strip-btn"
@@ -154,10 +152,7 @@
         aria-label="Open collection"
         on:click={openCollectionViaDialog}
       >
-        <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3">
-          <path d="M1.5 4.5 a1 1 0 0 1 1-1 h3.5 l1.5 1.8 h6 a1 1 0 0 1 1 1 v2" />
-          <path d="M1.8 12.8 l1.6 -5 a1 1 0 0 1 0.95 -0.7 h10.4 a0.7 0.7 0 0 1 0.66 0.92 l-1.55 4.8 a1 1 0 0 1 -0.95 0.68 h-10.4 a0.7 0.7 0 0 1 -0.66 -0.7 z" />
-      </svg>
+        <FolderOpen size={15} strokeWidth={2} />
       </button>
     </div>
   </header>

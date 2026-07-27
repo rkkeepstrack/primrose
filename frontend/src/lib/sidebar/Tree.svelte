@@ -1,6 +1,8 @@
 <script lang="ts">
   // Recursive tree: expansion state and the folder/request row contents.
   // Row chrome (selection, heat, dnd, ⋮ menu) lives in TreeRow.
+  import ChevronRight from '@lucide/svelte/icons/chevron-right';
+  import FolderPlus from '@lucide/svelte/icons/folder-plus';
   import type { TreeNode } from '../shared/types';
   import Tree from './Tree.svelte';
   import TreeRow from './TreeRow.svelte';
@@ -59,15 +61,11 @@
           onDrop={(e) => folderDrop(e, node)}
         >
           <button class="row folder" on:click={() => toggleFolder(node.path)}>
-            <svg
-              class="caret"
-              class:open={$forceOpen || $expanded[node.path]}
-              width="10"
-              height="10"
-              viewBox="0 0 10 10"
-            >
-              <path d="M3 1.5 L7.5 5 L3 8.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" />
-            </svg>
+            <ChevronRight
+              class="caret {$forceOpen || $expanded[node.path] ? 'open' : ''}"
+              size={14}
+              strokeWidth={2}
+            />
             <span class="name">{node.name}</span>
           </button>
           <button
@@ -75,10 +73,7 @@
             title="New folder in {node.name}"
             on:click={() => { expandFolder(node.path); newFolder(node.path); }}
           >
-            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3">
-              <path d="M1.5 4.5 a1 1 0 0 1 1-1 h3.5 l1.5 1.8 h6 a1 1 0 0 1 1 1 v6.2 a1 1 0 0 1 -1 1 h-11 a1 1 0 0 1 -1-1 z" />
-              <path d="M8 7.6 v4 M6 9.6 h4" stroke-linecap="round" />
-            </svg>
+            <FolderPlus size={13} strokeWidth={2} />
           </button>
           <button
             class="hover-btn"
@@ -149,12 +144,12 @@
     color: var(--green) !important;
     background: var(--green-bg);
   }
-  .caret {
+  .row :global(.caret) {
     flex-shrink: 0;
     color: #a0a0a0;
     transition: transform 0.12s ease;
   }
-  .caret.open {
+  .row :global(.caret.open) {
     transform: rotate(90deg);
   }
   .method {

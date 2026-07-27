@@ -1,6 +1,10 @@
 <script lang="ts">
   // Root-level actions (new request / new folder) and the environment
   // quick-switch dropdown.
+  import ChevronDown from '@lucide/svelte/icons/chevron-down';
+  import SquarePlus from '@lucide/svelte/icons/square-plus';
+  import Cookie from '@lucide/svelte/icons/cookie';
+  import FolderPlus from '@lucide/svelte/icons/folder-plus';
   import { newRequest } from '../workspace/requests';
   import { pickEnvironment } from '../workspace/environments';
   import { activeEnvName, activeRoot, envs } from '../workspace/state';
@@ -28,16 +32,15 @@
       class="new-root"
       title="New request at root level"
       on:click={() => $activeRoot && newRequest($activeRoot)}
-    >+</button>
+    >
+      <SquarePlus size={14} strokeWidth={2} />
+    </button>
     <button
       class="new-root"
       title="New folder at root level"
       on:click={() => $activeRoot && newFolder($activeRoot)}
     >
-      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3">
-        <path d="M1.5 4.5 a1 1 0 0 1 1-1 h3.5 l1.5 1.8 h6 a1 1 0 0 1 1 1 v6.2 a1 1 0 0 1 -1 1 h-11 a1 1 0 0 1 -1-1 z" />
-        <path d="M8 7.6 v4 M6 9.6 h4" stroke-linecap="round" />
-      </svg>
+      <FolderPlus size={14} strokeWidth={2} />
     </button>
   </div>
   <button
@@ -46,13 +49,7 @@
     aria-label="Session cookies"
     on:click={() => $activeRoot && openCookiesTab($activeRoot)}
   >
-    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3">
-      <circle cx="8" cy="8" r="6.2" />
-      <circle cx="6" cy="6.2" r="0.9" fill="currentColor" stroke="none" />
-      <circle cx="10.2" cy="9.8" r="0.9" fill="currentColor" stroke="none" />
-      <circle cx="6.6" cy="10.6" r="0.7" fill="currentColor" stroke="none" />
-      <circle cx="9.8" cy="5.4" r="0.7" fill="currentColor" stroke="none" />
-    </svg>
+    <Cookie size={14} strokeWidth={2} />
   </button>
   <div class="env-wrap">
     <button
@@ -61,9 +58,7 @@
       on:click|stopPropagation={() => (envMenuOpen = !envMenuOpen)}
     >
       {$activeEnvName ?? 'No environment'}
-      <svg class="chev" width="8" height="8" viewBox="0 0 10 10">
-        <path d="M1.5 3 L5 7 L8.5 3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" />
-      </svg>
+      <ChevronDown class="chev" size={8} strokeWidth={2} />
     </button>
     {#if envMenuOpen}
       <div class="env-menu">
@@ -137,7 +132,7 @@
   .env-label:hover {
     background: var(--green-bg);
   }
-  .chev { color: var(--green-text); opacity: 0.7; }
+  .env-label :global(.chev) { color: var(--green-text); opacity: 0.7; }
   .env-menu {
     position: absolute;
     right: 0;

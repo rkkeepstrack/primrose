@@ -1,6 +1,9 @@
 <script lang="ts">
   // Full-width request toolbar: method picker, URL editor, Save/Send/Cancel,
   // draft-name row, and the ⌘S / ⌘↵ shortcuts.
+  import Play from '@lucide/svelte/icons/play';
+  import Save from '@lucide/svelte/icons/save';
+  import X from '@lucide/svelte/icons/x';
   import { METHODS } from '../shared/types';
   import CodeEditor from '../editor/CodeEditor.svelte';
   import { setMethod, setUrl } from './requestEdit';
@@ -72,23 +75,16 @@
       />
     </div>
     <button class="action save" class:dirty={$dirty} on:click={saveRequest} title="Save (⌘S)" aria-label="Save">
-      <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round">
-        <path d="M2.5 3.5 a1 1 0 0 1 1-1 h8 l2 2 v8 a1 1 0 0 1 -1 1 h-9 a1 1 0 0 1 -1-1 z" />
-        <path d="M5 2.8 v3.2 h5.5 v-3.2 M4.5 13.3 v-4.3 h7 v4.3" />
-      </svg>
+      <Save size={15} strokeWidth={2} />
       {#if $dirty}<span class="save-dot"></span>{/if}
     </button>
     {#if $sending}
       <button class="action cancel" on:click={cancelRequest} title="Cancel request" aria-label="Cancel">
-        <svg width="13" height="13" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
-          <path d="M2.5 2.5 L9.5 9.5 M9.5 2.5 L2.5 9.5" />
-        </svg>
+        <X size={13} strokeWidth={2.2} />
       </button>
     {:else}
       <button class="action send" on:click={sendRequest} title="Send (⌘↵)" aria-label="Send">
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor">
-          <path d="M3.5 2 L11.5 7 L3.5 12 Z" />
-        </svg>
+        <Play size={14} fill="currentColor" strokeWidth={1} />
       </button>
     {/if}
   </div>

@@ -35,10 +35,14 @@
       border: 'none',
       borderRight: '1px solid #eee',
       lineHeight: '1.65',
-      paddingTop: '8px',
     },
     '.cm-lineNumbers .cm-gutterElement': { padding: '0 6px 0 14px', minWidth: '32px' },
-    '.cm-foldGutter .cm-gutterElement': { padding: '0 6px 0 2px' },
+    '.cm-foldGutter .cm-gutterElement': {
+      padding: '0 6px 0 2px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
     '.cm-foldPlaceholder': {
       background: '#f5f5f5',
       border: '1px solid #e5e5e5',
@@ -147,9 +151,9 @@
     const el = document.createElement('span');
     el.style.cssText =
       'display:inline-flex;align-items:center;justify-content:center;' +
-      'width:12px;height:12px;cursor:pointer;color:#9a9a9a;';
+      'width:14px;height:14px;cursor:pointer;color:#9a9a9a;';
     el.innerHTML =
-      `<svg width="8" height="8" viewBox="0 0 8 8" style="transform:rotate(${open ? 90 : 0}deg)">` +
+      `<svg width="9" height="9" viewBox="0 0 8 8" style="transform:rotate(${open ? 90 : 0}deg)">` +
       '<path d="M1.5 0.5 L6.5 4 L1.5 7.5 Z" fill="currentColor"/></svg>';
     return el;
   }
