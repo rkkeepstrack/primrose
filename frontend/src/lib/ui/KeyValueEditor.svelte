@@ -80,9 +80,6 @@
 </table>
 
 <style>
-  .kv {
-    max-width: 620px;
-  }
   .kv td {
     padding: 0;
   }

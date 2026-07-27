@@ -2,6 +2,7 @@
   import { onDestroy } from 'svelte';
   import type { Environment } from '../shared/types';
   import KeyValueEditor from '../ui/KeyValueEditor.svelte';
+  import SplitPane from '../ui/SplitPane.svelte';
   import ContextMenu from '../ui/ContextMenu.svelte';
   import { confirmDialog, promptDialog } from '../ui/dialogs';
   import {
@@ -119,7 +120,8 @@
 <svelte:window on:click={() => (menuFor = null)} />
 
 <div class="env-editor">
-  <aside class="env-list">
+  <SplitPane initialPct={18} minPct={12} maxPct={40}>
+  <aside class="env-list" slot="left">
     {#each environments as e (e.name)}
       <div class="env-row" class:active={e.name === activeName}>
         <button class="env-name" on:click={() => pick(e.name)}>
@@ -139,7 +141,7 @@
     <button class="new-env" on:click={createEnv}>+ New environment</button>
   </aside>
 
-  <section class="env-detail">
+  <section class="env-detail" slot="right">
     {#if active && draft}
       <div class="toolbar">
         <input class="search text-input" placeholder="Search for Variables or Values…" bind:value={search} />
@@ -161,17 +163,16 @@
       <p class="empty">Select an environment on the left.</p>
     {/if}
   </section>
+  </SplitPane>
 </div>
 
 <style>
   .env-editor {
-    display: grid;
-    grid-template-columns: 220px 1fr;
+    display: flex;
     height: 100%;
     min-height: 0;
   }
   .env-list {
-    border-right: 1px solid #e5e5e5;
     padding: 12px;
     overflow-y: auto;
     display: flex;

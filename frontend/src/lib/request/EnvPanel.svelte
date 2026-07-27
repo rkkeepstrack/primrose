@@ -108,14 +108,12 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    max-width: 560px;
     gap: 12px;
   }
   .var-token {
     color: var(--green-text);
     font-weight: 600;
   }
-  .vars-table { max-width: 560px; }
   .vars-table td.cell-input { padding: 0; }
   .vars-table td.cell-input input {
     width: 100%;
