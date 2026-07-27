@@ -147,6 +147,37 @@ export namespace collection {
 
 }
 
+export namespace cookies {
+	
+	export class Cookie {
+	    domain: string;
+	    path: string;
+	    name: string;
+	    value: string;
+	    expires: string;
+	    secure: boolean;
+	    httpOnly: boolean;
+	    hostOnly: boolean;
+	
+	    static createFrom(source: any = {}) {
+	        return new Cookie(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.domain = source["domain"];
+	        this.path = source["path"];
+	        this.name = source["name"];
+	        this.value = source["value"];
+	        this.expires = source["expires"];
+	        this.secure = source["secure"];
+	        this.httpOnly = source["httpOnly"];
+	        this.hostOnly = source["hostOnly"];
+	    }
+	}
+
+}
+
 export namespace env {
 	
 	export class Environment {

@@ -6,7 +6,7 @@ import { ChooseDirectory, CreateCollection, GetTree, OpenCollectionDialog } from
 import { closeEnvView, confirmDiscardEnvEdits, loadEnvironments } from './environments';
 import { maybeAbandonDraft, stashCurrentEdit } from './drafts';
 import { activeIdx, activeRoot, clearSelection, collections, envEditorDirty, error } from './state';
-import { activateTab, activeTabId, addCollectionTab, closeTab, envTabId, isEnvTab, isSpecialTab, openSpecialTab } from './tabs';
+import { activateTab, activeTabId, addCollectionTab, closeTab, cookiesTabId, envTabId, isEnvTab, isSpecialTab, openSpecialTab } from './tabs';
 import { confirmDialog, promptDialog } from '../ui/dialogs';
 import { runOp } from './op';
 
@@ -101,8 +101,9 @@ export function dropCollection(root: string) {
 function removeCollectionTabs(root: string): boolean {
   const sel = get(activeTabId);
   closeTab(envTabId(root));
+  closeTab(cookiesTabId(root));
   closeTab(root);
-  return sel === root || sel === envTabId(root);
+  return sel === root || sel === envTabId(root) || sel === cookiesTabId(root);
 }
 
 function removeFromCollections(root: string): Collection[] {
@@ -132,6 +133,11 @@ export async function closeCollection(root: string) {
 export async function openEnvironmentTab(root: string) {
   if (!(await mayLeaveEnvTab())) return;
   openSpecialTab(envTabId(root));
+}
+
+export async function openCookiesTab(root: string) {
+  if (!(await mayLeaveEnvTab())) return;
+  openSpecialTab(cookiesTabId(root));
 }
 
 export async function refreshTree() {

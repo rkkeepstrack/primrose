@@ -4,7 +4,7 @@
   import { newRequest } from '../workspace/requests';
   import { pickEnvironment } from '../workspace/environments';
   import { activeEnvName, activeRoot, envs } from '../workspace/state';
-  import { openEnvironmentTab } from '../workspace/collections';
+  import { openCookiesTab, openEnvironmentTab } from '../workspace/collections';
   import { newFolder } from '../workspace/treeOps';
 
   let envMenuOpen = false;
@@ -40,6 +40,20 @@
       </svg>
     </button>
   </div>
+  <button
+    class="cookies-btn"
+    title="Session cookies"
+    aria-label="Session cookies"
+    on:click={() => $activeRoot && openCookiesTab($activeRoot)}
+  >
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3">
+      <circle cx="8" cy="8" r="6.2" />
+      <circle cx="6" cy="6.2" r="0.9" fill="currentColor" stroke="none" />
+      <circle cx="10.2" cy="9.8" r="0.9" fill="currentColor" stroke="none" />
+      <circle cx="6.6" cy="10.6" r="0.7" fill="currentColor" stroke="none" />
+      <circle cx="9.8" cy="5.4" r="0.7" fill="currentColor" stroke="none" />
+    </svg>
+  </button>
   <div class="env-wrap">
     <button
       class="env-label"
@@ -94,6 +108,18 @@
     color: var(--green);
     background: var(--green-bg);
   }
+  .cookies-btn {
+    display: flex;
+    align-items: center;
+    border: none;
+    background: none;
+    color: #999;
+    cursor: pointer;
+    padding: 3px 6px;
+    border-radius: 5px;
+    margin-left: auto;
+  }
+  .cookies-btn:hover { color: #4a7cb5; background: #e9f1fa; }
   .env-wrap { position: relative; }
   .env-label {
     display: flex;

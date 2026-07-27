@@ -18,8 +18,10 @@
   import {
     activeTabId,
     closeTab,
+    cookiesTabRoot,
     envTabId,
     envTabRoot,
+    isCookiesTab,
     isEnvTab,
     isSpecialTab,
     moveTab,
@@ -32,6 +34,7 @@
   import { initMenuHandlers } from './lib/workspace/menu';
   import { WindowToggleMaximise } from '../wailsjs/runtime/runtime';
   import ShortcutsPanel from './lib/shortcuts/ShortcutsPanel.svelte';
+  import CookiesPanel from './lib/cookies/CookiesPanel.svelte';
   import { closeRequest } from './lib/workspace/requests';
   import { closeEnvView, createEnvironment } from './lib/workspace/environments';
   import { dialog } from './lib/ui/dialogs';
@@ -45,6 +48,7 @@
   function tabLabel(id: string): string {
     if (id === 'shortcuts') return 'Shortcuts';
     if (isEnvTab(id)) return `Env: ${collectionName(envTabRoot(id))}`;
+    if (isCookiesTab(id)) return `Cookies: ${collectionName(cookiesTabRoot(id))}`;
     return collectionName(id);
   }
 
@@ -107,6 +111,7 @@
         class="col-tab"
         class:active={id === $activeTabId}
         class:kind-env={isEnvTab(id)}
+        class:kind-cookies={isCookiesTab(id)}
         class:kind-shortcuts={id === 'shortcuts'}
         class:kind-collection={!isSpecialTab(id)}
         draggable="true"
@@ -173,6 +178,11 @@
     </div>
   {:else if $activeTabId === 'shortcuts'}
     <ShortcutsPanel />
+  {:else if $activeTabId && isCookiesTab($activeTabId)}
+    {@const cookiesRoot = cookiesTabRoot($activeTabId)}
+    {#key cookiesRoot}
+      <CookiesPanel root={cookiesRoot} />
+    {/key}
   {:else if $activeTabId && isEnvTab($activeTabId)}
     {@const envRoot = envTabRoot($activeTabId)}
     {#key envRoot}
@@ -276,6 +286,14 @@
     --tab-border-soft: #eae2f4;
     --tab-border-strong: #a07fd0;
     --tab-text: #7d5bab;
+  }
+  .kind-cookies {
+    --tab-bg-soft: #f7fafd;
+    --tab-bg-hover: #e9f1fa;
+    --tab-bg: #ddeaf8;
+    --tab-border-soft: #e0eaf5;
+    --tab-border-strong: var(--blue);
+    --tab-text: #4a7cb5;
   }
   .kind-shortcuts {
     --tab-bg-soft: #f9fcfa;

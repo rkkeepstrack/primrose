@@ -7,6 +7,7 @@ import (
 
 	"primrose/internal/appstate"
 	"primrose/internal/collection"
+	"primrose/internal/cookies"
 	"primrose/internal/env"
 	"primrose/internal/httpclient"
 	"primrose/internal/watch"
@@ -24,11 +25,44 @@ type App struct {
 	sendMu     sync.Mutex
 	cancelSend context.CancelFunc
 	sendSeq    uint64
+
+	jarMu sync.Mutex
+	jars  map[string]*cookies.Jar // per collection root, session-only
 }
 
 // NewApp creates a new App application struct
 func NewApp() *App {
-	return &App{}
+	return &App{jars: map[string]*cookies.Jar{}}
+}
+
+// jarFor returns the collection's session cookie jar, creating it lazily.
+func (a *App) jarFor(root string) *cookies.Jar {
+	a.jarMu.Lock()
+	defer a.jarMu.Unlock()
+	if a.jars[root] == nil {
+		a.jars[root] = cookies.NewJar()
+	}
+	return a.jars[root]
+}
+
+// GetCookies lists the collection's session cookies.
+func (a *App) GetCookies(root string) []cookies.Cookie {
+	return a.jarFor(root).List()
+}
+
+// AddCookie manually inserts a cookie into the collection's jar.
+func (a *App) AddCookie(root string, c cookies.Cookie) {
+	a.jarFor(root).Add(c)
+}
+
+// DeleteCookie removes one cookie from the collection's jar.
+func (a *App) DeleteCookie(root, domain, path, name string) {
+	a.jarFor(root).Delete(domain, path, name)
+}
+
+// ClearCookies empties the collection's jar.
+func (a *App) ClearCookies(root string) {
+	a.jarFor(root).Clear()
 }
 
 func (a *App) startup(ctx context.Context) {
@@ -182,7 +216,7 @@ func (a *App) SaveRequest(path string, r collection.Request) error {
 // SendRequest merges inherited collection headers, resolves {{env}} and
 // :dynamic variables, then executes the request. Cancellable via
 // CancelRequest.
-func (a *App) SendRequest(r collection.Request, envVars, dynamicVars, inheritedHeaders map[string]string) (*httpclient.Response, error) {
+func (a *App) SendRequest(r collection.Request, envVars, dynamicVars, inheritedHeaders map[string]string, root string) (*httpclient.Response, error) {
 	r.Headers = collection.MergeHeaders(inheritedHeaders, r.Headers)
 	ctx, cancel := context.WithCancel(context.Background())
 	a.sendMu.Lock()
@@ -202,7 +236,7 @@ func (a *App) SendRequest(r collection.Request, envVars, dynamicVars, inheritedH
 	}()
 
 	resolved := collection.Resolve(&r, envVars, dynamicVars)
-	resp, err := httpclient.SendCtx(ctx, resolved)
+	resp, err := httpclient.SendCtx(ctx, resolved, a.jarFor(root))
 	if ctx.Err() == context.Canceled {
 		return nil, fmt.Errorf("canceled")
 	}

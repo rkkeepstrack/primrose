@@ -5,7 +5,7 @@ import { errMsg } from '../shared/errors';
 import { dynamicVars, recordRun } from '../shared/stores';
 import { CancelRequest, SendRequest } from '../../../wailsjs/go/main/App';
 import { historyKey } from './drafts';
-import { activeEnvVars, error, inheritedHeaders, request, selectedPath, sending } from './state';
+import { activeEnvVars, activeRoot, error, inheritedHeaders, request, selectedPath, sending } from './state';
 
 export async function sendRequest() {
   const req = get(request);
@@ -15,7 +15,7 @@ export async function sendRequest() {
   const key = historyKey();
   try {
     const dynValues = get(dynamicVars)[get(selectedPath) ?? ''] ?? {};
-    const resp = await SendRequest(req as never, get(activeEnvVars), dynValues, get(inheritedHeaders));
+    const resp = await SendRequest(req as never, get(activeEnvVars), dynValues, get(inheritedHeaders), get(activeRoot) ?? '');
     recordRun(key, { at: new Date(), response: resp, error: null });
   } catch (e) {
     const msg = errMsg(e);

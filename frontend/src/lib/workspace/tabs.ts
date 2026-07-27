@@ -8,10 +8,22 @@
 import { derived, get, writable } from 'svelte/store';
 import { activeIdx, collections } from './state';
 
-// tab ids: a collection's root path, 'shortcuts', or 'env:<root>' for a
-// collection-bound environment tab
+// tab ids: a collection's root path, 'shortcuts', 'env:<root>' for a
+// collection-bound environment tab, or 'cookies:<root>' for its cookie jar
 export function isEnvTab(id: string): boolean {
   return id.startsWith('env:');
+}
+
+export function isCookiesTab(id: string): boolean {
+  return id.startsWith('cookies:');
+}
+
+export function cookiesTabRoot(id: string): string {
+  return id.slice('cookies:'.length);
+}
+
+export function cookiesTabId(root: string): string {
+  return `cookies:${root}`;
 }
 
 export function envTabRoot(id: string): string {
@@ -24,7 +36,7 @@ export function envTabId(root: string): string {
 
 // closable, not-a-collection tabs
 export function isSpecialTab(id: string): boolean {
-  return id === 'shortcuts' || isEnvTab(id);
+  return id === 'shortcuts' || isEnvTab(id) || isCookiesTab(id);
 }
 
 export const tabOrder = writable<string[]>([]);

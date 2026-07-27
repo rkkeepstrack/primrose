@@ -1,12 +1,15 @@
 package httpclient
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"primrose/internal/collection"
+	"primrose/internal/cookies"
 )
 
 func TestSend(t *testing.T) {
@@ -104,5 +107,32 @@ func TestResponseCarriesRequestHeaders(t *testing.T) {
 	}
 	if rh["Content-Type"] != "application/json" {
 		t.Errorf("content type: %v", rh)
+	}
+}
+
+func TestJarRoundTrip(t *testing.T) {
+	var gotCookie string
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if c, err := r.Cookie("session"); err == nil {
+			gotCookie = c.Value
+		}
+		http.SetCookie(w, &http.Cookie{Name: "session", Value: "abc", Path: "/"})
+	}))
+	defer srv.Close()
+
+	jar := cookies.NewJar()
+	req := &collection.Request{Method: "GET", URL: srv.URL}
+	if _, err := SendCtx(context.Background(), req, jar); err != nil {
+		t.Fatal(err)
+	}
+	resp, err := SendCtx(context.Background(), req, jar)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if gotCookie != "abc" {
+		t.Errorf("second request should carry the session cookie, got %q", gotCookie)
+	}
+	if !strings.Contains(resp.RequestHeaders["Cookie"], "session=abc") {
+		t.Errorf("sent Cookie header must appear in RequestHeaders: %v", resp.RequestHeaders)
 	}
 }

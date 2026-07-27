@@ -77,18 +77,18 @@ const (
 	defaultUserAgent = "primrose/0.1"
 )
 
-var client = &http.Client{Timeout: requestTimeout}
-
 // Send executes the request as-is (variable resolution happens before this).
 // Query params from the map are appended only if their key is not already in
 // the URL's query string — the UI keeps both in sync, so this avoids doubles
 // while still supporting hand-written files that only use [query].
 func Send(r *collection.Request) (*Response, error) {
-	return SendCtx(context.Background(), r)
+	return SendCtx(context.Background(), r, nil)
 }
 
-// SendCtx is Send with cancellation support.
-func SendCtx(ctx context.Context, r *collection.Request) (*Response, error) {
+// SendCtx is Send with cancellation support and an optional cookie jar
+// (session cookies are applied and captured by the client when set).
+func SendCtx(ctx context.Context, r *collection.Request, jar http.CookieJar) (*Response, error) {
+	client := &http.Client{Timeout: requestTimeout, Jar: jar}
 	url := r.URL
 	existing := map[string]bool{}
 	if i := strings.Index(url, "?"); i != -1 {
@@ -139,14 +139,14 @@ func SendCtx(ctx context.Context, r *collection.Request) (*Response, error) {
 		}
 	}
 
-	sentHeaders := captureRequestHeaders(req)
-
 	start := time.Now()
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
+	// captured after Do so the jar's Cookie header is included
+	sentHeaders := captureRequestHeaders(req)
 
 	bodyBytes, err := io.ReadAll(io.LimitReader(resp.Body, maxBodyBytes))
 	if err != nil {
