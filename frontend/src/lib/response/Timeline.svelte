@@ -13,13 +13,18 @@
   {#each runs as run, i}
     <li>
       <button class:viewing={i === viewedIdx} on:click={() => onView(i)}>
-        {#if run.error}
-          <StatusBadge text={run.error === 'Canceled' ? 'Canceled' : 'Error'} />
-        {:else if run.response}
-          <StatusBadge status={run.response.status} />
-          <span class="meta">{run.response.durationMs} ms</span>
+        <span class="row-line">
+          {#if run.error}
+            <StatusBadge text={run.error === 'Canceled' ? 'Canceled' : 'Error'} />
+          {:else if run.response}
+            <StatusBadge status={run.response.status} />
+            <span class="meta">{run.response.durationMs} ms</span>
+          {/if}
+          <span class="meta">{fmtTime(run.at)}</span>
+        </span>
+        {#if run.response?.finalUrl}
+          <span class="row-url">→ {run.response.finalUrl}</span>
         {/if}
-        <span class="meta">{fmtTime(run.at)}</span>
       </button>
     </li>
   {/each}
@@ -34,8 +39,9 @@
   }
   .timeline button {
     display: flex;
-    gap: 12px;
-    align-items: center;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 2px;
     width: 100%;
     border: none;
     background: none;
@@ -55,5 +61,18 @@
   .meta {
     color: var(--text-disabled);
     font-size: 12px;
+  }
+  .row-line {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+  .row-url {
+    color: var(--text-disabled);
+    font-size: 11.5px;
+    font-family: var(--mono);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 </style>

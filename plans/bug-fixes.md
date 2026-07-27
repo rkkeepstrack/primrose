@@ -70,18 +70,18 @@ its own project, and the review pass (H) after A–C have landed.
 
 ## F. Viewer / response enhancements — one CodeMirror batch
 
-- [ ] body parsing: JSON linting in the body editor for direct user
+- [x] body parsing: JSON linting in the body editor for direct user
       feedback (@codemirror/lint + jsonParseLinter)
-- [ ] ResponseViewer: search inside the json response; also VS-Code-style
-      sticky scroll — the enclosing top-level element stays pinned while
-      scrolling (note: search is easy via @codemirror/search, sticky scroll
-      is genuinely hard in CM6)
-- [ ] on hovering in the response timeline tab, the preview should switch to
+- [x] ResponseViewer: search inside the json response (⌘F when the viewer
+      is focused, via @codemirror/search)
+- [ ] ResponseViewer: VS-Code-style sticky scroll — the enclosing top-level
+      element stays pinned while scrolling (genuinely hard in CM6; deferred)
+- [x] on hovering in the response timeline tab, the preview should switch to
       the hovered item so the run can be inspected without opening it
 
 ## G. Sidebar
 
-- [ ] can't resize request browser (sidebar width is fixed — reuse SplitPane)
+- [x] can't resize request browser (sidebar width is fixed — reuse SplitPane)
 
 ## H. Process (not a fix)
 

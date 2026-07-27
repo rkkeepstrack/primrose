@@ -4,3 +4,4 @@ frontend/dist/*
 !frontend/dist/gitkeep
 .DS_Store
 sample-collection/
+frontend/package.json.md5

@@ -13,24 +13,25 @@ import (
 // literal -suffix after a variable stays expressible.
 // The same patterns exist in TS (frontend vars.ts) — they are the variable
 // syntax contract between frontend and backend.
-var dynamicVarRe = regexp.MustCompile(`(^|[/=&?,\s]):([A-Za-z_][A-Za-z0-9_]*)`)
+var (
+	envVarRe     = regexp.MustCompile(`\{\{([A-Za-z_][A-Za-z0-9_-]*)\}\}`)
+	dynamicVarRe = regexp.MustCompile(`(^|[/=&?,\s]):([A-Za-z_][A-Za-z0-9_]*)`)
+)
 
 // Resolve returns a copy of the request with {{env}} placeholders and
 // :dynamic variables replaced in the URL, query keys and values, header
-// keys and values, and the body. Placeholders without a value are left
-// untouched so the failure is visible.
+// keys and values, and the body. Placeholders without a value resolve to
+// an empty string (the Variables tab flags them beforehand).
 func Resolve(r *Request, envVars, dynamicVars map[string]string) *Request {
 	sub := func(s string) string {
-		for k, v := range envVars {
-			s = strings.ReplaceAll(s, "{{"+k+"}}", v)
-		}
+		s = envVarRe.ReplaceAllStringFunc(s, func(m string) string {
+			name := m[2 : len(m)-2] // strip {{ }}
+			return envVars[name]
+		})
 		return dynamicVarRe.ReplaceAllStringFunc(s, func(m string) string {
 			// m = delimiter (possibly empty) + ":" + name
 			delim, name, _ := strings.Cut(m, ":")
-			if v, ok := dynamicVars[name]; ok && v != "" {
-				return delim + v
-			}
-			return m
+			return delim + dynamicVars[name]
 		})
 	}
 

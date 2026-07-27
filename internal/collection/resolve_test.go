@@ -26,8 +26,8 @@ func TestResolve(t *testing.T) {
 	if got.Query["resolvedKey"] != "x" {
 		t.Errorf("dynamic in query key: %v", got.Query)
 	}
-	if got.Headers["X-Api-Key"] != "{{key}}" {
-		t.Errorf("missing var should stay visible, got %v", got.Headers)
+	if got.Headers["X-Api-Key"] != "" {
+		t.Errorf("missing var should resolve to empty string, got %v", got.Headers)
 	}
 	if got.Headers["Authorization"] != "Bearer abc:def" {
 		t.Errorf("colon in header value must not resolve: %q", got.Headers["Authorization"])

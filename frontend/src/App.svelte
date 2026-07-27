@@ -169,9 +169,9 @@
       />
     {/key}
   {:else}
-    <div class="main">
-      <Sidebar />
-      <section class="detail">
+    <SplitPane initialPct={22} minPct={14} maxPct={45}>
+      <Sidebar slot="left" />
+      <section class="detail" slot="right">
         {#if $request}
           <UrlBar />
           <SplitPane>
@@ -182,7 +182,7 @@
           <p class="hint">Select a request in the sidebar.</p>
         {/if}
       </section>
-    </div>
+    </SplitPane>
   {/if}
   <Dialog />
 </div>
@@ -291,12 +291,6 @@
   }
   .open-collection:hover { color: var(--green); background: var(--green-bg); }
 
-  .main {
-    display: grid;
-    grid-template-columns: 300px 1fr;
-    flex: 1;
-    min-height: 0;
-  }
   .detail {
     display: flex;
     flex-direction: column;

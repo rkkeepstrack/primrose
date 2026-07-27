@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
-  import { EditorView, lineNumbers, highlightSpecialChars } from '@codemirror/view';
+  import { EditorView, keymap, lineNumbers, highlightSpecialChars } from '@codemirror/view';
+  import { highlightSelectionMatches, search, searchKeymap } from '@codemirror/search';
   import { EditorState } from '@codemirror/state';
   import { json } from '@codemirror/lang-json';
   import {
@@ -54,6 +55,25 @@
     '.cm-activeLine': { backgroundColor: 'transparent' },
     '.cm-scroller': { overflow: 'auto' },
     '&.cm-focused': { outline: 'none' },
+    '.cm-panels': {
+      backgroundColor: '#fff',
+      borderBottom: '1px solid var(--border-soft)',
+      color: 'var(--text)',
+    },
+    '.cm-searchMatch': { backgroundColor: 'rgba(240, 213, 90, 0.4)' },
+    '.cm-searchMatch-selected': { backgroundColor: 'rgba(232, 169, 76, 0.55)' },
+    '.cm-panel.cm-search input': {
+      fontFamily: 'inherit',
+      fontSize: '12px',
+      border: '1px solid var(--border)',
+      borderRadius: '4px',
+      padding: '2px 6px',
+    },
+    '.cm-panel.cm-search button': {
+      fontFamily: 'inherit',
+      fontSize: '11px',
+    },
+    '.cm-panel.cm-search label': { fontSize: '11px', color: 'var(--text-muted)' },
   });
 
   // count the folded region's direct children (top-level commas at depth 0),
@@ -142,6 +162,9 @@
       foldGutter({ markerDOM: foldMarker }),
       foldCountField,
       syntaxHighlighting(jsonHighlightStyle),
+      search({ top: true }),
+      keymap.of(searchKeymap),
+      highlightSelectionMatches(),
       EditorState.readOnly.of(true),
       EditorView.lineWrapping,
       theme,

@@ -13,7 +13,7 @@
   <CodeEditor
     value={$request.body.content}
     lang={$request.body.type}
-    placeholder="Enter text here…"
+    placeholder={$request.body.type === 'json' ? '{ "enter": "JSON here…" }' : 'Enter text here…'}
     onChange={setBodyContent}
   />
 {/if}

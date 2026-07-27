@@ -8,12 +8,14 @@
     type DecorationSet,
     type ViewUpdate,
     keymap,
+    lineNumbers,
     placeholder as cmPlaceholder,
   } from '@codemirror/view';
   import { EditorState } from '@codemirror/state';
   import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
   import { json } from '@codemirror/lang-json';
-  import { syntaxHighlighting } from '@codemirror/language';
+  import { linter, lintGutter, type Diagnostic } from '@codemirror/lint';
+  import { syntaxHighlighting, syntaxTree } from '@codemirror/language';
   import { jsonHighlightStyle } from './jsonHighlight';
 
   export let value: string;
@@ -64,7 +66,32 @@
     '.cm-activeLine': { backgroundColor: 'transparent' },
     '.cm-primrose-var': { color: '#3d9469', fontWeight: '600' },
     '.cm-placeholder': { color: '#bbb' },
+    '.cm-gutters': {
+      backgroundColor: 'transparent',
+      color: '#b8b8b8',
+      border: 'none',
+      borderRight: '1px solid #eee',
+    },
+    '.cm-lineNumbers .cm-gutterElement': { padding: '0 6px 0 12px', minWidth: '30px' },
   });
+
+  // Editor-style diagnostics: the Lezer JSON parser is error-tolerant and
+  // marks every broken node, so each error attaches to its own line instead
+  // of only reporting the first JSON.parse failure.
+  function jsonSyntaxErrors(view: EditorView): Diagnostic[] {
+    if (view.state.doc.toString().trim() === '') return []; // empty body is fine
+    const diagnostics: Diagnostic[] = [];
+    syntaxTree(view.state).cursor().iterate((node) => {
+      if (!node.type.isError) return;
+      diagnostics.push({
+        from: node.from,
+        to: Math.max(node.to, Math.min(node.from + 1, view.state.doc.length)),
+        severity: 'error',
+        message: 'Invalid JSON syntax',
+      });
+    });
+    return diagnostics;
+  }
 
   function extensions() {
     const ext = [
@@ -85,9 +112,14 @@
         )
       );
     } else {
-      ext.push(EditorView.lineWrapping);
+      ext.push(EditorView.lineWrapping, lineNumbers());
       if (lang === 'json') {
-        ext.push(json(), syntaxHighlighting(jsonHighlightStyle));
+        ext.push(
+          json(),
+          syntaxHighlighting(jsonHighlightStyle),
+          lintGutter(),
+          linter(jsonSyntaxErrors)
+        );
       }
     }
     return ext;

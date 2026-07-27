@@ -123,7 +123,8 @@
 
 <style>
   .sidebar {
-    border-right: 1px solid var(--border-soft);
+    flex: 1;
+    min-height: 0;
     padding: 12px;
     overflow-y: auto;
   }
