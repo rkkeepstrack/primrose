@@ -11,7 +11,8 @@ import {
   toggleShortcutsTab,
 } from './collections';
 import { newRequest, saveRequest } from './requests';
-import { activeRoot } from './state';
+import { activeRoot, envSaveSignal } from './state';
+import { activeTabId, isEnvTab } from './tabs';
 
 export function initMenuHandlers() {
   EventsOn('menu:new-request', () => {
@@ -20,7 +21,13 @@ export function initMenuHandlers() {
   });
   EventsOn('menu:new-collection', createCollectionViaDialog);
   EventsOn('menu:open-collection', openCollectionViaDialog);
-  EventsOn('menu:save', saveRequest);
+  // ⌘S saves what the active tab shows: environment drafts on an env tab,
+  // the open request otherwise
+  EventsOn('menu:save', () => {
+    const tab = get(activeTabId);
+    if (tab && isEnvTab(tab)) envSaveSignal.update((n) => n + 1);
+    else saveRequest();
+  });
   EventsOn('menu:close-tab', closeActiveTab);
   EventsOn('menu:quick-open', () => focusSearchSignal.update((n) => n + 1));
   EventsOn('menu:shortcuts', toggleShortcutsTab);

@@ -15,6 +15,7 @@
   import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
   import { json } from '@codemirror/lang-json';
   import { linter, lintGutter, type Diagnostic } from '@codemirror/lint';
+  import { autocompletion, type CompletionContext } from '@codemirror/autocomplete';
   import { syntaxHighlighting, syntaxTree } from '@codemirror/language';
   import { jsonHighlightStyle } from './jsonHighlight';
 
@@ -23,6 +24,8 @@
   export let singleLine = false;
   export let lang: 'json' | 'text' = 'text';
   export let placeholder = '';
+  // active environment's variable names, offered as completions inside {{…}}
+  export let envVarNames: string[] = [];
 
   let host: HTMLDivElement;
   let view: EditorView | null = null;
@@ -52,12 +55,39 @@
     { decorations: (v) => v.decorations }
   );
 
+  // Suggest env vars while typing inside {{…}}; typing "{{" pops the list.
+  // Accepting a completion also closes the braces if they aren't closed yet.
+  function envVarCompletions(ctx: CompletionContext) {
+    const m = ctx.matchBefore(/\{\{[A-Za-z0-9_-]*$/);
+    if (!m || envVarNames.length === 0) return null;
+    return {
+      from: m.from + 2,
+      options: envVarNames.map((name) => ({
+        label: name,
+        type: 'variable',
+        apply: (view: EditorView, _c: unknown, from: number, to: number) => {
+          const alreadyClosed = view.state.sliceDoc(to, to + 2) === '}}';
+          const insert = alreadyClosed ? name : `${name}}}`;
+          view.dispatch({
+            changes: { from, to, insert },
+            selection: { anchor: from + name.length + 2 },
+          });
+        },
+      })),
+      validFor: /^[A-Za-z0-9_-]*$/,
+    };
+  }
+
   const theme = EditorView.theme({
     '&': { fontSize: '13px', backgroundColor: 'transparent' },
-    '.cm-content': {
+    // CM's base theme puts monospace on .cm-scroller, so 'inherit' on the
+    // content would resolve to that — override the scroller itself
+    '.cm-scroller': {
       fontFamily: singleLine
-        ? 'inherit'
+        ? 'system-ui, -apple-system, sans-serif'
         : 'ui-monospace, SFMono-Regular, Menlo, monospace',
+    },
+    '.cm-content': {
       color: '#444',
       padding: singleLine ? '5px 4px' : '8px 4px',
     },
@@ -73,6 +103,25 @@
       borderRight: '1px solid #eee',
     },
     '.cm-lineNumbers .cm-gutterElement': { padding: '0 6px 0 12px', minWidth: '30px' },
+    '.cm-tooltip.cm-tooltip-autocomplete': {
+      backgroundColor: '#fff',
+      border: '1px solid var(--border)',
+      borderRadius: '8px',
+      boxShadow: '0 4px 16px rgba(0, 0, 0, 0.08)',
+      padding: '3px',
+      fontFamily: 'inherit',
+    },
+    '.cm-tooltip-autocomplete ul li': {
+      fontFamily: 'system-ui, -apple-system, sans-serif',
+      fontSize: '12px',
+      color: 'var(--text-soft)',
+      padding: '3px 8px',
+      borderRadius: '5px',
+    },
+    '.cm-tooltip-autocomplete ul li[aria-selected]': {
+      backgroundColor: 'var(--green-bg)',
+      color: 'var(--green-text)',
+    },
   });
 
   // Editor-style diagnostics: the Lezer JSON parser is error-tolerant and
@@ -98,6 +147,7 @@
       history(),
       keymap.of([...defaultKeymap, ...historyKeymap]),
       varHighlighter,
+      autocompletion({ override: [envVarCompletions], icons: false }),
       theme,
       EditorView.updateListener.of((u) => {
         if (u.docChanged) onChange(u.state.doc.toString());

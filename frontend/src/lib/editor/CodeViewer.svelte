@@ -1,7 +1,8 @@
 <script lang="ts">
-  import { onMount, onDestroy } from 'svelte';
-  import { EditorView, keymap, lineNumbers, highlightSpecialChars } from '@codemirror/view';
-  import { highlightSelectionMatches, search, searchKeymap } from '@codemirror/search';
+  import { onMount, onDestroy, mount, unmount } from 'svelte';
+  import { EditorView, keymap, lineNumbers, highlightSpecialChars, type Panel } from '@codemirror/view';
+  import { highlightSelectionMatches, openSearchPanel, search, searchKeymap } from '@codemirror/search';
+  import SearchPanel from './SearchPanel.svelte';
   import { EditorState } from '@codemirror/state';
   import { json } from '@codemirror/lang-json';
   import {
@@ -59,25 +60,19 @@
     '.cm-activeLine': { backgroundColor: 'transparent' },
     '.cm-scroller': { overflow: 'auto' },
     '&.cm-focused': { outline: 'none' },
-    '.cm-panels': {
-      backgroundColor: '#fff',
-      borderBottom: '1px solid var(--border-soft)',
+    // search floats in the top-right corner instead of pushing content down
+    '.cm-panels.cm-panels-top': {
+      position: 'absolute',
+      top: '4px',
+      right: '14px',
+      left: 'auto',
+      zIndex: '20',
+      backgroundColor: 'transparent',
+      border: 'none',
       color: 'var(--text)',
     },
     '.cm-searchMatch': { backgroundColor: 'rgba(240, 213, 90, 0.4)' },
     '.cm-searchMatch-selected': { backgroundColor: 'rgba(232, 169, 76, 0.55)' },
-    '.cm-panel.cm-search input': {
-      fontFamily: 'inherit',
-      fontSize: '12px',
-      border: '1px solid var(--border)',
-      borderRadius: '4px',
-      padding: '2px 6px',
-    },
-    '.cm-panel.cm-search button': {
-      fontFamily: 'inherit',
-      fontSize: '11px',
-    },
-    '.cm-panel.cm-search label': { fontSize: '11px', color: 'var(--text-muted)' },
   });
 
   // count the folded region's direct children (top-level commas at depth 0),
@@ -146,6 +141,21 @@
     provide: (f) => EditorView.decorations.from(f),
   });
 
+  // CM panel wrapper around the SearchPanel Svelte component
+  function searchPanel(view: EditorView): Panel {
+    const dom = document.createElement('div');
+    const panel = mount(SearchPanel, { target: dom, props: { view } });
+    return {
+      dom,
+      top: true,
+      mount: () => panel.focusInput(),
+      update: (u) => {
+        if (u.docChanged || u.selectionSet) panel.recount();
+      },
+      destroy: () => unmount(panel),
+    };
+  }
+
   // small gray disclosure triangles, DevTools style
   function foldMarker(open: boolean): HTMLElement {
     const el = document.createElement('span');
@@ -166,7 +176,7 @@
       foldGutter({ markerDOM: foldMarker }),
       foldCountField,
       syntaxHighlighting(jsonHighlightStyle),
-      search({ top: true }),
+      search({ top: true, createPanel: searchPanel }),
       keymap.of(searchKeymap),
       highlightSelectionMatches(),
       EditorState.readOnly.of(true),
@@ -188,6 +198,20 @@
   onMount(createView);
   onDestroy(() => view?.destroy());
 
+  // ⌘F opens the search panel even when the viewer isn't focused, but stays
+  // out of the way while the user is typing somewhere else
+  function onGlobalKeydown(e: KeyboardEvent) {
+    if (!(e.metaKey || e.ctrlKey) || e.key !== 'f' || !view) return;
+    const t = e.target as HTMLElement;
+    const typingElsewhere =
+      t.tagName === 'INPUT' ||
+      t.tagName === 'TEXTAREA' ||
+      (t.closest('.cm-editor') !== null && !host.contains(t));
+    if (typingElsewhere) return;
+    e.preventDefault();
+    openSearchPanel(view);
+  }
+
   let lastValue = value;
   let lastLang = lang;
   $: if (view && (value !== lastValue || lang !== lastLang)) {
@@ -196,6 +220,8 @@
     createView();
   }
 </script>
+
+<svelte:window on:keydown={onGlobalKeydown} />
 
 <div class="viewer" bind:this={host}></div>
 

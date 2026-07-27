@@ -10,7 +10,7 @@
   import { saveRequest } from '../workspace/requests';
   import { cancelRequest, sendRequest } from '../workspace/send';
   import { keepMyEdits, reloadFromDisk } from '../workspace/sync';
-  import { dirty, diskChanged, draftName, request, sending } from '../workspace/state';
+  import { activeEnvVars, dirty, diskChanged, draftName, request, sending } from '../workspace/state';
 
   let methodOpen = false;
 
@@ -72,6 +72,7 @@
         value={$request.url}
         placeholder="https://api.example.com/…"
         onChange={setUrl}
+        envVarNames={Object.keys($activeEnvVars)}
       />
     </div>
     <button class="action save" class:dirty={$dirty} on:click={saveRequest} title="Save (⌘S)" aria-label="Save">

@@ -10,7 +10,7 @@
     duplicateEnvironment,
     renameEnvironment,
   } from '../workspace/environments';
-  import { envEditorDirty } from '../workspace/state';
+  import { envEditorDirty, envSaveSignal } from '../workspace/state';
 
   export let root: string;
   export let environments: Environment[];
@@ -105,6 +105,14 @@
     // resync from the saved file so the rows show the alphabetical order
     // the file was written in
     draftFor = null;
+  }
+
+  // ⌘S while this tab is active (routed via the native menu handler)
+  let lastSaveSignal: number | null = null;
+  $: if ($envSaveSignal !== lastSaveSignal) {
+    const first = lastSaveSignal === null;
+    lastSaveSignal = $envSaveSignal;
+    if (!first && dirty) save();
   }
 </script>
 

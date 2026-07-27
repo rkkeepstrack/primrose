@@ -1,7 +1,7 @@
 <script lang="ts">
   import CodeEditor from '../editor/CodeEditor.svelte';
   import { setBodyContent, setBodyType } from './requestEdit';
-  import { request } from '../workspace/state';
+  import { activeEnvVars, request } from '../workspace/state';
 </script>
 
 {#if $request}
@@ -15,6 +15,7 @@
     lang={$request.body.type}
     placeholder={$request.body.type === 'json' ? '{ "enter": "JSON here…" }' : 'Enter text here…'}
     onChange={setBodyContent}
+    envVarNames={Object.keys($activeEnvVars)}
   />
 {/if}
 

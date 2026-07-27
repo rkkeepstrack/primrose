@@ -93,7 +93,7 @@ func (a *App) appMenu() *menu.Menu {
 	file.AddText("New Collection…", nil, emit("menu:new-collection"))
 	file.AddText("Open Collection…", keys.CmdOrCtrl("o"), emit("menu:open-collection"))
 	file.AddSeparator()
-	file.AddText("Save Request", keys.CmdOrCtrl("s"), emit("menu:save"))
+	file.AddText("Save", keys.CmdOrCtrl("s"), emit("menu:save"))
 	file.AddSeparator()
 	file.AddText("Close Tab", keys.CmdOrCtrl("w"), emit("menu:close-tab"))
 
