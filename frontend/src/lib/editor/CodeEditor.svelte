@@ -1,5 +1,7 @@
 <script lang="ts">
-  import { onMount, onDestroy } from 'svelte';
+  import { onMount, onDestroy, mount, unmount } from 'svelte';
+  import Copy from '@lucide/svelte/icons/copy';
+  import { ClipboardSetText } from '../../../wailsjs/runtime/runtime';
   import {
     EditorView,
     MatchDecorator,
@@ -9,6 +11,7 @@
     type ViewUpdate,
     keymap,
     lineNumbers,
+    hoverTooltip,
     placeholder as cmPlaceholder,
   } from '@codemirror/view';
   import { EditorState } from '@codemirror/state';
@@ -24,8 +27,10 @@
   export let singleLine = false;
   export let lang: 'json' | 'text' = 'text';
   export let placeholder = '';
-  // active environment's variable names, offered as completions inside {{…}}
-  export let envVarNames: string[] = [];
+  // active environment's variables: names complete inside {{…}}, values
+  // show in a hover tooltip
+  export let envVars: Record<string, string> = {};
+  $: envVarNames = Object.keys(envVars);
 
   let host: HTMLDivElement;
   let view: EditorView | null = null;
@@ -54,6 +59,46 @@
     },
     { decorations: (v) => v.decorations }
   );
+
+  // hovering a {{var}} shows the active environment's value for it
+  const varHover = hoverTooltip((view, pos) => {
+    const line = view.state.doc.lineAt(pos);
+    for (const m of line.text.matchAll(/\{\{([A-Za-z_][A-Za-z0-9_-]*)\}\}/g)) {
+      const from = line.from + (m.index ?? 0);
+      const to = from + m[0].length;
+      if (pos < from || pos > to) continue;
+      const name = m[1];
+      return {
+        pos: from,
+        end: to,
+        above: true,
+        create: () => {
+          const dom = document.createElement('div');
+          dom.className = 'cm-var-tooltip';
+          const value = envVars[name];
+          if (value === undefined) {
+            dom.textContent = 'not set in the active environment';
+            dom.classList.add('missing');
+            return { dom };
+          }
+          const text = document.createElement('span');
+          text.textContent = value;
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.title = 'Copy value';
+          const icon = mount(Copy, { target: btn, props: { size: 12, strokeWidth: 2 } });
+          btn.addEventListener('click', () => {
+            ClipboardSetText(value);
+            btn.classList.add('copied');
+            setTimeout(() => btn.classList.remove('copied'), 1200);
+          });
+          dom.append(text, btn);
+          return { dom, destroy: () => unmount(icon) };
+        },
+      };
+    }
+    return null;
+  });
 
   // Suggest env vars while typing inside {{…}}; typing "{{" pops the list.
   // Accepting a completion also closes the braces if they aren't closed yet.
@@ -103,6 +148,42 @@
       borderRight: '1px solid #eee',
     },
     '.cm-lineNumbers .cm-gutterElement': { padding: '0 6px 0 12px', minWidth: '30px' },
+    '.cm-tooltip.cm-tooltip-hover': {
+      backgroundColor: '#fff',
+      border: '1px solid var(--border)',
+      borderRadius: '6px',
+      boxShadow: '0 4px 16px rgba(0, 0, 0, 0.08)',
+      padding: '4px 9px',
+      fontFamily: 'system-ui, -apple-system, sans-serif',
+      fontSize: '12px',
+      color: 'var(--text-soft)',
+      maxWidth: '420px',
+      overflowWrap: 'break-word',
+    },
+    '.cm-var-tooltip': {
+      display: 'flex',
+      alignItems: 'center',
+      gap: '7px',
+    },
+    '.cm-var-tooltip.missing': {
+      color: 'var(--orange-strong)',
+      fontStyle: 'italic',
+    },
+    '.cm-var-tooltip button': {
+      display: 'flex',
+      alignItems: 'center',
+      border: 'none',
+      backgroundColor: 'transparent',
+      color: '#999',
+      cursor: 'pointer',
+      padding: '2px',
+      borderRadius: '4px',
+    },
+    '.cm-var-tooltip button:hover': {
+      color: 'var(--green)',
+      backgroundColor: 'var(--green-bg)',
+    },
+    '.cm-var-tooltip button.copied': { color: 'var(--green)' },
     '.cm-tooltip.cm-tooltip-autocomplete': {
       backgroundColor: '#fff',
       border: '1px solid var(--border)',
@@ -147,6 +228,7 @@
       history(),
       keymap.of([...defaultKeymap, ...historyKeymap]),
       varHighlighter,
+      varHover,
       autocompletion({ override: [envVarCompletions], icons: false }),
       theme,
       EditorView.updateListener.of((u) => {

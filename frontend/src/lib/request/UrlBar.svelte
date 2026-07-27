@@ -72,7 +72,7 @@
         value={$request.url}
         placeholder="https://api.example.com/…"
         onChange={setUrl}
-        envVarNames={Object.keys($activeEnvVars)}
+        envVars={$activeEnvVars}
       />
     </div>
     <button class="action save" class:dirty={$dirty} on:click={saveRequest} title="Save (⌘S)" aria-label="Save">
