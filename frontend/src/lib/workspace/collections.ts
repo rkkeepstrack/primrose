@@ -3,34 +3,66 @@
 import { get } from 'svelte/store';
 import type { Collection } from '../shared/types';
 import { errMsg } from '../shared/errors';
-import { GetTree, OpenCollectionDialog } from '../../../wailsjs/go/main/App';
+import { ChooseDirectory, CreateCollection, GetTree, OpenCollectionDialog } from '../../../wailsjs/go/main/App';
 import { closeEnvView, loadEnvironments } from './environments';
 import { maybeAbandonDraft, stashCurrentEdit } from './drafts';
 import { activeIdx, activeRoot, clearSelection, collections, envEditorDirty, error } from './state';
 import { activateTab, activeTabId, addCollectionTab, closeTab, envTabId, isEnvTab, isSpecialTab, openSpecialTab } from './tabs';
-import { confirmDialog } from '../ui/dialogs';
+import { confirmDialog, promptDialog } from '../ui/dialogs';
 
+
+async function addOpenedCollection(col: Collection) {
+  const cols = get(collections);
+  const existing = cols.findIndex((c) => c.root === col.root);
+  if (existing >= 0) {
+    cols[existing] = col;
+    collections.set(cols);
+    activeIdx.set(existing);
+  } else {
+    collections.set([...cols, col]);
+    activeIdx.set(cols.length);
+  }
+  addCollectionTab(col.root);
+  activateTab(col.root);
+  await loadEnvironments(col.root);
+}
 
 export async function openCollectionViaDialog() {
   error.set('');
   try {
     const col = (await OpenCollectionDialog()) as Collection | null;
     if (!col) return;
-    const cols = get(collections);
-    const existing = cols.findIndex((c) => c.root === col.root);
-    if (existing >= 0) {
-      cols[existing] = col;
-      collections.set(cols);
-      activeIdx.set(existing);
-    } else {
-      collections.set([...cols, col]);
-      activeIdx.set(cols.length);
-    }
-    addCollectionTab(col.root);
-    activateTab(col.root);
-    await loadEnvironments(col.root);
+    await addOpenedCollection(col);
   } catch (e) {
     error.set(errMsg(e));
+  }
+}
+
+export async function createCollectionViaDialog() {
+  error.set('');
+  try {
+    const parent = await ChooseDirectory('Choose where to create the collection');
+    if (!parent) return;
+    const name = await promptDialog('Collection name:');
+    if (!name?.trim()) return;
+    const col = (await CreateCollection(parent, name)) as Collection;
+    await addOpenedCollection(col);
+  } catch (e) {
+    error.set(errMsg(e));
+  }
+}
+
+// ⌘W: closes whatever tab is active (collections confirm first)
+export async function closeActiveTab() {
+  const id = get(activeTabId);
+  if (!id) return;
+  if (isEnvTab(id)) {
+    const { closeEnvView } = await import('./environments');
+    await closeEnvView(id);
+  } else if (isSpecialTab(id)) {
+    closeTab(id);
+  } else {
+    await closeCollection(id);
   }
 }
 

@@ -7,6 +7,10 @@ import {httpclient} from '../models';
 
 export function CancelRequest():Promise<void>;
 
+export function ChooseDirectory(arg1:string):Promise<string>;
+
+export function CreateCollection(arg1:string,arg2:string):Promise<collection.Collection>;
+
 export function CreateFolder(arg1:string,arg2:string):Promise<string>;
 
 export function CreateRequest(arg1:string,arg2:string,arg3:collection.Request):Promise<string>;

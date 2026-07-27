@@ -8,6 +8,8 @@ import { RECENT_MAX, recentPaths, unsavedEdits } from '../shared/stores';
 import { activeIdx, collections, dirty, selectedPath } from '../workspace/state';
 
 export const search = writable('');
+// incremented to ask the sidebar to focus its search field (menu Quick Open)
+export const focusSearchSignal = writable(0);
 export const recentFilterOn = writable(false);
 
 // folder expansion state, shared by all tree levels

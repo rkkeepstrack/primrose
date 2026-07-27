@@ -51,20 +51,21 @@ its own project, and the review pass (H) after A–C have landed.
 
 ## D. Native / window integration — one Wails batch
 
-- [ ] full screen / zoom on double click on the header, same as native
+- [x] full screen / zoom on double click on the header, same as native
       windows on macOS/Windows/Linux
-- [ ] app menus: replace/extend the standard system menus (Edit, Window…)
+- [x] app menus: replace/extend the standard system menus (Edit, Window…)
       so functionality and shortcuts are visible there as well
-- [ ] allow closing collections and the environment/shortcuts tabs with ⌘W;
+- [x] allow closing collections and the environment/shortcuts tabs with ⌘W;
       tabs should behave like native macOS tabs
       (implies: closable collections, which don't exist yet)
-- [ ] darwin signing warning when building ("use of private APIs … will not
-      pass AppStore approval") — comes from TitleBarHiddenInset; harmless
-      unless targeting the App Store; decide & document in this batch
+- [x] darwin signing warning when building — DECIDED: accepted. It comes
+      from TitleBarHiddenInset (our custom title bar); it only matters for
+      Mac App Store distribution, which is not planned. Direct distribution
+      (dmg/zip, even notarized) is unaffected.
 
 ## E. Collection management
 
-- [ ] there's no button to create a new collection, just to open one
+- [x] there's no button to create a new collection, just to open one
 - [ ] migration for bruno collections (big — own project, needs a .bru
       parser)
 

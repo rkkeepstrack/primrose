@@ -5,7 +5,8 @@
       items: [
         { keys: ['⌘', 'S'], what: 'Save the open request' },
         { keys: ['⌘', '↵'], what: 'Send the open request' },
-        { keys: ['⌘', '1–4'], what: 'Switch request tab (Query / Body / Headers / Env)' },
+        { keys: ['⌘', '1–4'], what: 'Switch request tab (Query / Body / Headers / Variables)' },
+        { keys: ['Esc'], what: 'Close the open request (unsaved edits are kept)' },
       ],
     },
     {
@@ -15,7 +16,7 @@
     {
       title: 'Navigation',
       items: [
-        { keys: ['⌘', 'P'], what: 'Focus the search — Enter opens the first match, Esc clears' },
+        { keys: ['⌘', 'P'], what: 'Quick open search — Enter opens the first match, Esc clears' },
         { keys: ['⌥', '↑ / ↓'], what: 'Hop to the previous / next request' },
         { keys: ['←', '→'], what: 'Resize the split (when the divider is focused)' },
       ],
@@ -23,6 +24,9 @@
     {
       title: 'General',
       items: [
+        { keys: ['⌘', 'N'], what: 'New request in the active collection' },
+        { keys: ['⌘', 'O'], what: 'Open a collection folder' },
+        { keys: ['⌘', 'W'], what: 'Close the active tab' },
         { keys: ['⌘', 'K'], what: 'Show / hide this shortcut reference' },
         { keys: ['↵ / Esc'], what: 'Confirm / dismiss dialogs' },
       ],

@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import Sidebar from './lib/sidebar/Sidebar.svelte';
+  import CollectionSplash from './lib/collection/CollectionSplash.svelte';
   import UrlBar from './lib/request/UrlBar.svelte';
   import SplitPane from './lib/ui/SplitPane.svelte';
   import RequestView from './lib/request/RequestView.svelte';
@@ -10,9 +11,9 @@
   import primroseLogo from './assets/images/primrose-logo.svg';
   import {
     closeCollection,
+    createCollectionViaDialog,
     openCollectionViaDialog,
     switchTab,
-    toggleShortcutsTab,
   } from './lib/workspace/collections';
   import {
     activeTabId,
@@ -28,6 +29,8 @@
   import { pickEnvironment, saveEnvVars } from './lib/workspace/environments';
   import { persistSession, restoreSession } from './lib/workspace/session';
   import { initExternalSync } from './lib/workspace/sync';
+  import { initMenuHandlers } from './lib/workspace/menu';
+  import { WindowToggleMaximise } from '../wailsjs/runtime/runtime';
   import ShortcutsPanel from './lib/shortcuts/ShortcutsPanel.svelte';
   import { closeRequest } from './lib/workspace/requests';
   import { closeEnvView, createEnvironment } from './lib/workspace/environments';
@@ -63,15 +66,11 @@
 
   onMount(() => {
     initExternalSync();
+    initMenuHandlers();
     restoreSession();
   });
 
   function onGlobalKeydown(e: KeyboardEvent) {
-    if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-      e.preventDefault();
-      toggleShortcutsTab();
-      return;
-    }
     if (e.key === 'Escape') {
       if ($dialog) return; // the dialog owns Escape while open
       const t = e.target as HTMLElement;
@@ -92,7 +91,7 @@
 <svelte:window on:keydown={onGlobalKeydown} />
 
 <div class="app">
-  <div class="titlebar">
+  <div class="titlebar" on:dblclick={WindowToggleMaximise} role="presentation">
     <div class="brand">
       <img class="brand-logo" src={primroseLogo} alt="" />
       <span class="brand-name">Primrose</span>
@@ -127,17 +126,31 @@
         {/if}
       </button>
     {/each}
-    <button
-      class="open-collection"
-      title="Open collection folder…"
-      aria-label="Open collection"
-      on:click={openCollectionViaDialog}
-    >
-      <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3">
-        <path d="M1.5 4.5 a1 1 0 0 1 1-1 h3.5 l1.5 1.8 h6 a1 1 0 0 1 1 1 v6.2 a1 1 0 0 1 -1 1 h-11 a1 1 0 0 1 -1-1 z" />
-        <path d="M8 7.6 v4 M6 9.6 h4" stroke-linecap="round" />
+    <div class="strip-actions">
+      <button
+        class="strip-btn"
+        title="New collection… (File → New Collection)"
+        aria-label="New collection"
+        on:click={createCollectionViaDialog}
+      >
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3">
+          <path d="M2.5 5.2 L8 2.6 L13.5 5.2 V10.8 L8 13.4 L2.5 10.8 Z" stroke-linejoin="round" />
+          <path d="M2.5 5.2 L8 7.8 L13.5 5.2 M8 7.8 V13.4" />
+          <path d="M11.4 1.2 v3.6 M9.6 3 h3.6" stroke-linecap="round" stroke-width="1.4" />
+        </svg>
+      </button>
+      <button
+        class="strip-btn"
+        title="Open collection folder… (⌘O)"
+        aria-label="Open collection"
+        on:click={openCollectionViaDialog}
+      >
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3">
+          <path d="M1.5 4.5 a1 1 0 0 1 1-1 h3.5 l1.5 1.8 h6 a1 1 0 0 1 1 1 v2" />
+          <path d="M1.8 12.8 l1.6 -5 a1 1 0 0 1 0.95 -0.7 h10.4 a0.7 0.7 0 0 1 0.66 0.92 l-1.55 4.8 a1 1 0 0 1 -0.95 0.68 h-10.4 a0.7 0.7 0 0 1 -0.66 -0.7 z" />
       </svg>
-    </button>
+      </button>
+    </div>
   </header>
 
   {#if $error}
@@ -179,7 +192,7 @@
             <ResponsePane slot="right" runs={$runs} />
           </SplitPane>
         {:else}
-          <p class="hint">Select a request in the sidebar.</p>
+          <CollectionSplash />
         {/if}
       </section>
     </SplitPane>
@@ -278,10 +291,15 @@
     cursor: pointer;
   }
   .tab-close:hover { opacity: 1; background: rgba(0, 0, 0, 0.06); }
-  .open-collection {
+  .strip-actions {
     display: flex;
     align-items: center;
+    gap: 2px;
     margin-left: auto;
+  }
+  .strip-btn {
+    display: flex;
+    align-items: center;
     border: none;
     background: none;
     color: #999;
@@ -289,18 +307,18 @@
     padding: 5px 8px;
     border-radius: 5px;
   }
-  .open-collection:hover { color: var(--green); background: var(--green-bg); }
+  .strip-btn:hover { color: var(--green); background: var(--green-bg); }
 
   .detail {
     display: flex;
     flex-direction: column;
     gap: 14px;
+    flex: 1;
     padding: 16px 20px;
     min-width: 0;
     min-height: 0;
     overflow: hidden;
   }
-  .hint { color: var(--text-disabled); }
 
   .empty-state {
     flex: 1;

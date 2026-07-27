@@ -16,11 +16,8 @@
     setMethod(m);
   }
 
+  // ⌘S lives in the native menu now; ⌘↵ stays here (menus can't bind Return)
   function handleKeydown(e: KeyboardEvent) {
-    if ((e.metaKey || e.ctrlKey) && e.key === 's') {
-      e.preventDefault();
-      saveRequest();
-    }
     if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
       e.preventDefault();
       sendRequest();

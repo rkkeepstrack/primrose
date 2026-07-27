@@ -5,21 +5,23 @@
   import primroseLogo from '../../assets/images/primrose-logo.svg';
   import { acceptPathDrag, carriesPath, readPathDrag } from './dnd';
   import { get } from 'svelte/store';
-  import { flatRequests, recentFilterOn, resetFilters, revealRequest, search, visibleTree } from './treeView';
+  import { flatRequests, focusSearchSignal, recentFilterOn, resetFilters, revealRequest, search, visibleTree } from './treeView';
   import { selectRequest } from '../workspace/requests';
   import { activeRoot, selectedPath } from '../workspace/state';
   import { moveItem } from '../workspace/treeOps';
 
   let searchEl: HTMLInputElement;
 
-  // ⌘P focuses the search; ⌥↑/⌥↓ hop between visible requests
+  // Quick Open (⌘P in the menu) asks for focus via a signal
+  let lastFocusSignal = 0;
+  $: if ($focusSearchSignal !== lastFocusSignal) {
+    lastFocusSignal = $focusSearchSignal;
+    searchEl?.focus();
+    searchEl?.select();
+  }
+
+  // ⌥↑/⌥↓ hop between visible requests
   function onGlobalKeydown(e: KeyboardEvent) {
-    if ((e.metaKey || e.ctrlKey) && e.key === 'p') {
-      e.preventDefault();
-      searchEl?.focus();
-      searchEl?.select();
-      return;
-    }
     if (e.altKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
       // leave Alt-arrows alone inside text editors (CodeMirror line moves)
       const t = e.target as HTMLElement;

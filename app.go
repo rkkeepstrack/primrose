@@ -11,6 +11,8 @@ import (
 	"primrose/internal/httpclient"
 	"primrose/internal/watch"
 
+	"github.com/wailsapp/wails/v2/pkg/menu"
+	"github.com/wailsapp/wails/v2/pkg/menu/keys"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
@@ -39,6 +41,52 @@ func (a *App) startup(ctx context.Context) {
 	if err == nil {
 		a.watcher = w
 	}
+}
+
+// appMenu builds the native menu; items emit events the frontend handles,
+// so the menu doubles as the visible home of the keyboard shortcuts.
+func (a *App) appMenu() *menu.Menu {
+	emit := func(event string) func(*menu.CallbackData) {
+		return func(*menu.CallbackData) { runtime.EventsEmit(a.ctx, event) }
+	}
+
+	root := menu.NewMenu()
+	root.Append(menu.AppMenu())
+
+	file := root.AddSubmenu("File")
+	file.AddText("New Request", keys.CmdOrCtrl("n"), emit("menu:new-request"))
+	file.AddText("New Collection…", nil, emit("menu:new-collection"))
+	file.AddText("Open Collection…", keys.CmdOrCtrl("o"), emit("menu:open-collection"))
+	file.AddSeparator()
+	file.AddText("Save Request", keys.CmdOrCtrl("s"), emit("menu:save"))
+	file.AddSeparator()
+	file.AddText("Close Tab", keys.CmdOrCtrl("w"), emit("menu:close-tab"))
+
+	root.Append(menu.EditMenu()) // native clipboard handling
+
+	view := root.AddSubmenu("View")
+	view.AddText("Quick Open Search", keys.CmdOrCtrl("p"), emit("menu:quick-open"))
+	view.AddText("Keyboard Shortcuts", keys.CmdOrCtrl("k"), emit("menu:shortcuts"))
+
+	return root
+}
+
+// ChooseDirectory shows a folder picker (empty string on cancel).
+func (a *App) ChooseDirectory(title string) (string, error) {
+	return runtime.OpenDirectoryDialog(a.ctx, runtime.OpenDialogOptions{Title: title})
+}
+
+// CreateCollection creates a new collection folder inside parent and opens it.
+func (a *App) CreateCollection(parent, name string) (*collection.Collection, error) {
+	dir, err := collection.CreateFolder(parent, name)
+	if err != nil {
+		return nil, err
+	}
+	col, err := collection.Open(dir)
+	if err == nil {
+		a.watchCollection(dir)
+	}
+	return col, err
 }
 
 func (a *App) shutdown(_ context.Context) {

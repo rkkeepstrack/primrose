@@ -6,6 +6,14 @@ export function CancelRequest() {
   return window['go']['main']['App']['CancelRequest']();
 }
 
+export function ChooseDirectory(arg1) {
+  return window['go']['main']['App']['ChooseDirectory'](arg1);
+}
+
+export function CreateCollection(arg1, arg2) {
+  return window['go']['main']['App']['CreateCollection'](arg1, arg2);
+}
+
 export function CreateFolder(arg1, arg2) {
   return window['go']['main']['App']['CreateFolder'](arg1, arg2);
 }
