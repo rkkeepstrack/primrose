@@ -1,18 +1,30 @@
 <script lang="ts">
   // Full-width request toolbar: method picker, URL editor, Save/Send/Cancel,
   // draft-name row, and the ⌘S / ⌘↵ shortcuts.
+  import Check from '@lucide/svelte/icons/check';
+  import Code from '@lucide/svelte/icons/code';
   import Play from '@lucide/svelte/icons/play';
   import Save from '@lucide/svelte/icons/save';
   import X from '@lucide/svelte/icons/x';
   import { METHODS } from '../shared/types';
   import CodeEditor from '../editor/CodeEditor.svelte';
+  import { toCurl } from './curl';
   import { setMethod, setUrl } from './requestEdit';
   import { saveRequest } from '../workspace/requests';
   import { cancelRequest, sendRequest } from '../workspace/send';
   import { keepMyEdits, reloadFromDisk } from '../workspace/sync';
-  import { activeEnvVars, dirty, diskChanged, draftName, request, sending } from '../workspace/state';
+  import { activeEnvVars, dirty, diskChanged, draftName, inheritedHeaders, request, sending } from '../workspace/state';
+  import { ClipboardSetText } from '../../../wailsjs/runtime/runtime';
 
   let methodOpen = false;
+  let curlCopied = false;
+
+  async function copyCurl() {
+    if (!$request) return;
+    await ClipboardSetText(toCurl($request, $activeEnvVars, $inheritedHeaders));
+    curlCopied = true;
+    setTimeout(() => (curlCopied = false), 1200);
+  }
 
   function pickMethod(m: string) {
     methodOpen = false;
@@ -74,6 +86,19 @@
         onChange={setUrl}
         envVars={$activeEnvVars}
       />
+      <button
+        class="curl-btn"
+        class:copied={curlCopied}
+        title="Copy as curl"
+        aria-label="Copy as curl"
+        on:click={copyCurl}
+      >
+        {#if curlCopied}
+          <Check size={14} strokeWidth={2} />
+        {:else}
+          <Code size={14} strokeWidth={2} />
+        {/if}
+      </button>
     </div>
     <button class="action save" class:dirty={$dirty} on:click={saveRequest} title="Save (⌘S)" aria-label="Save">
       <Save size={15} strokeWidth={2} />
@@ -153,6 +178,22 @@
     flex: 1;
     min-width: 0;
   }
+  /* floats at the end of the url bar, set apart by its own divider */
+  .curl-btn {
+    display: flex;
+    align-items: center;
+    align-self: stretch;
+    border: none;
+    border-left: 1px solid var(--border-soft);
+    background: none;
+    color: #999;
+    cursor: pointer;
+    padding: 0 8px;
+    margin-left: auto;
+  }
+  .curl-btn:hover { color: var(--green); }
+  .curl-btn.copied { color: var(--green); }
+
   .method-wrap { position: relative; }
   button.method {
     border: none;
