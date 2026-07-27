@@ -77,6 +77,10 @@ body {
     color: var(--text);
     background: var(--bg-soft);
 }
+.text-input:hover:not(:focus) {
+    border-color: #cfcfcf;
+    background: #fff;
+}
 .text-input:focus {
     outline: none;
     border-color: var(--yellow-border);

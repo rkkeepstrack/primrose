@@ -29,6 +29,11 @@
     color: var(--text-faint);
     border-bottom: 2px solid transparent;
     margin-bottom: -1px;
+    transition: color 0.12s ease, border-bottom-color 0.12s ease;
+  }
+  .tabs button:hover:not(.active) {
+    color: var(--text-soft);
+    border-bottom-color: var(--border);
   }
   .tabs button.active {
     color: var(--text);

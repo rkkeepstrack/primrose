@@ -178,7 +178,15 @@
     line-height: 0;
     opacity: 0.25;
     filter: grayscale(1);
-    transition: opacity 0.12s ease, filter 0.12s ease;
+    transition: opacity 0.12s ease, filter 0.12s ease, background 0.12s ease;
+  }
+  .heat-toggle:hover {
+    background: var(--bg-hover);
+    opacity: 0.6;
+    filter: grayscale(0.4);
+  }
+  .heat-toggle.on:hover {
+    background: var(--bg-hover);
   }
   .heat-toggle.on {
     opacity: 1;

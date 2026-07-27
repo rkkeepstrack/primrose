@@ -2,7 +2,7 @@
   // Root-level actions (new request / new folder) and the environment
   // quick-switch dropdown.
   import ChevronDown from '@lucide/svelte/icons/chevron-down';
-  import SquarePlus from '@lucide/svelte/icons/square-plus';
+  import CirclePlus from '@lucide/svelte/icons/circle-plus';
   import Cookie from '@lucide/svelte/icons/cookie';
   import FolderPlus from '@lucide/svelte/icons/folder-plus';
   import { newRequest } from '../workspace/requests';
@@ -33,7 +33,7 @@
       title="New request at root level"
       on:click={() => $activeRoot && newRequest($activeRoot)}
     >
-      <SquarePlus size={14} strokeWidth={2} />
+      <CirclePlus size={14} strokeWidth={2} />
     </button>
     <button
       class="new-root"
@@ -116,23 +116,26 @@
   }
   .cookies-btn:hover { color: #4a7cb5; background: #e9f1fa; }
   .env-wrap { position: relative; }
+  /* purple, matching the environment tab's palette (.kind-env in App.svelte) */
   .env-label {
     display: flex;
     align-items: center;
     gap: 5px;
-    border: none;
-    background: none;
+    border: 1px solid #eae2f4;
+    background: #faf8fd;
     font-size: 13px;
     font-family: inherit;
-    color: var(--green-text);
+    color: #6c4fa1;
     cursor: pointer;
-    padding: 3px 8px;
+    padding: 3px 10px;
     border-radius: 5px;
+    transition: background 0.12s ease, border-color 0.12s ease;
   }
   .env-label:hover {
-    background: var(--green-bg);
+    background: #f3eefa;
+    border-color: #d9c9ef;
   }
-  .env-label :global(.chev) { color: var(--green-text); opacity: 0.7; }
+  .env-label :global(.chev) { color: #6c4fa1; opacity: 0.7; }
   .env-menu {
     position: absolute;
     right: 0;
@@ -160,9 +163,9 @@
   }
   .env-menu button:hover { background: var(--bg-hover); }
   .env-menu button.current {
-    color: var(--green-text);
+    color: #6c4fa1;
     font-weight: 600;
-    background: var(--green-bg);
+    background: #f3eefa;
   }
   .env-menu .none {
     color: var(--text-disabled);
