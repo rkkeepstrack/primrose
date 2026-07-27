@@ -8,6 +8,9 @@
   let dividerEl: HTMLDivElement;
   let pct = initialPct;
   let dragging = false;
+  // focus given by mouse shouldn't show the keyboard focus ring; WebKit
+  // treats the explicit focus() in startDrag as :focus-visible
+  let mouseFocus = false;
 
   function clamp(p: number) {
     return Math.min(maxPct, Math.max(minPct, p));
@@ -17,6 +20,7 @@
     // preventDefault stops text selection while dragging, but also swallows
     // the browser's focus-on-click — focus explicitly so arrow keys work
     e.preventDefault();
+    mouseFocus = true;
     dividerEl.focus();
     dragging = true;
     const rect = host.getBoundingClientRect();
@@ -34,6 +38,7 @@
 
   // ARIA "window splitter": a focusable separator, resizable via arrow keys
   function onKeydown(e: KeyboardEvent) {
+    mouseFocus = false; // keyboard use brings the focus ring back
     if (e.key === 'ArrowLeft') {
       e.preventDefault();
       pct = clamp(pct - 2);
@@ -57,6 +62,7 @@
     bind:this={dividerEl}
     class="divider"
     class:dragging
+    class:mouse-focus={mouseFocus}
     role="separator"
     aria-orientation="vertical"
     aria-valuenow={Math.round(pct)}
@@ -65,6 +71,7 @@
     tabindex="0"
     on:mousedown={startDrag}
     on:keydown={onKeydown}
+    on:blur={() => (mouseFocus = false)}
   ></div>
   <div class="pane grow">
     <slot name="right" />
@@ -102,5 +109,11 @@
   .divider:focus-visible {
     outline: none;
     border-left: 2px solid var(--orange-strong);
+  }
+  .divider.mouse-focus:focus-visible {
+    border-left: 1px solid var(--border-soft);
+  }
+  .divider.mouse-focus:focus-visible:hover {
+    border-left-color: var(--yellow-border);
   }
 </style>

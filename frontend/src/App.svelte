@@ -224,6 +224,9 @@
     height: 38px;
     flex-shrink: 0;
     --wails-draggable: drag;
+    cursor: default;
+    user-select: none;
+    -webkit-user-select: none;
   }
   .brand {
     display: flex;

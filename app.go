@@ -67,6 +67,7 @@ func (a *App) ClearCookies(root string) {
 
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
+	fixFullscreenTitlebar()
 	// external edits to open collections (git pull, other editors) are
 	// pushed to the frontend as "collection:changed" events
 	w, err := watch.New(func(root string) {
