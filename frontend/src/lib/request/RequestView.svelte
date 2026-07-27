@@ -5,7 +5,7 @@
   import BodyEditor from './BodyEditor.svelte';
   import EnvPanel from './EnvPanel.svelte';
   import { setHeaders, setQuery } from './requestEdit';
-  import { request } from '../workspace/state';
+  import { inheritedHeaders, request } from '../workspace/state';
 
   type Tab = 'query' | 'body' | 'headers' | 'variables';
   const TABS: Tab[] = ['query', 'body', 'headers', 'variables'];
@@ -34,10 +34,24 @@
   {#if tab === 'query'}
     <KeyValueEditor entries={$request.query} onChange={setQuery} />
   {:else if tab === 'headers'}
-    <KeyValueEditor entries={$request.headers} onChange={setHeaders} />
+    <KeyValueEditor entries={$request.headers} onChange={setHeaders} inherited={$inheritedHeaders} />
+    {#if Object.keys($inheritedHeaders).length > 0}
+      <p class="inherit-note">
+        Same name overrides an inherited header; an empty value removes it for this request.
+      </p>
+    {/if}
+
   {:else if tab === 'body'}
     <BodyEditor />
   {:else}
     <EnvPanel />
   {/if}
 {/if}
+
+<style>
+  .inherit-note {
+    color: #bbb;
+    font-size: 12px;
+    margin: 0;
+  }
+</style>

@@ -11,25 +11,27 @@ import type { ApiRequest } from '../shared/types';
 const ENV_VAR_RE = /\{\{([A-Za-z_][A-Za-z0-9_-]*)\}\}/g;
 const DYNAMIC_VAR_RE = /(?:^|[/=&?,\s]):([A-Za-z_][A-Za-z0-9_]*)/g;
 
-function requestHaystack(r: ApiRequest): string {
+function requestHaystack(r: ApiRequest, extra: string[] = []): string {
   return [
     r.url,
     ...Object.entries(r.query).flat(),
     ...Object.entries(r.headers).flat(),
     r.body.content,
+    ...extra,
   ].join('\n');
 }
 
-// Env vars referenced anywhere in the request, in order of first appearance.
-export function extractEnvVars(r: ApiRequest): string[] {
+// Env vars referenced anywhere in the request (and in inherited headers),
+// in order of first appearance.
+export function extractEnvVars(r: ApiRequest, extra: string[] = []): string[] {
   const seen = new Set<string>();
-  for (const m of requestHaystack(r).matchAll(ENV_VAR_RE)) seen.add(m[1]);
+  for (const m of requestHaystack(r, extra).matchAll(ENV_VAR_RE)) seen.add(m[1]);
   return [...seen];
 }
 
 // Dynamic :vars used anywhere in the request, in order of appearance.
-export function extractDynamicVars(r: ApiRequest): string[] {
+export function extractDynamicVars(r: ApiRequest, extra: string[] = []): string[] {
   const seen = new Set<string>();
-  for (const m of requestHaystack(r).matchAll(DYNAMIC_VAR_RE)) seen.add(m[1]);
+  for (const m of requestHaystack(r, extra).matchAll(DYNAMIC_VAR_RE)) seen.add(m[1]);
   return [...seen];
 }

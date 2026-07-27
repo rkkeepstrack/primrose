@@ -29,20 +29,20 @@ async function addOpenedCollection(col: Collection) {
 
 export async function openCollectionViaDialog() {
   await runOp(async () => {
-  const col = (await OpenCollectionDialog()) as Collection | null;
-  if (!col) return;
-  await addOpenedCollection(col);
+    const col = (await OpenCollectionDialog()) as Collection | null;
+    if (!col) return;
+    await addOpenedCollection(col);
   });
 }
 
 export async function createCollectionViaDialog() {
   await runOp(async () => {
-  const parent = await ChooseDirectory('Choose where to create the collection');
-  if (!parent) return;
-  const name = await promptDialog('Collection name:');
-  if (!name?.trim()) return;
-  const col = (await CreateCollection(parent, name)) as Collection;
-  await addOpenedCollection(col);
+    const parent = await ChooseDirectory('Choose where to create the collection');
+    if (!parent) return;
+    const name = await promptDialog('Collection name:');
+    if (!name?.trim()) return;
+    const col = (await CreateCollection(parent, name)) as Collection;
+    await addOpenedCollection(col);
   });
 }
 

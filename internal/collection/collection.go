@@ -70,6 +70,27 @@ func Open(root string) (*Collection, error) {
 	return &Collection{Name: filepath.Base(root), Root: root, Tree: tree}, nil
 }
 
+// MergeHeaders layers request headers over collection defaults. Header names
+// compare case-insensitively; a request header with an empty value removes
+// the inherited header entirely.
+func MergeHeaders(inherited, own map[string]string) map[string]string {
+	out := make(map[string]string, len(inherited)+len(own))
+	for k, v := range inherited {
+		out[k] = v
+	}
+	for k, v := range own {
+		for ik := range out {
+			if strings.EqualFold(ik, k) {
+				delete(out, ik)
+			}
+		}
+		if v != "" {
+			out[k] = v
+		}
+	}
+	return out
+}
+
 // scanDir builds the tree for one directory level, folders first,
 // each group sorted alphabetically (case-insensitive).
 func scanDir(dir string) ([]*Node, error) {

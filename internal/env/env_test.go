@@ -19,10 +19,10 @@ func TestSaveAndListRoundTrip(t *testing.T) {
 		"cms_api_url": "https://staging.example.com",
 		"weird key":   "value with \"quotes\" and\nnewline",
 	}
-	if err := Save(root, "staging", vars); err != nil {
+	if err := Save(root, "staging", vars, map[string]string{"Authorization": "Bearer {{token}}"}); err != nil {
 		t.Fatal(err)
 	}
-	if err := Save(root, "production", map[string]string{"cms_api_url": "https://prod"}); err != nil {
+	if err := Save(root, "production", map[string]string{"cms_api_url": "https://prod"}, nil); err != nil {
 		t.Fatal(err)
 	}
 
@@ -39,6 +39,12 @@ func TestSaveAndListRoundTrip(t *testing.T) {
 	}
 	if envs[1].Vars["weird key"] != vars["weird key"] {
 		t.Errorf("escaping round trip: %q", envs[1].Vars["weird key"])
+	}
+	if envs[1].Headers["Authorization"] != "Bearer {{token}}" {
+		t.Errorf("headers round trip: %v", envs[1].Headers)
+	}
+	if len(envs[0].Headers) != 0 {
+		t.Errorf("headers should default to empty, got %v", envs[0].Headers)
 	}
 }
 
@@ -60,7 +66,7 @@ func TestListSkipsNonToml(t *testing.T) {
 
 func TestDeleteRenameDuplicate(t *testing.T) {
 	root := t.TempDir()
-	if err := Save(root, "staging", map[string]string{"a": "1"}); err != nil {
+	if err := Save(root, "staging", map[string]string{"a": "1"}, nil); err != nil {
 		t.Fatal(err)
 	}
 

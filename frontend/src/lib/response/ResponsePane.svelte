@@ -64,7 +64,7 @@
       {/if}
     {:else if tab === 'headers'}
       {#if current.response}
-        <ResponseHeaders headers={current.response.headers} />
+        <ResponseHeaders headers={current.response.headers} requestHeaders={current.response.requestHeaders ?? {}} />
       {:else}
         <p class="empty">No response headers (request failed).</p>
       {/if}

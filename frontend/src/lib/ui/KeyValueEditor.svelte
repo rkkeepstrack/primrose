@@ -1,6 +1,9 @@
 <script lang="ts">
   export let entries: Record<string, string>;
   export let onChange: (entries: Record<string, string>) => void;
+  // read-only rows shown pinned on top (e.g. headers inherited from the
+  // environment); struck through once an own row overrides the same name
+  export let inherited: Record<string, string> = {};
 
   // Local row model so keys can be edited without map-key collisions.
   type Row = { key: string; value: string };
@@ -44,6 +47,14 @@
 <table class="kv-table kv">
   <thead><tr><th>Name</th><th>Value</th><th></th></tr></thead>
   <tbody>
+    {#each Object.entries(inherited) as [k, v] (k)}
+      {@const overridden = rows.some((r) => r.key.toLowerCase() === k.toLowerCase())}
+      <tr class="inherited-row" class:overridden>
+        <td class="ro">{k}</td>
+        <td class="ro">{v}</td>
+        <td class="origin">inherited</td>
+      </tr>
+    {/each}
     {#each rows as row, i}
       <tr>
         <td class:duplicate={duplicateKeys.has(row.key)}>
@@ -92,6 +103,24 @@
   td.duplicate input {
     color: var(--red);
     text-decoration: underline wavy var(--red);
+  }
+  .inherited-row td {
+    background: #faf8fd; /* whisper of environment purple */
+    color: var(--text-faint);
+  }
+  .inherited-row td.ro {
+    padding: 7px 12px;
+  }
+  .inherited-row td.origin {
+    font-size: 11px;
+    color: #a08cc0;
+    text-align: center;
+    white-space: nowrap;
+    padding: 7px 10px;
+  }
+  .inherited-row.overridden td.ro {
+    text-decoration: line-through;
+    opacity: 0.6;
   }
   td.actions {
     width: 34px;

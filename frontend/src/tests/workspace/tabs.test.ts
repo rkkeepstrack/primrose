@@ -16,8 +16,8 @@ import {
 import { activeIdx, collections } from '../../lib/workspace/state';
 import type { Collection } from '../../lib/shared/types';
 
-const colA = { name: 'a', root: '/a', tree: [] } as Collection;
-const colB = { name: 'b', root: '/b', tree: [] } as Collection;
+const colA = { name: 'a', root: '/a', headers: {}, tree: [] } as Collection;
+const colB = { name: 'b', root: '/b', headers: {}, tree: [] } as Collection;
 
 beforeEach(() => {
   collections.set([colA, colB]);

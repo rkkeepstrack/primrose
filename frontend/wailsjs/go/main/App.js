@@ -74,8 +74,8 @@ export function RenameItem(arg1, arg2) {
   return window['go']['main']['App']['RenameItem'](arg1, arg2);
 }
 
-export function SaveEnvironment(arg1, arg2, arg3) {
-  return window['go']['main']['App']['SaveEnvironment'](arg1, arg2, arg3);
+export function SaveEnvironment(arg1, arg2, arg3, arg4) {
+  return window['go']['main']['App']['SaveEnvironment'](arg1, arg2, arg3, arg4);
 }
 
 export function SaveRequest(arg1, arg2) {
@@ -86,6 +86,6 @@ export function SaveUIState(arg1) {
   return window['go']['main']['App']['SaveUIState'](arg1);
 }
 
-export function SendRequest(arg1, arg2, arg3) {
-  return window['go']['main']['App']['SendRequest'](arg1, arg2, arg3);
+export function SendRequest(arg1, arg2, arg3, arg4) {
+  return window['go']['main']['App']['SendRequest'](arg1, arg2, arg3, arg4);
 }

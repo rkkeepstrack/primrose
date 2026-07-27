@@ -140,3 +140,28 @@ func TestWriteRequestEscaping(t *testing.T) {
 		t.Errorf("triple-quote body: %q", got.Body.Content)
 	}
 }
+
+func TestMergeHeaders(t *testing.T) {
+	inherited := map[string]string{"Authorization": "Bearer inherited", "X-Tenant": "hb"}
+	own := map[string]string{
+		"authorization": "Bearer mine", // case-insensitive override
+		"X-Tenant":      "",            // empty value removes the inherited header
+		"X-Extra":       "1",
+	}
+	got := MergeHeaders(inherited, own)
+	if got["authorization"] != "Bearer mine" {
+		t.Errorf("override: %v", got)
+	}
+	if _, ok := got["Authorization"]; ok {
+		t.Error("inherited casing must be replaced, not duplicated")
+	}
+	if _, ok := got["X-Tenant"]; ok {
+		t.Error("empty override must remove the header")
+	}
+	if got["X-Extra"] != "1" {
+		t.Errorf("own extras kept: %v", got)
+	}
+	if len(got) != 2 {
+		t.Errorf("merged = %v", got)
+	}
+}

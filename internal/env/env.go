@@ -13,14 +13,18 @@ import (
 )
 
 // Environment is one file in a collection's environments/ directory.
+// Headers are environment-wide defaults inherited by every request while
+// this environment is active (auth lives here, typically).
 type Environment struct {
-	Name string            `json:"name"`
-	Path string            `json:"path"`
-	Vars map[string]string `json:"vars"`
+	Name    string            `json:"name"`
+	Path    string            `json:"path"`
+	Vars    map[string]string `json:"vars"`
+	Headers map[string]string `json:"headers"`
 }
 
 type envFile struct {
-	Vars map[string]string `toml:"vars"`
+	Vars    map[string]string `toml:"vars"`
+	Headers map[string]string `toml:"headers"`
 }
 
 const dirName = "environments"
@@ -49,10 +53,14 @@ func List(root string) ([]Environment, error) {
 		if f.Vars == nil {
 			f.Vars = map[string]string{}
 		}
+		if f.Headers == nil {
+			f.Headers = map[string]string{}
+		}
 		envs = append(envs, Environment{
-			Name: strings.TrimSuffix(e.Name(), ".toml"),
-			Path: path,
-			Vars: f.Vars,
+			Name:    strings.TrimSuffix(e.Name(), ".toml"),
+			Path:    path,
+			Vars:    f.Vars,
+			Headers: f.Headers,
 		})
 	}
 	sort.Slice(envs, func(i, j int) bool {
@@ -63,7 +71,7 @@ func List(root string) ([]Environment, error) {
 
 // Save writes an environment file (creating environments/ if needed).
 // The name is sanitized to a safe filename.
-func Save(root, name string, vars map[string]string) error {
+func Save(root, name string, vars, headers map[string]string) error {
 	name = strings.Trim(strings.Map(func(c rune) rune {
 		switch c {
 		case '/', '\\', ':', 0:
@@ -80,14 +88,21 @@ func Save(root, name string, vars map[string]string) error {
 	}
 
 	var b strings.Builder
-	b.WriteString("[vars]\n")
-	keys := make([]string, 0, len(vars))
-	for k := range vars {
-		keys = append(keys, k)
+	writeSection := func(section string, m map[string]string) {
+		fmt.Fprintf(&b, "[%s]\n", section)
+		keys := make([]string, 0, len(m))
+		for k := range m {
+			keys = append(keys, k)
+		}
+		sort.Strings(keys)
+		for _, k := range keys {
+			fmt.Fprintf(&b, "%s = %s\n", tomlutil.Key(k), tomlutil.String(m[k]))
+		}
 	}
-	sort.Strings(keys)
-	for _, k := range keys {
-		fmt.Fprintf(&b, "%s = %s\n", tomlutil.Key(k), tomlutil.String(vars[k]))
+	writeSection("vars", vars)
+	if len(headers) > 0 {
+		b.WriteString("\n")
+		writeSection("headers", headers)
 	}
 	return os.WriteFile(filepath.Join(dir, name+".toml"), []byte(b.String()), 0o644)
 }

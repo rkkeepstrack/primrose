@@ -63,6 +63,17 @@ its own project, and the review pass (H) after A–C have landed.
       Mac App Store distribution, which is not planned. Direct distribution
       (dmg/zip, even notarized) is unaffected.
 
+## I. Cookie handling (session-only)
+
+  - [ ] cookie jar: responses with Set-Cookie are stored in an in-memory jar
+        (Go net/http/cookiejar attached to the http client) and re-sent on
+        subsequent matching requests; session-only, never persisted to files
+  - [ ] cookie UI: view stored cookies (domain, name, value, expiry), delete
+        individual cookies or all, and manually set new ones
+  - [ ] decide: one jar per collection (recommended — matches "one collection
+        = one system") vs one global jar
+  - [ ] note: Set-Cookie is already visible in the response Headers tab since
+        the Go client sees raw headers — the jar adds automatic re-sending
 ## E. Collection management
 
 - [x] there's no button to create a new collection, just to open one

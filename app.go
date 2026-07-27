@@ -179,9 +179,11 @@ func (a *App) SaveRequest(path string, r collection.Request) error {
 	return collection.WriteRequest(path, &r)
 }
 
-// SendRequest resolves {{env}} and /:dynamic variables, then executes the
-// request and returns the response. Cancellable via CancelRequest.
-func (a *App) SendRequest(r collection.Request, envVars, dynamicVars map[string]string) (*httpclient.Response, error) {
+// SendRequest merges inherited collection headers, resolves {{env}} and
+// :dynamic variables, then executes the request. Cancellable via
+// CancelRequest.
+func (a *App) SendRequest(r collection.Request, envVars, dynamicVars, inheritedHeaders map[string]string) (*httpclient.Response, error) {
+	r.Headers = collection.MergeHeaders(inheritedHeaders, r.Headers)
 	ctx, cancel := context.WithCancel(context.Background())
 	a.sendMu.Lock()
 	a.sendSeq++
@@ -232,8 +234,8 @@ func (a *App) ListEnvironments(root string) ([]env.Environment, error) {
 }
 
 // SaveEnvironment writes an environment file back to disk.
-func (a *App) SaveEnvironment(root, name string, vars map[string]string) error {
-	return env.Save(root, name, vars)
+func (a *App) SaveEnvironment(root, name string, vars, headers map[string]string) error {
+	return env.Save(root, name, vars, headers)
 }
 
 // DeleteEnvironment removes an environment file.

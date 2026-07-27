@@ -46,23 +46,23 @@ export function pickEnvironment(root: string, name: string) {
 
 export async function createEnvironment(root: string, name: string) {
   await runOp(async () => {
-  await SaveEnvironment(root, name, {});
-  await loadEnvironments(root);
-  pickEnvironment(root, name);
+    await SaveEnvironment(root, name, {}, {});
+    await loadEnvironments(root);
+    pickEnvironment(root, name);
   });
 }
 
 export async function deleteEnvironment(root: string, name: string) {
   if (!(await confirmDialog(`Delete environment "${name}"?`, true))) return;
   await runOp(async () => {
-  await DeleteEnvironment(root, name);
-  // drop a stale selection so activeEnvName falls back to the first env
-  selectedEnvNames.update((s) => {
+    await DeleteEnvironment(root, name);
+    // drop a stale selection so activeEnvName falls back to the first env
+    selectedEnvNames.update((s) => {
     if (s[root] !== name) return s;
     const { [root]: _, ...rest } = s;
     return rest;
-  });
-  await loadEnvironments(root);
+    });
+    await loadEnvironments(root);
   });
 }
 
@@ -70,24 +70,29 @@ export async function renameEnvironment(root: string, name: string) {
   const newName = await promptDialog('New name:', name);
   if (!newName?.trim() || newName === name) return;
   await runOp(async () => {
-  await RenameEnvironment(root, name, newName);
-  selectedEnvNames.update((s) =>
+    await RenameEnvironment(root, name, newName);
+    selectedEnvNames.update((s) =>
     s[root] === name ? { ...s, [root]: newName } : s
-  );
-  await loadEnvironments(root);
+    );
+    await loadEnvironments(root);
   });
 }
 
 export async function duplicateEnvironment(root: string, name: string) {
   await runOp(async () => {
-  await DuplicateEnvironment(root, name);
-  await loadEnvironments(root);
+    await DuplicateEnvironment(root, name);
+    await loadEnvironments(root);
   });
 }
 
-export async function saveEnvVars(root: string, name: string, vars: Record<string, string>) {
+export async function saveEnvironment(
+  root: string,
+  name: string,
+  vars: Record<string, string>,
+  headers: Record<string, string>
+) {
   await runOp(async () => {
-  await SaveEnvironment(root, name, vars);
-  await loadEnvironments(root);
+    await SaveEnvironment(root, name, vars, headers);
+    await loadEnvironments(root);
   });
 }

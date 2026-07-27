@@ -153,6 +153,7 @@ export namespace env {
 	    name: string;
 	    path: string;
 	    vars: Record<string, string>;
+	    headers: Record<string, string>;
 	
 	    static createFrom(source: any = {}) {
 	        return new Environment(source);
@@ -163,6 +164,7 @@ export namespace env {
 	        this.name = source["name"];
 	        this.path = source["path"];
 	        this.vars = source["vars"];
+	        this.headers = source["headers"];
 	    }
 	}
 
@@ -172,6 +174,7 @@ export namespace httpclient {
 	
 	export class Response {
 	    finalUrl: string;
+	    requestHeaders: Record<string, string>;
 	    status: number;
 	    statusText: string;
 	    headers: Record<string, string>;
@@ -188,6 +191,7 @@ export namespace httpclient {
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.finalUrl = source["finalUrl"];
+	        this.requestHeaders = source["requestHeaders"];
 	        this.status = source["status"];
 	        this.statusText = source["statusText"];
 	        this.headers = source["headers"];

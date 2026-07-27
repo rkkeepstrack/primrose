@@ -16,11 +16,16 @@
   export let environments: Environment[];
   export let activeName: string | null;
   export let onSelect: (name: string) => void;
-  export let onSaveVars: (name: string, vars: Record<string, string>) => void;
+  export let onSave: (
+    name: string,
+    vars: Record<string, string>,
+    headers: Record<string, string>
+  ) => Promise<void> | void;
   export let onCreate: (name: string) => void;
 
   let search = '';
   let draft: Record<string, string> | null = null;
+  let headersDraft: Record<string, string> | null = null;
   let draftFor: string | null = null;
   let menuFor: string | null = null;
 
@@ -36,6 +41,7 @@
   $: if (active && draftFor !== active.name) {
     draftFor = active.name;
     draft = { ...active.vars };
+    headersDraft = { ...active.headers };
     search = '';
   }
 
@@ -58,7 +64,10 @@
     return ka.length === kb.length && ka.every((k, i) => k === kb[i] && a[k] === b[k]);
   }
 
-  $: dirty = active && draft ? !sameVars(draft, active.vars) : false;
+  $: dirty =
+    active && draft && headersDraft
+      ? !sameVars(draft, active.vars) || !sameVars(headersDraft, active.headers)
+      : false;
   $: envEditorDirty.set(dirty);
   onDestroy(() => envEditorDirty.set(false));
 
@@ -91,8 +100,8 @@
   }
 
   async function save() {
-    if (!active || !draft) return;
-    await onSaveVars(active.name, draft);
+    if (!active || !draft || !headersDraft) return;
+    await onSave(active.name, draft, headersDraft);
     // resync from the saved file so the rows show the alphabetical order
     // the file was written in
     draftFor = null;
@@ -133,6 +142,12 @@
       <KeyValueEditor entries={filtered} onChange={handleChange} />
       {#if search}
         <p class="note">Filtered view — hidden variables are kept as they are.</p>
+      {/if}
+
+      <h3 class="section-title">Headers</h3>
+      <p class="note">Inherited by every request while this environment is active — auth lives here.</p>
+      {#if headersDraft}
+        <KeyValueEditor entries={headersDraft} onChange={(h) => (headersDraft = h)} />
       {/if}
     {:else}
       <p class="empty">Select an environment on the left.</p>
@@ -219,5 +234,11 @@
     padding: 0 16px;
   }
   .note { color: #bbb; font-size: 12px; margin: 0; }
+  .section-title {
+    margin: 14px 0 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--green-text);
+  }
   .empty { color: #aaa; font-size: 13px; }
 </style>

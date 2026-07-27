@@ -5,10 +5,10 @@
   // be filled in and are created on save.
   import { extractDynamicVars, extractEnvVars } from './vars';
   import { dynamicVars, setDynamicVar } from '../shared/stores';
-  import { saveEnvVars } from '../workspace/environments';
-  import { activeEnvName, activeEnvVars, activeRoot, request, selectedPath } from '../workspace/state';
+  import { saveEnvironment } from '../workspace/environments';
+  import { activeEnvName, activeEnvVars, activeRoot, envs, inheritedHeaders, request, selectedPath } from '../workspace/state';
 
-  $: usedEnvVars = $request ? extractEnvVars($request) : [];
+  $: usedEnvVars = $request ? extractEnvVars($request, Object.values($inheritedHeaders)) : [];
   $: usedDynamicVars = $request ? extractDynamicVars($request) : [];
   $: dynValues = ($selectedPath && $dynamicVars[$selectedPath]) || {};
 
@@ -34,7 +34,8 @@
       if (draft[name] !== undefined) merged[name] = draft[name];
     }
     if ($activeEnvName && $activeRoot) {
-      await saveEnvVars($activeRoot, $activeEnvName, merged);
+      const headers = $envs.find((e) => e.name === $activeEnvName)?.headers ?? {};
+      await saveEnvironment($activeRoot, $activeEnvName, merged, headers);
       draft = {};
     }
   }

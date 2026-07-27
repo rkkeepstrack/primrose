@@ -26,7 +26,7 @@
     tabOrder,
   } from './lib/workspace/tabs';
   import { runs } from './lib/workspace/drafts';
-  import { pickEnvironment, saveEnvVars } from './lib/workspace/environments';
+  import { pickEnvironment, saveEnvironment } from './lib/workspace/environments';
   import { persistSession, restoreSession } from './lib/workspace/session';
   import { initExternalSync } from './lib/workspace/sync';
   import { initMenuHandlers } from './lib/workspace/menu';
@@ -181,7 +181,7 @@
         environments={$environments[envRoot] ?? []}
         activeName={$selectedEnvNames[envRoot] ?? ($environments[envRoot] ?? [])[0]?.name ?? null}
         onSelect={(name) => pickEnvironment(envRoot, name)}
-        onSaveVars={(name, vars) => saveEnvVars(envRoot, name, vars)}
+        onSave={(name, vars, headers) => saveEnvironment(envRoot, name, vars, headers)}
         onCreate={(name) => createEnvironment(envRoot, name)}
       />
     {/key}

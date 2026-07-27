@@ -24,7 +24,7 @@ const tree: TreeNode[] = [
 ];
 
 beforeEach(() => {
-  collections.set([{ name: 'c', root: '/c', tree } as Collection]);
+  collections.set([{ name: 'c', root: '/c', headers: {}, tree } as Collection]);
   activeIdx.set(0);
   search.set('');
   recentFilterOn.set(false);

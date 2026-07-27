@@ -27,6 +27,7 @@ export interface ApiRequest {
 
 export interface ApiResponse {
   finalUrl: string;
+  requestHeaders: Record<string, string>;
   bodyBase64?: string;
   contentType: string;
   status: number;
@@ -49,4 +50,5 @@ export interface Environment {
   name: string;
   path: string;
   vars: Record<string, string>;
+  headers: Record<string, string>;
 }

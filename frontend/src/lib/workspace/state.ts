@@ -28,6 +28,8 @@ export const activeRoot = derived(
   ([$c, $i]) => $c[$i]?.root ?? null
 );
 
+
+
 export const envs = derived([environments, activeRoot], ([$envs, $root]) =>
   $root ? ($envs[$root] ?? []) : []
 );
@@ -39,6 +41,12 @@ export const activeEnvName = derived(
 
 export const activeEnvVars = derived([envs, activeEnvName], ([$envs, $name]) =>
   $envs.find((e) => e.name === $name)?.vars ?? {}
+);
+
+// headers of the active environment, inherited by every request
+// (auth lives here: staging and prod carry their own keys)
+export const inheritedHeaders = derived([envs, activeEnvName], ([$envs, $name]) =>
+  $envs.find((e) => e.name === $name)?.headers ?? {}
 );
 
 export function clearSelection() {

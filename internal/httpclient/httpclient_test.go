@@ -64,3 +64,45 @@ func TestSendTextBodyContentType(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestUserAgentDefaultAndOverride(t *testing.T) {
+	var got []string
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		got = append(got, r.Header.Get("User-Agent"))
+	}))
+	defer srv.Close()
+
+	Send(&collection.Request{Method: "GET", URL: srv.URL})
+	Send(&collection.Request{Method: "GET", URL: srv.URL, Headers: map[string]string{"User-Agent": "custom/1"}})
+	if got[0] != "primrose/0.1" {
+		t.Errorf("default UA = %q", got[0])
+	}
+	if got[1] != "custom/1" {
+		t.Errorf("override UA = %q", got[1])
+	}
+}
+
+func TestResponseCarriesRequestHeaders(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
+	defer srv.Close()
+
+	resp, err := Send(&collection.Request{
+		Method:  "POST",
+		URL:     srv.URL + "/x",
+		Headers: map[string]string{"X-Mine": "1"},
+		Body:    collection.Body{Type: "json", Content: `{"a":1}`},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	rh := resp.RequestHeaders
+	if rh["X-Mine"] != "1" || rh["User-Agent"] != "primrose/0.1" {
+		t.Errorf("explicit/UA: %v", rh)
+	}
+	if rh["Host"] == "" || rh["Content-Length"] != "7" || rh["Accept-Encoding"] != "gzip" {
+		t.Errorf("implicit fields: %v", rh)
+	}
+	if rh["Content-Type"] != "application/json" {
+		t.Errorf("content type: %v", rh)
+	}
+}
