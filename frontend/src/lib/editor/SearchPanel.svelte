@@ -32,8 +32,8 @@
 
   // called by the Panel wrapper when CM mounts the panel / the doc changes
   export function focusInput() {
-    inputEl.focus();
-    inputEl.select();
+    inputEl?.focus();
+    inputEl?.select();
     recount();
   }
   export function recount() {

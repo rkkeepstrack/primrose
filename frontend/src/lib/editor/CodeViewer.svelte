@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount, onDestroy, mount, unmount } from 'svelte';
+  import { onMount, onDestroy, mount, unmount, flushSync } from 'svelte';
   import { EditorView, keymap, lineNumbers, highlightSpecialChars, type Panel } from '@codemirror/view';
   import { highlightSelectionMatches, openSearchPanel, search, searchKeymap } from '@codemirror/search';
   import SearchPanel from './SearchPanel.svelte';
@@ -144,7 +144,9 @@
   // CM panel wrapper around the SearchPanel Svelte component
   function searchPanel(view: EditorView): Panel {
     const dom = document.createElement('div');
-    const panel = mount(SearchPanel, { target: dom, props: { view } });
+    // flushSync: CM calls Panel.mount() synchronously right after this, and
+    // the component's bindings must exist by then
+    const panel = flushSync(() => mount(SearchPanel, { target: dom, props: { view } }));
     return {
       dom,
       top: true,
