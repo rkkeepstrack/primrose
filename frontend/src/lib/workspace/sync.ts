@@ -23,28 +23,36 @@ export function initExternalSync() {
 }
 
 async function handleExternalChange(root: string) {
+  if (!(await refreshChangedCollection(root))) return;
+  await reconcileOpenRequest(root);
+}
+
+// rescans the collection; returns false when its folder vanished (the
+// collection is dropped — the user can simply reopen it under its new name)
+async function refreshChangedCollection(root: string): Promise<boolean> {
   const cols = get(collections);
   const idx = cols.findIndex((c) => c.root === root);
-  if (idx === -1) return;
-
+  if (idx === -1) return false;
   try {
     cols[idx] = (await GetTree(root)) as Collection;
     collections.set(cols);
     await loadEnvironments(root);
-  } catch {
-    // the folder is gone (renamed/deleted externally): drop the collection —
-    // the user can simply reopen it under its new name
+    return true;
+  } catch (e) {
+    console.warn('collection vanished, dropping', root, e);
     dropCollection(root);
-    return;
+    return false;
   }
+}
 
-  // reconcile the open request if it lives in this collection
+// re-reads the open request if it lives in the changed collection; unsaved
+// edits are never clobbered — the disk-change notice offers the choice
+async function reconcileOpenRequest(root: string) {
   const path = get(selectedPath);
   if (!path || !path.startsWith(root + '/')) return;
   try {
     const r = (await ReadRequest(path)) as ApiRequest;
     if (get(dirty)) {
-      // don't clobber the user's edits — offer the choice instead
       diskChanged.set(true);
       return;
     }
@@ -52,10 +60,10 @@ async function handleExternalChange(root: string) {
     r.url = norm.url;
     r.query = norm.query;
     request.set(r);
-  } catch {
-    // the file disappeared
+  } catch (e) {
+    console.warn('open request no longer readable', path, e);
     if (get(dirty)) {
-      diskChanged.set(true); // keep the edits; saving would recreate it
+      diskChanged.set(true); // keep the edits; saving would recreate the file
     } else {
       clearSelection();
     }

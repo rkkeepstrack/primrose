@@ -56,6 +56,12 @@ func (s *Service) AddRoot(root string) error {
 }
 
 func (s *Service) Close() error {
+	s.mu.Lock()
+	for root, t := range s.timers {
+		t.Stop()
+		delete(s.timers, root)
+	}
+	s.mu.Unlock()
 	return s.watcher.Close()
 }
 

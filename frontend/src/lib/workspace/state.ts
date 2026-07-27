@@ -8,7 +8,6 @@ import { selectedEnvNames } from '../shared/stores';
 export const collections = writable<Collection[]>([]);
 export const activeIdx = writable(0);
 export const selectedPath = writable<string | null>(null);
-export const selectedName = writable('');
 export const request = writable<ApiRequest | null>(null);
 export const dirty = writable(false);
 export const sending = writable(false);
@@ -44,7 +43,6 @@ export const activeEnvVars = derived([envs, activeEnvName], ([$envs, $name]) =>
 
 export function clearSelection() {
   selectedPath.set(null);
-  selectedName.set('');
   request.set(null);
   dirty.set(false);
   draftDir.set(null);

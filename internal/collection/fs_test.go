@@ -89,3 +89,33 @@ func TestMoveRenameDeleteDuplicate(t *testing.T) {
 		t.Error("folder should be gone")
 	}
 }
+
+// the environments/ directory is reserved: no folder may take its name at a
+// collection root, and nothing may move across its boundary
+func TestEnvironmentsBoundaryGuards(t *testing.T) {
+	root := t.TempDir()
+	os.WriteFile(filepath.Join(root, "primrose.toml"), []byte("# marker\n"), 0o644)
+	os.Mkdir(filepath.Join(root, "environments"), 0o755)
+	os.WriteFile(filepath.Join(root, "environments", "staging.toml"), []byte("[vars]\n"), 0o644)
+
+	if _, err := CreateFolder(root, "environments"); err == nil {
+		t.Error("creating 'environments' at the root must fail")
+	}
+	sub, _ := CreateFolder(root, "sub")
+	if _, err := CreateFolder(sub, "environments"); err != nil {
+		t.Errorf("'environments' nested below the root should be allowed: %v", err)
+	}
+
+	folder, _ := CreateFolder(root, "renameme")
+	if _, err := RenameItem(folder, "environments"); err == nil {
+		t.Error("renaming a folder to 'environments' at the root must fail")
+	}
+
+	reqPath, _ := CreateRequest(root, "req", &Request{Method: "GET"})
+	if _, err := MoveItem(reqPath, filepath.Join(root, "environments")); err == nil {
+		t.Error("moving a request into environments/ must fail")
+	}
+	if _, err := MoveItem(filepath.Join(root, "environments", "staging.toml"), root); err == nil {
+		t.Error("moving an env file out of environments/ must fail")
+	}
+}

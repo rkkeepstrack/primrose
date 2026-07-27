@@ -84,8 +84,12 @@
     }
   }
 
-  // persist open collections + active tab whenever they change
-  $: if ($restored && $collections && $activeIdx >= 0) persistSession();
+  // persist open collections, tab order and active tab whenever they change
+  $: persistWhenChanged($restored, $collections, $activeIdx, $tabOrder);
+
+  function persistWhenChanged(restoredNow: boolean, ..._deps: unknown[]) {
+    if (restoredNow) persistSession();
+  }
 </script>
 
 <svelte:window on:keydown={onGlobalKeydown} />

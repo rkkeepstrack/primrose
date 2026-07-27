@@ -47,3 +47,20 @@ func TestSend(t *testing.T) {
 		t.Errorf("meta: %dms %dB", resp.DurationMs, resp.Size)
 	}
 }
+
+func TestSendTextBodyContentType(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if ct := r.Header.Get("Content-Type"); ct != "text/plain" {
+			t.Errorf("text body content type = %q", ct)
+		}
+	}))
+	defer srv.Close()
+
+	if _, err := Send(&collection.Request{
+		Method: "POST",
+		URL:    srv.URL,
+		Body:   collection.Body{Type: "text", Content: "plain payload"},
+	}); err != nil {
+		t.Fatal(err)
+	}
+}

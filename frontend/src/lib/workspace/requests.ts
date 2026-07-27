@@ -16,7 +16,6 @@ import {
   draftName,
   error,
   request,
-  selectedName,
   selectedPath,
 } from './state';
 
@@ -42,7 +41,6 @@ export async function selectRequest(node: TreeNode) {
       dirty.set(false);
     }
     selectedPath.set(node.path);
-    selectedName.set(node.name);
     touchRecent(node.path);
   } catch (e) {
     error.set(errMsg(e));
@@ -60,7 +58,6 @@ export async function newRequest(dir: string) {
     body: { type: 'json', content: '' },
   });
   selectedPath.set(null);
-  selectedName.set('');
   draftDir.set(dir);
   draftName.set('');
   newDraftKey();
@@ -90,7 +87,6 @@ export async function saveRequest() {
       }
       const path = await CreateRequest(dDir, name, req as never);
       selectedPath.set(path);
-      selectedName.set(name);
       draftDir.set(null);
       draftName.set(null);
     } else if (get(selectedPath)) {

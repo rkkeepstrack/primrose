@@ -26,6 +26,11 @@
     onChange(out);
   }
 
+  // duplicate keys would silently collapse (last one wins on emit) — flag them
+  $: duplicateKeys = new Set(
+    rows.map((r) => r.key).filter((k, i, all) => k.trim() !== '' && all.indexOf(k) !== i)
+  );
+
   function addRow() {
     rows = [...rows, { key: '', value: '' }];
   }
@@ -41,7 +46,14 @@
   <tbody>
     {#each rows as row, i}
       <tr>
-        <td><input placeholder="name" bind:value={row.key} on:input={emit} /></td>
+        <td class:duplicate={duplicateKeys.has(row.key)}>
+          <input
+            placeholder="name"
+            bind:value={row.key}
+            on:input={emit}
+            title={duplicateKeys.has(row.key) ? 'Duplicate name — only the last value is used' : ''}
+          />
+        </td>
         <td><input placeholder="value" bind:value={row.value} on:input={emit} /></td>
         <td class="actions">
           <button class="remove" title="Remove" on:click={() => removeRow(i)}>×</button>
@@ -76,6 +88,10 @@
   td input:focus {
     outline: none;
     background: var(--yellow-bg);
+  }
+  td.duplicate input {
+    color: var(--red);
+    text-decoration: underline wavy var(--red);
   }
   td.actions {
     width: 34px;

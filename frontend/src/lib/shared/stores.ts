@@ -36,7 +36,7 @@ export function renameRecent(oldPath: string, newPath: string) {
 
 // Unsaved edits per request path, kept while the request stays within the
 // recents window; pruned (silently discarded) once it falls out.
-// TODO: window size becomes a global setting later.
+// NOTE: the window size (10) is planned to become a global setting — see plans/bug-fixes.md.
 export const unsavedEdits = writable<Record<string, ApiRequest>>({});
 
 export function stashEdit(path: string, request: ApiRequest) {

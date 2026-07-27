@@ -67,7 +67,7 @@
 <div class="env-head">
   <h4 class="heading">Environment variables in this call</h4>
   {#if usedEnvVars.length > 0 && $activeEnvName}
-    <button class="save" class:dirty disabled={!dirty} on:click={save}>
+    <button class="save btn-save" class:dirty disabled={!dirty} on:click={save}>
       Save to {$activeEnvName}{dirty ? ' •' : ''}
     </button>
   {/if}
@@ -134,21 +134,9 @@
     font-style: italic;
   }
   .save {
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    background: #fff;
     font-size: 12px;
-    font-family: inherit;
-    color: var(--text-muted);
-    cursor: pointer;
     padding: 4px 12px;
     white-space: nowrap;
-  }
-  .save:disabled { opacity: 0.5; cursor: default; }
-  .save.dirty {
-    border-color: var(--yellow-border);
-    background: var(--yellow-bg);
-    color: var(--text);
   }
   .empty { color: var(--text-disabled); font-size: 13px; }
   .note { color: #bbb; font-size: 12px; margin: 0; }

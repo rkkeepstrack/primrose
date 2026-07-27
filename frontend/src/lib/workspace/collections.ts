@@ -2,13 +2,13 @@
 
 import { get } from 'svelte/store';
 import type { Collection } from '../shared/types';
-import { errMsg } from '../shared/errors';
 import { ChooseDirectory, CreateCollection, GetTree, OpenCollectionDialog } from '../../../wailsjs/go/main/App';
-import { closeEnvView, loadEnvironments } from './environments';
+import { closeEnvView, confirmDiscardEnvEdits, loadEnvironments } from './environments';
 import { maybeAbandonDraft, stashCurrentEdit } from './drafts';
 import { activeIdx, activeRoot, clearSelection, collections, envEditorDirty, error } from './state';
 import { activateTab, activeTabId, addCollectionTab, closeTab, envTabId, isEnvTab, isSpecialTab, openSpecialTab } from './tabs';
 import { confirmDialog, promptDialog } from '../ui/dialogs';
+import { runOp } from './op';
 
 
 async function addOpenedCollection(col: Collection) {
@@ -28,28 +28,22 @@ async function addOpenedCollection(col: Collection) {
 }
 
 export async function openCollectionViaDialog() {
-  error.set('');
-  try {
-    const col = (await OpenCollectionDialog()) as Collection | null;
-    if (!col) return;
-    await addOpenedCollection(col);
-  } catch (e) {
-    error.set(errMsg(e));
-  }
+  await runOp(async () => {
+  const col = (await OpenCollectionDialog()) as Collection | null;
+  if (!col) return;
+  await addOpenedCollection(col);
+  });
 }
 
 export async function createCollectionViaDialog() {
-  error.set('');
-  try {
-    const parent = await ChooseDirectory('Choose where to create the collection');
-    if (!parent) return;
-    const name = await promptDialog('Collection name:');
-    if (!name?.trim()) return;
-    const col = (await CreateCollection(parent, name)) as Collection;
-    await addOpenedCollection(col);
-  } catch (e) {
-    error.set(errMsg(e));
-  }
+  await runOp(async () => {
+  const parent = await ChooseDirectory('Choose where to create the collection');
+  if (!parent) return;
+  const name = await promptDialog('Collection name:');
+  if (!name?.trim()) return;
+  const col = (await CreateCollection(parent, name)) as Collection;
+  await addOpenedCollection(col);
+  });
 }
 
 // ⌘W: closes whatever tab is active (collections confirm first)
@@ -70,10 +64,8 @@ export async function closeActiveTab() {
 // need a confirmation before any tab switch away from it
 async function mayLeaveEnvTab(): Promise<boolean> {
   const id = get(activeTabId);
-  if (!id || !isEnvTab(id) || !get(envEditorDirty)) return true;
-  if (!(await confirmDialog('Discard unsaved environment changes?'))) return false;
-  envEditorDirty.set(false);
-  return true;
+  if (!id || !isEnvTab(id)) return true;
+  return confirmDiscardEnvEdits();
 }
 
 export async function switchTab(id: string) {
@@ -101,19 +93,30 @@ export async function toggleShortcutsTab() {
 // removes a collection from the workspace (tabs, stores, selection); the
 // folder on disk is untouched
 export function dropCollection(root: string) {
+  const wasActive = removeCollectionTabs(root);
+  const remaining = removeFromCollections(root);
+  if (wasActive) fallBackToRemaining(remaining);
+}
+
+function removeCollectionTabs(root: string): boolean {
   const sel = get(activeTabId);
   closeTab(envTabId(root));
   closeTab(root);
+  return sel === root || sel === envTabId(root);
+}
+
+function removeFromCollections(root: string): Collection[] {
   const remaining = get(collections).filter((c) => c.root !== root);
   collections.set(remaining);
-  const idx = Math.max(0, Math.min(get(activeIdx), remaining.length - 1));
-  activeIdx.set(idx);
-  if (sel === root || sel === envTabId(root)) {
-    stashCurrentEdit();
-    clearSelection();
-    activateTab(remaining[idx]?.root ?? '');
-    if (!remaining.length) activeTabId.set(null);
-  }
+  activeIdx.set(Math.max(0, Math.min(get(activeIdx), remaining.length - 1)));
+  return remaining;
+}
+
+function fallBackToRemaining(remaining: Collection[]) {
+  stashCurrentEdit();
+  clearSelection();
+  if (remaining.length) activateTab(remaining[get(activeIdx)].root);
+  else activeTabId.set(null);
 }
 
 // closes a collection tab (asks first) plus its environment tab
@@ -122,10 +125,7 @@ export async function closeCollection(root: string) {
   if (!col) return;
   if (!(await confirmDialog(`Close collection "${col.name}"?`))) return;
   // its env editor may hold unsaved edits
-  if (get(activeTabId) === envTabId(root) && get(envEditorDirty)) {
-    if (!(await confirmDialog('Discard unsaved environment changes?'))) return;
-    envEditorDirty.set(false);
-  }
+  if (get(activeTabId) === envTabId(root) && !(await confirmDiscardEnvEdits())) return;
   dropCollection(root);
 }
 

@@ -26,8 +26,11 @@ func TestResolve(t *testing.T) {
 	if got.Query["resolvedKey"] != "x" {
 		t.Errorf("dynamic in query key: %v", got.Query)
 	}
-	if got.Headers["X-Api-Key"] != "" {
-		t.Errorf("missing var should resolve to empty string, got %v", got.Headers)
+	if v := got.Headers["X-Api-Key"]; v != "" {
+		t.Errorf("missing env var should resolve to empty string, got %q", v)
+	}
+	if v, ok := got.Headers["X-Api-Key"]; !ok || v == "{{key}}" {
+		t.Errorf("placeholder must be replaced, not kept: %q (present=%v)", v, ok)
 	}
 	if got.Headers["Authorization"] != "Bearer abc:def" {
 		t.Errorf("colon in header value must not resolve: %q", got.Headers["Authorization"])
@@ -57,6 +60,24 @@ func TestResolveDynamicDelimiters(t *testing.T) {
 		if got.URL != c.want {
 			t.Errorf("Resolve(%q) = %q, want %q", c.in, got.URL, c.want)
 		}
+	}
+}
+
+func TestResolveMissingAndAdjacentDynamics(t *testing.T) {
+	// missing dynamic vars resolve to empty string
+	got := Resolve(&Request{URL: "/users/:gone/items"}, nil, map[string]string{})
+	if got.URL != "/users//items" {
+		t.Errorf("missing dynamic var: %q", got.URL)
+	}
+	// adjacent dynamics: the / delimiter of the second must not be consumed
+	got = Resolve(&Request{URL: ":a/:b"}, nil, map[string]string{"a": "1", "b": "2"})
+	if got.URL != "1/2" {
+		t.Errorf("adjacent dynamics: %q", got.URL)
+	}
+	// env var names that are prefixes of one another
+	got = Resolve(&Request{URL: "{{base}}{{base-url}}"}, map[string]string{"base": "A", "base-url": "B"}, nil)
+	if got.URL != "AB" {
+		t.Errorf("prefix names: %q", got.URL)
 	}
 }
 

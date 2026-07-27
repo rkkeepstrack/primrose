@@ -28,9 +28,9 @@ func Resolve(r *Request, envVars, dynamicVars map[string]string) *Request {
 			name := m[2 : len(m)-2] // strip {{ }}
 			return envVars[name]
 		})
-		return dynamicVarRe.ReplaceAllStringFunc(s, func(m string) string {
-			// m = delimiter (possibly empty) + ":" + name
-			delim, name, _ := strings.Cut(m, ":")
+		return dynamicVarRe.ReplaceAllStringFunc(s, func(match string) string {
+			// match = delimiter (possibly empty) + ":" + variable name
+			delim, name, _ := strings.Cut(match, ":")
 			return delim + dynamicVars[name]
 		})
 	}

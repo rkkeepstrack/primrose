@@ -101,3 +101,22 @@ body {
     color: var(--text-muted);
     background: var(--bg-soft);
 }
+
+/* explicit-save buttons (environment editor, variables tab) */
+.btn-save {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: #fff;
+    font-family: inherit;
+    color: var(--text-muted);
+    cursor: pointer;
+}
+.btn-save:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+.btn-save.dirty {
+    border-color: var(--yellow-border);
+    background: var(--yellow-bg);
+    color: var(--text);
+}

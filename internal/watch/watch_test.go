@@ -87,3 +87,24 @@ func TestIgnoresHiddenDirs(t *testing.T) {
 	case <-time.After(150 * time.Millisecond):
 	}
 }
+
+func TestCloseStopsPendingTimers(t *testing.T) {
+	root := t.TempDir()
+	changes := make(chan string, 10)
+	s, err := New(func(r string) { changes <- r })
+	if err != nil {
+		t.Fatal(err)
+	}
+	s.debounce = 100 * time.Millisecond
+	s.AddRoot(root)
+
+	os.WriteFile(filepath.Join(root, "a.toml"), []byte("x"), 0o644)
+	time.Sleep(20 * time.Millisecond) // let the event arrive and arm the timer
+	s.Close()
+
+	select {
+	case <-changes:
+		t.Fatal("debounce timer fired after Close")
+	case <-time.After(300 * time.Millisecond):
+	}
+}

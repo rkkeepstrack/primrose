@@ -41,9 +41,15 @@ func isTextContentType(ct string) bool {
 	return ct == "" // no content type: assume text, the UI shows raw
 }
 
-const maxBodyBytes = 20 << 20 // 20 MB cap so a huge response can't freeze the UI
+const (
+	// maxBodyBytes caps response bodies (20 MB) so a huge response can't
+	// freeze the UI.
+	maxBodyBytes = 20 << 20
+	// requestTimeout bounds a whole request-response cycle.
+	requestTimeout = 30 * time.Second
+)
 
-var client = &http.Client{Timeout: 30 * time.Second}
+var client = &http.Client{Timeout: requestTimeout}
 
 // Send executes the request as-is (variable resolution happens before this).
 // Query params from the map are appended only if their key is not already in

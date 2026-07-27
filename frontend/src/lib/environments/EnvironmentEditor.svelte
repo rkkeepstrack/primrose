@@ -5,6 +5,7 @@
   import ContextMenu from '../ui/ContextMenu.svelte';
   import { confirmDialog, promptDialog } from '../ui/dialogs';
   import {
+    confirmDiscardEnvEdits,
     deleteEnvironment,
     duplicateEnvironment,
     renameEnvironment,
@@ -62,7 +63,7 @@
   onDestroy(() => envEditorDirty.set(false));
 
   async function createEnv() {
-    if (dirty && !(await confirmDialog('Discard unsaved environment changes?'))) return;
+    if (!(await confirmDiscardEnvEdits())) return;
     const name = await promptDialog('Environment name:');
     if (!name?.trim()) return;
     draftFor = null;
@@ -71,7 +72,7 @@
 
   async function pick(name: string) {
     if (name === activeName) return;
-    if (dirty && !(await confirmDialog('Discard unsaved environment changes?'))) return;
+    if (!(await confirmDiscardEnvEdits())) return;
     draftFor = null; // force a fresh draft for the newly picked environment
     onSelect(name);
   }
@@ -125,7 +126,7 @@
     {#if active && draft}
       <div class="toolbar">
         <input class="search text-input" placeholder="Search for Variables or Values…" bind:value={search} />
-        <button class="save" class:dirty on:click={save} disabled={!dirty}>
+        <button class="save btn-save" class:dirty on:click={save} disabled={!dirty}>
           Save{dirty ? ' •' : ''}
         </button>
       </div>
@@ -214,20 +215,8 @@
     flex: 1;
   }
   .save {
-    border: 1px solid #e0e0e0;
-    border-radius: 6px;
-    background: #fff;
     font-size: 13px;
-    font-family: inherit;
-    color: #666;
-    cursor: pointer;
     padding: 0 16px;
-  }
-  .save:disabled { opacity: 0.5; cursor: default; }
-  .save.dirty {
-    border-color: var(--yellow-border);
-    background: var(--yellow-bg);
-    color: #333;
   }
   .note { color: #bbb; font-size: 12px; margin: 0; }
   .empty { color: #aaa; font-size: 13px; }

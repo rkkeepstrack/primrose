@@ -3,8 +3,8 @@
 
 import { get } from 'svelte/store';
 import type { TreeNode } from '../shared/types';
-import { errMsg } from '../shared/errors';
 import { confirmDialog, promptDialog } from '../ui/dialogs';
+import { runOp } from './op';
 import { dropEdit, renameRecent } from '../shared/stores';
 import {
   CreateFolder,
@@ -14,18 +14,15 @@ import {
   RenameItem,
 } from '../../../wailsjs/go/main/App';
 import { refreshTree } from './collections';
-import { dirty, error, request, selectedName, selectedPath } from './state';
+import { dirty, error, request, selectedPath } from './state';
 
 export async function newFolder(dir: string) {
   const name = await promptDialog('Folder name:');
   if (!name?.trim()) return;
-  error.set('');
-  try {
-    await CreateFolder(dir, name);
-    await refreshTree();
-  } catch (e) {
-    error.set(errMsg(e));
-  }
+  await runOp(async () => {
+  await CreateFolder(dir, name);
+  await refreshTree();
+  });
 }
 
 // updates the selection when the item at `oldPath` moved to `newPath`
@@ -39,39 +36,29 @@ function followPath(oldPath: string, newPath: string) {
 }
 
 export async function moveItem(src: string, destDir: string) {
-  error.set('');
-  try {
-    const newPath = await MoveItem(src, destDir);
-    followPath(src, newPath);
-    await refreshTree();
-  } catch (e) {
-    error.set(errMsg(e));
-  }
+  await runOp(async () => {
+  const newPath = await MoveItem(src, destDir);
+  followPath(src, newPath);
+  await refreshTree();
+  });
 }
 
 export async function renameItem(node: TreeNode) {
   const name = await promptDialog('New name:', node.name);
   if (!name?.trim() || name === node.name) return;
-  error.set('');
-  try {
-    const newPath = await RenameItem(node.path, name);
-    followPath(node.path, newPath);
-    if (get(selectedPath) === newPath) selectedName.set(name);
-    renameRecent(node.path, newPath);
-    await refreshTree();
-  } catch (e) {
-    error.set(errMsg(e));
-  }
+  await runOp(async () => {
+  const newPath = await RenameItem(node.path, name);
+  followPath(node.path, newPath);
+  renameRecent(node.path, newPath);
+  await refreshTree();
+  });
 }
 
 export async function duplicateItem(node: TreeNode) {
-  error.set('');
-  try {
-    await DuplicateItem(node.path);
-    await refreshTree();
-  } catch (e) {
-    error.set(errMsg(e));
-  }
+  await runOp(async () => {
+  await DuplicateItem(node.path);
+  await refreshTree();
+  });
 }
 
 export async function deleteItem(node: TreeNode) {
@@ -79,18 +66,15 @@ export async function deleteItem(node: TreeNode) {
     ? `folder "${node.name}" and everything in it`
     : `request "${node.name}"`;
   if (!(await confirmDialog(`Delete ${what}?`, true))) return;
-  error.set('');
-  try {
-    await DeleteItem(node.path);
-    dropEdit(node.path);
-    const sel = get(selectedPath);
-    if (sel === node.path || sel?.startsWith(node.path + '/')) {
-      selectedPath.set(null);
-      request.set(null);
-      dirty.set(false);
-    }
-    await refreshTree();
-  } catch (e) {
-    error.set(errMsg(e));
+  await runOp(async () => {
+  await DeleteItem(node.path);
+  dropEdit(node.path);
+  const sel = get(selectedPath);
+  if (sel === node.path || sel?.startsWith(node.path + '/')) {
+    selectedPath.set(null);
+    request.set(null);
+    dirty.set(false);
   }
+  await refreshTree();
+  });
 }

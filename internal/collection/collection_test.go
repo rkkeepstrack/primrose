@@ -49,6 +49,11 @@ func TestOpen(t *testing.T) {
 	if len(col.Tree) != 2 {
 		t.Fatalf("expected 2 root nodes, got %d", len(col.Tree))
 	}
+	for _, n := range col.Tree {
+		if n.Name == "environments" {
+			t.Error("environments/ must not appear in the tree")
+		}
+	}
 	if !col.Tree[0].IsFolder || col.Tree[0].Name != "teasers" {
 		t.Errorf("first node should be teasers folder, got %+v", col.Tree[0])
 	}
