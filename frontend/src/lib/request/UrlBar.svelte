@@ -9,6 +9,7 @@
   import { METHODS } from '../shared/types';
   import CodeEditor from '../editor/CodeEditor.svelte';
   import Menu from '../ui/Menu.svelte';
+  import Popover from '../ui/Popover.svelte';
   import MenuItem from '../ui/MenuItem.svelte';
   import { toCurl } from './curl';
   import { setMethod, setUrl } from './requestEdit';
@@ -23,8 +24,7 @@
   async function copyCurl() {
     if (!$request) return;
     await ClipboardSetText(toCurl($request, $activeEnvVars, $inheritedHeaders));
-    curlCopied = true;
-    setTimeout(() => (curlCopied = false), 1200);
+    curlCopied = true; // the confirmation popover dismisses itself (and resets the icon)
   }
 
   // ⌘S lives in the native menu now; ⌘↵ stays here (menus can't bind Return)
@@ -73,13 +73,22 @@
         </Menu>
       </div>
       <CodeEditor singleLine value={$request.url} placeholder="https://api.example.com/…" onChange={setUrl} envVars={$activeEnvVars} />
-      <button class="curl-btn" class:copied={curlCopied} title="Copy as curl" aria-label="Copy as curl" on:click={copyCurl}>
-        {#if curlCopied}
-          <Check size={14} strokeWidth={2} />
-        {:else}
-          <Code size={14} strokeWidth={2} />
-        {/if}
-      </button>
+      <Popover trigger="manual" placement="bottom-end" autoDismissMs={1600} bind:open={curlCopied}>
+        <button
+          slot="trigger"
+          class="curl-btn"
+          class:copied={curlCopied}
+          title="Copy as curl"
+          aria-label="Copy as curl"
+          on:click={copyCurl}>
+          {#if curlCopied}
+            <Check size={14} strokeWidth={2} />
+          {:else}
+            <Code size={14} strokeWidth={2} />
+          {/if}
+        </button>
+        <div class="curl-toast">Copied as curl request</div>
+      </Popover>
     </div>
     <button class="action save" class:dirty={$dirty} on:click={saveRequest} title="Save (⌘S)" aria-label="Save">
       <Save size={15} strokeWidth={2} />
@@ -183,6 +192,12 @@
   }
   .curl-btn:hover {
     color: var(--green);
+  }
+  .curl-toast {
+    padding: 8px 12px;
+    font-size: 12px;
+    color: var(--green-text);
+    white-space: nowrap;
   }
   .curl-btn.copied {
     color: var(--green);

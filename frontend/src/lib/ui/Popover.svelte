@@ -5,9 +5,12 @@
   // it flips above the trigger when there is no room below.
   import { tick } from 'svelte';
 
-  export let trigger: 'click' | 'hover' = 'click';
+  // 'manual': the caller drives `open` (bind:open), e.g. for confirmations
+  export let trigger: 'click' | 'hover' | 'manual' = 'click';
   export let placement: 'bottom-start' | 'bottom-end' = 'bottom-start';
   export let open = false;
+  // > 0: the popup closes itself this many ms after opening
+  export let autoDismissMs = 0;
 
   const GAP = 4; // px between trigger and card
   const HOVER_CLOSE_DELAY = 120; // ms to bridge the gap on the way to the card
@@ -18,6 +21,29 @@
   let left = 0;
   let ready = false;
   let closeTimer: ReturnType<typeof setTimeout> | null = null;
+  let dismissTimer: ReturnType<typeof setTimeout> | null = null;
+
+  // edge-triggered on open (a plain $: on `open` would also depend on the
+  // timer variable it assigns, re-triggering itself)
+  let wasOpen = false;
+  $: if (open !== wasOpen) {
+    wasOpen = open;
+    if (open && autoDismissMs > 0) scheduleDismiss();
+  }
+  // fade out with plain CSS before actually closing
+  const FADE_MS = 350;
+  let fading = false;
+  function scheduleDismiss() {
+    if (dismissTimer) clearTimeout(dismissTimer);
+    fading = false;
+    dismissTimer = setTimeout(() => {
+      fading = true;
+      dismissTimer = setTimeout(() => {
+        fading = false;
+        open = false;
+      }, FADE_MS);
+    }, autoDismissMs);
+  }
 
   async function position() {
     await tick();
@@ -38,8 +64,12 @@
     ready = true;
   }
 
-  $: if (open) position();
-  $: if (!open) ready = false;
+  // hide only the first, not-yet-positioned frame; on close the card must
+  // stay visible so the out-transition (fade) is actually seen
+  $: if (open) {
+    ready = false;
+    position();
+  }
 
   function cancelClose() {
     if (closeTimer) clearTimeout(closeTimer);
@@ -68,7 +98,7 @@
 <div class="pop-wrap" bind:this={wrapEl} on:mouseenter={onEnter} on:mouseleave={onLeave} on:click={onClick}>
   <slot name="trigger" />
   {#if open}
-    <div class="popover-card" bind:this={popEl} style="top: {top}px; left: {left}px; visibility: {ready ? 'visible' : 'hidden'}">
+    <div class="popover-card" class:fading bind:this={popEl} style="top: {top}px; left: {left}px; visibility: {ready ? 'visible' : 'hidden'}">
       <slot />
     </div>
   {/if}
@@ -82,5 +112,9 @@
   div.popover-card {
     position: fixed;
     z-index: 40;
+    transition: opacity 350ms linear;
+  }
+  div.popover-card.fading {
+    opacity: 0;
   }
 </style>
