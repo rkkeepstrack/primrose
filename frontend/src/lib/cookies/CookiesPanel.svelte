@@ -75,8 +75,7 @@
     </div>
   </div>
   <p class="note">
-    Collected from Set-Cookie responses and re-sent automatically on matching
-    requests. Session-only — never written to files.
+    Collected from Set-Cookie responses and re-sent automatically on matching requests. Session-only — never written to files.
   </p>
 
   {#if cookies.length === 0}
@@ -109,9 +108,7 @@
     <input class="text-input" placeholder="domain (e.g. api.x.io)" bind:value={draft.domain} />
     <input class="text-input" placeholder="name" bind:value={draft.name} />
     <input class="text-input grow" placeholder="value" bind:value={draft.value} />
-    <button class="btn-save" class:dirty={draft.domain.trim() && draft.name.trim()} on:click={add}>
-      Add
-    </button>
+    <button class="btn-save" class:dirty={draft.domain.trim() && draft.name.trim()} on:click={add}> Add </button>
   </div>
 </div>
 
@@ -149,9 +146,15 @@
     padding: 3px 8px;
     border-radius: 5px;
   }
-  .plain:hover { background: var(--bg-hover); }
-  .plain.danger { color: var(--red); }
-  .plain.danger:hover { background: var(--red-bg); }
+  .plain:hover {
+    background: var(--bg-hover);
+  }
+  .plain.danger {
+    color: var(--red);
+  }
+  .plain.danger:hover {
+    background: var(--red-bg);
+  }
   .note {
     margin: 0;
     font-size: 12px;
@@ -185,7 +188,9 @@
     cursor: pointer;
     padding: 2px 8px;
   }
-  .remove:hover { color: var(--red); }
+  .remove:hover {
+    color: var(--red);
+  }
   .add-title {
     margin: 12px 0 0;
     font-size: 13px;
@@ -196,7 +201,15 @@
     display: flex;
     gap: 8px;
   }
-  .add-row .text-input { width: 180px; }
-  .add-row .grow { flex: 1; width: auto; }
-  .add-row .btn-save { font-size: 13px; padding: 0 16px; }
+  .add-row .text-input {
+    width: 180px;
+  }
+  .add-row .grow {
+    flex: 1;
+    width: auto;
+  }
+  .add-row .btn-save {
+    font-size: 13px;
+    padding: 0 16px;
+  }
 </style>

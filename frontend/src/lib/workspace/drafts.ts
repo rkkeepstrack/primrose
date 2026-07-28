@@ -19,10 +19,7 @@ export function historyKey(): string {
 }
 
 // run history of the selected request (or the current draft)
-export const runs = derived(
-  [selectedPath, draftDir, runHistory],
-  ([$path, _draft, $history]) => $history[$path ?? currentDraftKey] ?? []
-);
+export const runs = derived([selectedPath, draftDir, runHistory], ([$path, _draft, $history]) => $history[$path ?? currentDraftKey] ?? []);
 
 // keep unsaved edits in memory when navigating away from a request
 export function stashCurrentEdit() {

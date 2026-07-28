@@ -25,22 +25,15 @@
 <svelte:window on:keydown={onKeydown} />
 
 {#if $request}
-  <TabBar
-    tabs={TABS}
-    active={tab}
-    onSelect={(t) => (tab = t as Tab)}
-  />
+  <TabBar tabs={TABS} active={tab} onSelect={(t) => (tab = t as Tab)} />
 
   {#if tab === 'query'}
     <KeyValueEditor entries={$request.query} onChange={setQuery} />
   {:else if tab === 'headers'}
     <KeyValueEditor entries={$request.headers} onChange={setHeaders} inherited={$inheritedHeaders} />
     {#if Object.keys($inheritedHeaders).length > 0}
-      <p class="inherit-note">
-        Same name overrides an inherited header; an empty value removes it for this request.
-      </p>
+      <p class="inherit-note">Same name overrides an inherited header; an empty value removes it for this request.</p>
     {/if}
-
   {:else if tab === 'body'}
     <BodyEditor />
   {:else}

@@ -6,10 +6,19 @@ import { ChooseDirectory, CreateCollection, GetTree, OpenCollectionDialog } from
 import { closeEnvView, confirmDiscardEnvEdits, loadEnvironments } from './environments';
 import { maybeAbandonDraft, stashCurrentEdit } from './drafts';
 import { activeIdx, activeRoot, clearSelection, collections, envEditorDirty, error } from './state';
-import { activateTab, activeTabId, addCollectionTab, closeTab, cookiesTabId, envTabId, isEnvTab, isSpecialTab, openSpecialTab } from './tabs';
+import {
+  activateTab,
+  activeTabId,
+  addCollectionTab,
+  closeTab,
+  cookiesTabId,
+  envTabId,
+  isEnvTab,
+  isSpecialTab,
+  openSpecialTab,
+} from './tabs';
 import { confirmDialog, promptDialog } from '../ui/dialogs';
 import { runOp } from './op';
-
 
 async function addOpenedCollection(col: Collection) {
   const cols = get(collections);

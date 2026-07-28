@@ -44,11 +44,7 @@ function normalizeQuery(url: string): string {
 // Renders the request as a runnable curl command, with {{env}} and :dynamic
 // variables resolved the way sending would. Unknown variables are left as-is
 // so the gap is visible in the copied command.
-export function toCurl(
-  r: ApiRequest,
-  envVars: Record<string, string>,
-  inheritedHeaders: Record<string, string>
-): string {
+export function toCurl(r: ApiRequest, envVars: Record<string, string>, inheritedHeaders: Record<string, string>): string {
   const resolve = (s: string) =>
     s
       .replace(ENV_VAR_RE, (m, name) => envVars[name] ?? m)

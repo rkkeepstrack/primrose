@@ -90,33 +90,21 @@
   class:root-droppable={rootDroppable}
   on:dragover={rootDragOver}
   on:dragleave={() => (rootDroppable = false)}
-  on:drop={rootDrop}
->
+  on:drop={rootDrop}>
   <SidebarHeader />
   <div class="search-row">
     <div class="search-wrap">
-      <input
-        class="search text-input"
-        placeholder="Search (⌘P)"
-        bind:value={$search}
-        bind:this={searchEl}
-        on:keydown={onSearchKeydown}
-      />
+      <input class="search text-input" placeholder="Search (⌘P)" bind:value={$search} bind:this={searchEl} on:keydown={onSearchKeydown} />
       {#if $search}
-        <button
-          class="search-clear"
-          title="Clear search"
-          aria-label="Clear search"
-          on:click={() => { search.set(''); searchEl.focus(); }}
-        >×</button>
+        <button class="search-clear" title="Clear search" aria-label="Clear search" on:click={() => (search.set(''), searchEl.focus())}
+          >×</button>
       {/if}
     </div>
     <button
       class="heat-toggle"
       class:on={$recentFilterOn}
       title="Show only the recently opened requests, newest first"
-      on:click={() => recentFilterOn.update((v) => !v)}
-    >
+      on:click={() => recentFilterOn.update((v) => !v)}>
       <img src={primroseLogo} alt="recent filter" />
     </button>
   </div>
@@ -178,7 +166,10 @@
     line-height: 0;
     opacity: 0.25;
     filter: grayscale(1);
-    transition: opacity 0.12s ease, filter 0.12s ease, background 0.12s ease;
+    transition:
+      opacity 0.12s ease,
+      filter 0.12s ease,
+      background 0.12s ease;
   }
   .heat-toggle:hover {
     background: var(--bg-hover);

@@ -5,12 +5,7 @@
   import SearchPanel from './SearchPanel.svelte';
   import { EditorState } from '@codemirror/state';
   import { json } from '@codemirror/lang-json';
-  import {
-    foldGutter,
-    codeFolding,
-    syntaxHighlighting,
-    foldedRanges,
-  } from '@codemirror/language';
+  import { foldGutter, codeFolding, syntaxHighlighting, foldedRanges } from '@codemirror/language';
   import { Decoration, WidgetType } from '@codemirror/view';
   import { RangeSetBuilder, StateField } from '@codemirror/state';
   import { jsonHighlightStyle } from './jsonHighlight';
@@ -84,9 +79,18 @@
     let escaped = false;
     let count = 1;
     for (const c of text) {
-      if (escaped) { escaped = false; continue; }
-      if (c === '\\') { escaped = true; continue; }
-      if (c === '"') { inString = !inString; continue; }
+      if (escaped) {
+        escaped = false;
+        continue;
+      }
+      if (c === '\\') {
+        escaped = true;
+        continue;
+      }
+      if (c === '"') {
+        inString = !inString;
+        continue;
+      }
       if (inString) continue;
       if (c === '{' || c === '[') depth++;
       else if (c === '}' || c === ']') depth--;
@@ -162,8 +166,7 @@
   function foldMarker(open: boolean): HTMLElement {
     const el = document.createElement('span');
     el.style.cssText =
-      'display:inline-flex;align-items:center;justify-content:center;' +
-      'width:14px;height:14px;cursor:pointer;color:#9a9a9a;';
+      'display:inline-flex;align-items:center;justify-content:center;' + 'width:14px;height:14px;cursor:pointer;color:#9a9a9a;';
     el.innerHTML =
       `<svg width="9" height="9" viewBox="0 0 8 8" style="transform:rotate(${open ? 90 : 0}deg)">` +
       '<path d="M1.5 0.5 L6.5 4 L1.5 7.5 Z" fill="currentColor"/></svg>';
@@ -205,10 +208,7 @@
   function onGlobalKeydown(e: KeyboardEvent) {
     if (!(e.metaKey || e.ctrlKey) || e.key !== 'f' || !view) return;
     const t = e.target as HTMLElement;
-    const typingElsewhere =
-      t.tagName === 'INPUT' ||
-      t.tagName === 'TEXTAREA' ||
-      (t.closest('.cm-editor') !== null && !host.contains(t));
+    const typingElsewhere = t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || (t.closest('.cm-editor') !== null && !host.contains(t));
     if (typingElsewhere) return;
     e.preventDefault();
     openSearchPanel(view);

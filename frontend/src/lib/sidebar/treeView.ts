@@ -80,11 +80,9 @@ export const visibleTree = derived(
     const tree = $collections[$activeIdx]?.tree ?? [];
     if (!$recentOn) return filterTree(tree, $search);
     // flat list of the recent requests, chronological (newest first)
-    const flat = $recents
-      .map((p) => findRequestNode(tree, p))
-      .filter((n): n is TreeNode => n !== null);
+    const flat = $recents.map((p) => findRequestNode(tree, p)).filter((n): n is TreeNode => n !== null);
     return filterTree(flat, $search);
-  }
+  },
 );
 
 // the visible requests flattened depth-first — the order ⌥↑/⌥↓ hop in and
@@ -102,9 +100,7 @@ export const flatRequests = derived(visibleTree, ($tree) => {
 });
 
 // path -> 0..1 recency rank (1 = most recent)
-export const heat = derived(recentPaths, ($recents) =>
-  Object.fromEntries($recents.map((p, i) => [p, (RECENT_MAX - i) / RECENT_MAX]))
-);
+export const heat = derived(recentPaths, ($recents) => Object.fromEntries($recents.map((p, i) => [p, (RECENT_MAX - i) / RECENT_MAX])));
 
 // True heatmap semantics: warm when fresh, cooling with age.
 // Newest = orange (35°, blending into the yellow/orange selection), aging
@@ -120,6 +116,5 @@ export function heatStyle(rank: number | undefined): string {
 // paths with unsaved edits (stashed or currently open)
 export const dirtyPaths = derived(
   [unsavedEdits, dirty, selectedPath],
-  ([$edits, $dirty, $path]) =>
-    new Set(Object.keys($edits).concat($dirty && $path ? [$path] : []))
+  ([$edits, $dirty, $path]) => new Set(Object.keys($edits).concat($dirty && $path ? [$path] : [])),
 );

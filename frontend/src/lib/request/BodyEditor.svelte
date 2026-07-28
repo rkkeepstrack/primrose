@@ -15,8 +15,7 @@
     lang={$request.body.type}
     placeholder={$request.body.type === 'json' ? '{ "enter": "JSON here…" }' : 'Enter text here…'}
     onChange={setBodyContent}
-    envVars={$activeEnvVars}
-  />
+    envVars={$activeEnvVars} />
 {/if}
 
 <style>

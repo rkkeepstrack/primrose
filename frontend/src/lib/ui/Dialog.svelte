@@ -28,8 +28,7 @@
   <div
     class="backdrop"
     role="presentation"
-    on:click={(e) => e.target === e.currentTarget && close($dialog.kind === 'prompt' ? null : false)}
-  >
+    on:click={(e) => e.target === e.currentTarget && close($dialog.kind === 'prompt' ? null : false)}>
     <div class="dialog" role="dialog" aria-modal="true" tabindex="-1">
       <p class="message">{$dialog.message}</p>
       {#if $dialog.kind === 'prompt'}
@@ -37,9 +36,7 @@
         <input class="input" bind:value autofocus spellcheck="false" />
       {/if}
       <div class="buttons">
-        <button class="btn" on:click={() => close($dialog.kind === 'prompt' ? null : false)}>
-          Cancel
-        </button>
+        <button class="btn" on:click={() => close($dialog.kind === 'prompt' ? null : false)}> Cancel </button>
         {#if $dialog.kind === 'prompt'}
           <button class="btn primary" on:click={() => close(value)}>OK</button>
         {:else}
@@ -88,7 +85,11 @@
     font-family: inherit;
     color: #333;
   }
-  .input:focus { outline: none; border-color: #ecdfa8; background: #fffdf2; }
+  .input:focus {
+    outline: none;
+    border-color: #ecdfa8;
+    background: #fffdf2;
+  }
   .buttons {
     display: flex;
     justify-content: flex-end;
@@ -104,14 +105,22 @@
     cursor: pointer;
     padding: 6px 16px;
   }
-  .btn:hover { background: #f7f7f7; }
+  .btn:hover {
+    background: #f7f7f7;
+  }
   .btn.primary {
     border: none;
     background: #4caf7d;
     color: #fff;
     font-weight: 500;
   }
-  .btn.primary:hover { background: #429e70; }
-  .btn.primary.danger { background: #d98282; }
-  .btn.primary.danger:hover { background: #c96f6f; }
+  .btn.primary:hover {
+    background: #429e70;
+  }
+  .btn.primary.danger {
+    background: #d98282;
+  }
+  .btn.primary.danger:hover {
+    background: #c96f6f;
+  }
 </style>

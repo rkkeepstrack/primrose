@@ -14,7 +14,13 @@
   .status {
     font-weight: 600;
   }
-  .status.ok { color: var(--green); }
-  .status.err { color: var(--red); }
-  .status.other { color: var(--orange); }
+  .status.ok {
+    color: var(--green);
+  }
+  .status.err {
+    color: var(--red);
+  }
+  .status.other {
+    color: var(--orange);
+  }
 </style>

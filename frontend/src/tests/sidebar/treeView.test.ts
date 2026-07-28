@@ -1,12 +1,6 @@
 import { describe, expect, it, beforeEach } from 'vitest';
 import { get } from 'svelte/store';
-import {
-  flatRequests,
-  heatStyle,
-  recentFilterOn,
-  search,
-  visibleTree,
-} from '../../lib/sidebar/treeView';
+import { flatRequests, heatStyle, recentFilterOn, search, visibleTree } from '../../lib/sidebar/treeView';
 import { activeIdx, collections } from '../../lib/workspace/state';
 import { recentPaths } from '../../lib/shared/stores';
 import type { Collection, TreeNode } from '../../lib/shared/types';
@@ -16,9 +10,7 @@ const tree: TreeNode[] = [
     name: 'teasers',
     path: '/c/teasers',
     isFolder: true,
-    children: [
-      { name: 'create', path: '/c/teasers/create.toml', isFolder: false, method: 'POST' },
-    ],
+    children: [{ name: 'create', path: '/c/teasers/create.toml', isFolder: false, method: 'POST' }],
   },
   { name: 'get-users', path: '/c/get-users.toml', isFolder: false, method: 'GET' },
 ];

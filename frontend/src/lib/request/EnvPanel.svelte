@@ -25,9 +25,7 @@
     }
   }
 
-  $: dirty = usedEnvVars.some(
-    (name) => draft[name] !== undefined && draft[name] !== ($activeEnvVars[name] ?? '')
-  );
+  $: dirty = usedEnvVars.some((name) => draft[name] !== undefined && draft[name] !== ($activeEnvVars[name] ?? ''));
 
   async function save() {
     const merged = { ...$activeEnvVars };
@@ -56,8 +54,7 @@
             <input
               placeholder="value… (saved with the request)"
               value={dynValues[name] ?? ''}
-              on:input={(e) => setVar(name, e.currentTarget.value)}
-            />
+              on:input={(e) => setVar(name, e.currentTarget.value)} />
           </td>
         </tr>
       {/each}
@@ -88,8 +85,7 @@
             <input
               placeholder={missing ? 'not set — enter to create…' : ''}
               value={draft[name] ?? $activeEnvVars[name] ?? ''}
-              on:input={(e) => (draft = { ...draft, [name]: e.currentTarget.value })}
-            />
+              on:input={(e) => (draft = { ...draft, [name]: e.currentTarget.value })} />
           </td>
         </tr>
       {/each}
@@ -114,7 +110,9 @@
     color: var(--green-text);
     font-weight: 600;
   }
-  .vars-table td.cell-input { padding: 0; }
+  .vars-table td.cell-input {
+    padding: 0;
+  }
   .vars-table td.cell-input input {
     width: 100%;
     box-sizing: border-box;
@@ -138,6 +136,13 @@
     padding: 4px 12px;
     white-space: nowrap;
   }
-  .empty { color: var(--text-disabled); font-size: 13px; }
-  .note { color: #bbb; font-size: 12px; margin: 0; }
+  .empty {
+    color: var(--text-disabled);
+    font-size: 13px;
+  }
+  .note {
+    color: #bbb;
+    font-size: 12px;
+    margin: 0;
+  }
 </style>

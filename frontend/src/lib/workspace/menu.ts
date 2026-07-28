@@ -4,12 +4,7 @@
 import { get } from 'svelte/store';
 import { EventsOn } from '../../../wailsjs/runtime/runtime';
 import { focusSearchSignal } from '../sidebar/treeView';
-import {
-  closeActiveTab,
-  createCollectionViaDialog,
-  openCollectionViaDialog,
-  toggleShortcutsTab,
-} from './collections';
+import { closeActiveTab, createCollectionViaDialog, openCollectionViaDialog, toggleShortcutsTab } from './collections';
 import { newRequest, saveRequest } from './requests';
 import { activeRoot, envSaveSignal } from './state';
 import { activeTabId, isEnvTab } from './tabs';

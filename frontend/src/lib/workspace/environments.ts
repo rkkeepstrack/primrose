@@ -58,9 +58,9 @@ export async function deleteEnvironment(root: string, name: string) {
     await DeleteEnvironment(root, name);
     // drop a stale selection so activeEnvName falls back to the first env
     selectedEnvNames.update((s) => {
-    if (s[root] !== name) return s;
-    const { [root]: _, ...rest } = s;
-    return rest;
+      if (s[root] !== name) return s;
+      const { [root]: _, ...rest } = s;
+      return rest;
     });
     await loadEnvironments(root);
   });
@@ -71,9 +71,7 @@ export async function renameEnvironment(root: string, name: string) {
   if (!newName?.trim() || newName === name) return;
   await runOp(async () => {
     await RenameEnvironment(root, name, newName);
-    selectedEnvNames.update((s) =>
-    s[root] === name ? { ...s, [root]: newName } : s
-    );
+    selectedEnvNames.update((s) => (s[root] === name ? { ...s, [root]: newName } : s));
     await loadEnvironments(root);
   });
 }
@@ -85,12 +83,7 @@ export async function duplicateEnvironment(root: string, name: string) {
   });
 }
 
-export async function saveEnvironment(
-  root: string,
-  name: string,
-  vars: Record<string, string>,
-  headers: Record<string, string>
-) {
+export async function saveEnvironment(root: string, name: string, vars: Record<string, string>, headers: Record<string, string>) {
   await runOp(async () => {
     await SaveEnvironment(root, name, vars, headers);
     await loadEnvironments(root);

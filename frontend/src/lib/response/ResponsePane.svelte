@@ -39,23 +39,14 @@
 <svelte:window on:keydown={onKeydown} />
 
 <div class="response-pane">
-  <TabBar
-    tabs={TABS}
-    active={tab}
-    onSelect={(t) => (tab = t as Tab)}
-    accent="var(--orange)"
-  />
+  <TabBar tabs={TABS} active={tab} onSelect={(t) => (tab = t as Tab)} accent="var(--orange)" />
 
   {#if $sending}
     <ResponseLoading />
   {:else if !current}
     <p class="empty">Send the request to see the response.</p>
   {:else}
-    <StatusLine
-      run={current}
-      oldRunLabel={viewedIdx > 0 ? `viewing run #${runs.length - viewedIdx}` : ''}
-      showUrl={tab !== 'timeline'}
-    />
+    <StatusLine run={current} oldRunLabel={viewedIdx > 0 ? `viewing run #${runs.length - viewedIdx}` : ''} showUrl={tab !== 'timeline'} />
 
     {#if tab === 'response'}
       {#if current.error}
@@ -70,7 +61,13 @@
         <p class="empty">No response headers (request failed).</p>
       {/if}
     {:else}
-      <Timeline {runs} {viewedIdx} onView={(i) => { viewedIdx = i; tab = 'response'; }} />
+      <Timeline
+        {runs}
+        {viewedIdx}
+        onView={(i) => {
+          viewedIdx = i;
+          tab = 'response';
+        }} />
     {/if}
   {/if}
 </div>

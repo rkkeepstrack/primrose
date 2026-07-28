@@ -1,14 +1,7 @@
 <script lang="ts">
   // The response viewer's search panel — rendered into CodeMirror's panel
   // slot by the createPanel hook in CodeViewer (see searchPanel there).
-  import {
-    closeSearchPanel,
-    findNext,
-    findPrevious,
-    getSearchQuery,
-    SearchQuery,
-    setSearchQuery,
-  } from '@codemirror/search';
+  import { closeSearchPanel, findNext, findPrevious, getSearchQuery, SearchQuery, setSearchQuery } from '@codemirror/search';
   import type { EditorView } from '@codemirror/view';
   import CaseSensitive from '@lucide/svelte/icons/case-sensitive';
   import ChevronDown from '@lucide/svelte/icons/chevron-down';
@@ -54,11 +47,7 @@
     }
   }
 
-  $: countText = !text || invalid
-    ? ''
-    : total === 0
-      ? 'no results'
-      : `${current || '–'}/${total}${total >= 1000 ? '+' : ''}`;
+  $: countText = !text || invalid ? '' : total === 0 ? 'no results' : `${current || '–'}/${total}${total >= 1000 ? '+' : ''}`;
 
   function query() {
     return new SearchQuery({ search: text, caseSensitive, regexp, wholeWord });
@@ -102,9 +91,11 @@
     placeholder="Search…"
     value={text}
     use:markMainField
-    on:input={(e) => { text = e.currentTarget.value; commit(); }}
-    on:keydown={onKeydown}
-  />
+    on:input={(e) => {
+      text = e.currentTarget.value;
+      commit();
+    }}
+    on:keydown={onKeydown} />
   <span class="count">{countText}</span>
   <span class="sep"></span>
   <button class:on={caseSensitive} title="Match case" on:click={() => toggle(() => (caseSensitive = !caseSensitive))}>
@@ -140,7 +131,7 @@
     padding: 5px 6px;
   }
   input {
-    font-family: system-ui, -apple-system, sans-serif;
+    font-family: var(--sans);
     font-size: 12px;
     color: var(--text);
     border: 1px solid var(--border);
@@ -154,7 +145,7 @@
     border-color: var(--yellow-border);
   }
   .count {
-    font-family: system-ui, -apple-system, sans-serif;
+    font-family: var(--sans);
     font-size: 11px;
     color: var(--text-muted);
     min-width: 52px;

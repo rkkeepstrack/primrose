@@ -71,8 +71,8 @@
     tabindex="0"
     on:mousedown={startDrag}
     on:keydown={onKeydown}
-    on:blur={() => (mouseFocus = false)}
-  ></div>
+    on:blur={() => (mouseFocus = false)}>
+  </div>
   <div class="pane grow">
     <slot name="right" />
   </div>

@@ -22,15 +22,13 @@ describe('extractEnvVars', () => {
         query: { g: '{{galleryId}}' },
         headers: { 'X-Key': '{{key}}' },
         body: { type: 'json', content: '{"t": "{{tenant}}"}' },
-      })
+      }),
     );
     expect(vars).toEqual(['base', 'tenant', 'galleryId', 'key']);
   });
 
   it('allows camelCase, kebab-case, snake_case and SCREAMING_SNAKE_CASE', () => {
-    const vars = extractEnvVars(
-      req({ url: '{{camelCase}}/{{kebab-case}}/{{snake_case}}/{{SCREAMING_SNAKE}}' })
-    );
+    const vars = extractEnvVars(req({ url: '{{camelCase}}/{{kebab-case}}/{{snake_case}}/{{SCREAMING_SNAKE}}' }));
     expect(vars).toEqual(['camelCase', 'kebab-case', 'snake_case', 'SCREAMING_SNAKE']);
   });
 
@@ -47,7 +45,7 @@ describe('extractDynamicVars', () => {
         query: { ':dynKey': ':dynValue' },
         headers: { 'X-Trace': 'a=1,:trace' },
         body: { type: 'json', content: '{"id": :bodyId}' },
-      })
+      }),
     );
     expect(vars).toEqual(['teaserId', 'gallery', 'dynKey', 'dynValue', 'trace', 'bodyId']);
   });
@@ -57,7 +55,7 @@ describe('extractDynamicVars', () => {
       req({
         url: 'https://user:pass@x.io:8080/path',
         headers: { Authorization: 'Bearer abc:def' },
-      })
+      }),
     );
     expect(vars).toEqual([]);
   });

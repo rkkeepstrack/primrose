@@ -9,14 +9,7 @@ import { GetTree, ReadRequest } from '../../../wailsjs/go/main/App';
 import { EventsOn } from '../../../wailsjs/runtime/runtime';
 import { dropCollection } from './collections';
 import { loadEnvironments } from './environments';
-import {
-  clearSelection,
-  collections,
-  dirty,
-  diskChanged,
-  request,
-  selectedPath,
-} from './state';
+import { clearSelection, collections, dirty, diskChanged, request, selectedPath } from './state';
 
 export function initExternalSync() {
   EventsOn('collection:changed', (root: string) => handleExternalChange(root));

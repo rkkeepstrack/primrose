@@ -6,13 +6,7 @@ import type { TreeNode } from '../shared/types';
 import { confirmDialog, promptDialog } from '../ui/dialogs';
 import { runOp } from './op';
 import { dropEdit, renameRecent } from '../shared/stores';
-import {
-  CreateFolder,
-  DeleteItem,
-  DuplicateItem,
-  MoveItem,
-  RenameItem,
-} from '../../../wailsjs/go/main/App';
+import { CreateFolder, DeleteItem, DuplicateItem, MoveItem, RenameItem } from '../../../wailsjs/go/main/App';
 import { refreshTree } from './collections';
 import { dirty, error, request, selectedPath } from './state';
 
@@ -62,18 +56,16 @@ export async function duplicateItem(node: TreeNode) {
 }
 
 export async function deleteItem(node: TreeNode) {
-  const what = node.isFolder
-    ? `folder "${node.name}" and everything in it`
-    : `request "${node.name}"`;
+  const what = node.isFolder ? `folder "${node.name}" and everything in it` : `request "${node.name}"`;
   if (!(await confirmDialog(`Delete ${what}?`, true))) return;
   await runOp(async () => {
     await DeleteItem(node.path);
     dropEdit(node.path);
     const sel = get(selectedPath);
     if (sel === node.path || sel?.startsWith(node.path + '/')) {
-    selectedPath.set(null);
-    request.set(null);
-    dirty.set(false);
+      selectedPath.set(null);
+      request.set(null);
+      dirty.set(false);
     }
     await refreshTree();
   });

@@ -17,9 +17,7 @@ export const RECENT_MAX = 10;
 export const recentPaths = writable<string[]>([]);
 
 export function touchRecent(path: string) {
-  recentPaths.update((list) =>
-    [path, ...list.filter((p) => p !== path)].slice(0, RECENT_MAX)
-  );
+  recentPaths.update((list) => [path, ...list.filter((p) => p !== path)].slice(0, RECENT_MAX));
 }
 
 export function renameRecent(oldPath: string, newPath: string) {
@@ -49,8 +47,5 @@ export function dropEdit(path: string) {
 
 export function pruneEdits(keep: string[]) {
   const keepSet = new Set(keep);
-  unsavedEdits.update((e) =>
-    Object.fromEntries(Object.entries(e).filter(([p]) => keepSet.has(p)))
-  );
+  unsavedEdits.update((e) => Object.fromEntries(Object.entries(e).filter(([p]) => keepSet.has(p))));
 }
-

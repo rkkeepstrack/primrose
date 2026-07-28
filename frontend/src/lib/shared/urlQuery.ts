@@ -28,10 +28,7 @@ export function queryFromUrl(url: string): Record<string, string> {
 
 // Compose a request loaded from disk into a consistent state: params from the
 // [query] section that are missing in the URL get appended to it.
-export function normalizeUrlAndQuery(
-  url: string,
-  query: Record<string, string>
-): { url: string; query: Record<string, string> } {
+export function normalizeUrlAndQuery(url: string, query: Record<string, string>): { url: string; query: Record<string, string> } {
   const { base, pairs } = splitUrl(url);
   const merged: Record<string, string> = Object.fromEntries(pairs);
   for (const [k, v] of Object.entries(query)) {

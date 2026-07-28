@@ -11,12 +11,7 @@
   import EnvironmentEditor from './lib/environments/EnvironmentEditor.svelte';
   import Dialog from './lib/ui/Dialog.svelte';
   import primroseLogo from './assets/images/primrose-logo.svg';
-  import {
-    closeCollection,
-    createCollectionViaDialog,
-    openCollectionViaDialog,
-    switchTab,
-  } from './lib/workspace/collections';
+  import { closeCollection, createCollectionViaDialog, openCollectionViaDialog, switchTab } from './lib/workspace/collections';
   import {
     activeTabId,
     closeTab,
@@ -122,8 +117,7 @@
         on:drop={() => dragTabId && moveTab(dragTabId, id)}
         on:dragend={() => (dragTabId = null)}
         on:auxclick={(e) => middleClose(e, id)}
-        on:click={() => switchTab(id)}
-      >
+        on:click={() => switchTab(id)}>
         {tabLabel(id)}
         {#if isSpecialTab(id)}
           <span
@@ -132,8 +126,7 @@
             tabindex="-1"
             title="Close tab"
             on:click|stopPropagation={() => closeSpecial(id)}
-            on:keydown={(e) => e.key === 'Enter' && closeSpecial(id)}
-          >×</span>
+            on:keydown={(e) => e.key === 'Enter' && closeSpecial(id)}>×</span>
         {/if}
       </button>
     {/each}
@@ -142,16 +135,10 @@
         class="strip-btn"
         title="New collection… (File → New Collection)"
         aria-label="New collection"
-        on:click={createCollectionViaDialog}
-      >
+        on:click={createCollectionViaDialog}>
         <PackagePlus size={15} strokeWidth={2} />
       </button>
-      <button
-        class="strip-btn"
-        title="Open collection folder… (⌘O)"
-        aria-label="Open collection"
-        on:click={openCollectionViaDialog}
-      >
+      <button class="strip-btn" title="Open collection folder… (⌘O)" aria-label="Open collection" on:click={openCollectionViaDialog}>
         <FolderOpen size={15} strokeWidth={2} />
       </button>
     </div>
@@ -187,8 +174,7 @@
         activeName={$selectedEnvNames[envRoot] ?? ($environments[envRoot] ?? [])[0]?.name ?? null}
         onSelect={(name) => pickEnvironment(envRoot, name)}
         onSave={(name, vars, headers) => saveEnvironment(envRoot, name, vars, headers)}
-        onCreate={(name) => createEnvironment(envRoot, name)}
-      />
+        onCreate={(name) => createEnvironment(envRoot, name)} />
     {/key}
   {:else}
     <SplitPane initialPct={22} minPct={14} maxPct={45}>
@@ -263,7 +249,9 @@
     color: var(--tab-text, var(--text-muted));
     cursor: pointer;
   }
-  .col-tab:hover { background: var(--tab-bg-hover, #f7f7f7); }
+  .col-tab:hover {
+    background: var(--tab-bg-hover, #f7f7f7);
+  }
   .col-tab.active,
   .col-tab.active:hover {
     background: var(--tab-bg, #fff);
@@ -310,7 +298,10 @@
     border-radius: 3px;
     cursor: pointer;
   }
-  .tab-close:hover { opacity: 1; background: rgba(0, 0, 0, 0.06); }
+  .tab-close:hover {
+    opacity: 1;
+    background: rgba(0, 0, 0, 0.06);
+  }
   .strip-actions {
     display: flex;
     align-items: center;
@@ -327,7 +318,10 @@
     padding: 5px 8px;
     border-radius: 5px;
   }
-  .strip-btn:hover { color: var(--green); background: var(--green-bg); }
+  .strip-btn:hover {
+    color: var(--green);
+    background: var(--green-bg);
+  }
 
   .detail {
     display: flex;
@@ -349,7 +343,11 @@
     gap: 10px;
     color: var(--text-muted);
   }
-  .empty-state h1 { font-weight: 500; color: var(--text-soft); margin: 0; }
+  .empty-state h1 {
+    font-weight: 500;
+    color: var(--text-soft);
+    margin: 0;
+  }
   .splash-logo {
     width: 72px;
     height: 72px;
@@ -365,7 +363,9 @@
     color: var(--text);
     cursor: pointer;
   }
-  .primary:hover { background: #f8efc7; }
+  .primary:hover {
+    background: #f8efc7;
+  }
   .error {
     background: var(--red-bg);
     color: var(--red-text);

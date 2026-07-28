@@ -25,31 +25,19 @@ export const envSaveSignal = writable(0);
 export const draftDir = writable<string | null>(null);
 export const draftName = writable<string | null>(null);
 
-export const activeRoot = derived(
-  [collections, activeIdx],
-  ([$c, $i]) => $c[$i]?.root ?? null
+export const activeRoot = derived([collections, activeIdx], ([$c, $i]) => $c[$i]?.root ?? null);
+
+export const envs = derived([environments, activeRoot], ([$envs, $root]) => ($root ? ($envs[$root] ?? []) : []));
+
+export const activeEnvName = derived([selectedEnvNames, envs, activeRoot], ([$sel, $envs, $root]) =>
+  $root ? ($sel[$root] ?? $envs[0]?.name ?? null) : null,
 );
 
-
-
-export const envs = derived([environments, activeRoot], ([$envs, $root]) =>
-  $root ? ($envs[$root] ?? []) : []
-);
-
-export const activeEnvName = derived(
-  [selectedEnvNames, envs, activeRoot],
-  ([$sel, $envs, $root]) => ($root ? ($sel[$root] ?? $envs[0]?.name ?? null) : null)
-);
-
-export const activeEnvVars = derived([envs, activeEnvName], ([$envs, $name]) =>
-  $envs.find((e) => e.name === $name)?.vars ?? {}
-);
+export const activeEnvVars = derived([envs, activeEnvName], ([$envs, $name]) => $envs.find((e) => e.name === $name)?.vars ?? {});
 
 // headers of the active environment, inherited by every request
 // (auth lives here: staging and prod carry their own keys)
-export const inheritedHeaders = derived([envs, activeEnvName], ([$envs, $name]) =>
-  $envs.find((e) => e.name === $name)?.headers ?? {}
-);
+export const inheritedHeaders = derived([envs, activeEnvName], ([$envs, $name]) => $envs.find((e) => e.name === $name)?.headers ?? {});
 
 export function clearSelection() {
   selectedPath.set(null);

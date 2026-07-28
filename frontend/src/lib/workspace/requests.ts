@@ -8,16 +8,7 @@ import { dropEdit, touchRecent, unsavedEdits } from '../shared/stores';
 import { CreateRequest, ReadRequest, SaveRequest } from '../../../wailsjs/go/main/App';
 import { refreshTree } from './collections';
 import { maybeAbandonDraft, newDraftKey, stashCurrentEdit } from './drafts';
-import {
-  clearSelection,
-  dirty,
-  diskChanged,
-  draftDir,
-  draftName,
-  error,
-  request,
-  selectedPath,
-} from './state';
+import { clearSelection, dirty, diskChanged, draftDir, draftName, error, request, selectedPath } from './state';
 
 export async function selectRequest(node: TreeNode) {
   if (!(await maybeAbandonDraft())) return;

@@ -30,9 +30,7 @@
   }
 
   // duplicate keys would silently collapse (last one wins on emit) — flag them
-  $: duplicateKeys = new Set(
-    rows.map((r) => r.key).filter((k, i, all) => k.trim() !== '' && all.indexOf(k) !== i)
-  );
+  $: duplicateKeys = new Set(rows.map((r) => r.key).filter((k, i, all) => k.trim() !== '' && all.indexOf(k) !== i));
 
   function addRow() {
     rows = [...rows, { key: '', value: '' }];
@@ -62,8 +60,7 @@
             placeholder="name"
             bind:value={row.key}
             on:input={emit}
-            title={duplicateKeys.has(row.key) ? 'Duplicate name — only the last value is used' : ''}
-          />
+            title={duplicateKeys.has(row.key) ? 'Duplicate name — only the last value is used' : ''} />
         </td>
         <td><input placeholder="value" bind:value={row.value} on:input={emit} /></td>
         <td class="actions">
@@ -131,7 +128,9 @@
     cursor: pointer;
     padding: 4px 10px;
   }
-  .remove:hover { color: var(--red); }
+  .remove:hover {
+    color: var(--red);
+  }
   .add {
     border: none;
     background: none;
@@ -141,5 +140,7 @@
     cursor: pointer;
     padding: 6px 12px;
   }
-  .add:hover { color: var(--green); }
+  .add:hover {
+    color: var(--green);
+  }
 </style>
