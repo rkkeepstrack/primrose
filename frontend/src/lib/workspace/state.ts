@@ -20,6 +20,8 @@ export const diskChanged = writable(false);
 export const envEditorDirty = writable(false);
 // bumped by the ⌘S menu handler while an environment tab is active
 export const envSaveSignal = writable(0);
+// last opened request per collection root, restored when switching back
+export const lastRequestByRoot = writable<Record<string, string>>({});
 
 // draft state for a new, not-yet-saved request
 export const draftDir = writable<string | null>(null);
