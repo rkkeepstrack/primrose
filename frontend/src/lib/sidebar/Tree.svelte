@@ -2,6 +2,7 @@
   // Recursive tree: expansion state and the folder/request row contents.
   // Row chrome (selection, heat, dnd, ⋮ menu) lives in TreeRow.
   import ChevronRight from '@lucide/svelte/icons/chevron-right';
+  import CirclePlus from '@lucide/svelte/icons/circle-plus';
   import FolderPlus from '@lucide/svelte/icons/folder-plus';
   import { abbrevMethod, type TreeNode } from '../shared/types';
   import Tree from './Tree.svelte';
@@ -16,7 +17,6 @@
   export let root = true; // false for nested (recursive) levels
 
   let dropTarget: string | null = null;
-  let menuFor: string | null = null;
 
   function folderDragOver(e: DragEvent, node: TreeNode) {
     if (!carriesPath(e)) return;
@@ -38,16 +38,12 @@
   function rowProps(node: TreeNode) {
     return {
       node,
-      menuOpen: menuFor === node.path,
-      onMenuToggle: () => (menuFor = menuFor === node.path ? null : node.path),
-      onRename: () => { menuFor = null; renameItem(node); },
-      onDuplicate: () => { menuFor = null; duplicateItem(node); },
-      onDelete: () => { menuFor = null; deleteItem(node); },
+      onRename: () => renameItem(node),
+      onDuplicate: () => duplicateItem(node),
+      onDelete: () => deleteItem(node),
     };
   }
 </script>
-
-<svelte:window on:click={() => (menuFor = null)} />
 
 <ul class="tree" role={root ? 'tree' : 'group'}>
   {#each nodes as node (node.path)}
@@ -58,28 +54,17 @@
           droppable={dropTarget === node.path}
           onDragOver={(e) => folderDragOver(e, node)}
           onDragLeave={() => (dropTarget = null)}
-          onDrop={(e) => folderDrop(e, node)}
-        >
+          onDrop={(e) => folderDrop(e, node)}>
           <button class="row folder" on:click={() => toggleFolder(node.path)}>
-            <ChevronRight
-              class="caret {$forceOpen || $expanded[node.path] ? 'open' : ''}"
-              size={14}
-              strokeWidth={2}
-            />
+            <ChevronRight class="caret {$forceOpen || $expanded[node.path] ? 'open' : ''}" size={14} strokeWidth={2} />
             <span class="name">{node.name}</span>
           </button>
-          <button
-            class="hover-btn"
-            title="New folder in {node.name}"
-            on:click={() => { expandFolder(node.path); newFolder(node.path); }}
-          >
+          <button class="hover-btn" title="New request in {node.name}" on:click={() => (expandFolder(node.path), newRequest(node.path))}>
+            <CirclePlus size={13} strokeWidth={2} />
+          </button>
+          <button class="hover-btn" title="New folder in {node.name}" on:click={() => (expandFolder(node.path), newFolder(node.path))}>
             <FolderPlus size={13} strokeWidth={2} />
           </button>
-          <button
-            class="hover-btn"
-            title="New request in {node.name}"
-            on:click={() => { expandFolder(node.path); newRequest(node.path); }}
-          >+</button>
         </TreeRow>
         {#if ($forceOpen || $expanded[node.path]) && node.children?.length}
           <div class="children">
@@ -87,11 +72,7 @@
           </div>
         {/if}
       {:else}
-        <TreeRow
-          {...rowProps(node)}
-          selected={node.path === $selectedPath}
-          heatBg={heatStyle($heat[node.path])}
-        >
+        <TreeRow {...rowProps(node)} selected={node.path === $selectedPath} heatBg={heatStyle($heat[node.path])}>
           <button class="row request" on:click={() => selectRequest(node)}>
             <span class="method method-{node.method}" title={node.method}>{abbrevMethod(node.method)}</span>
             <span class="name">{node.name}</span>
@@ -133,7 +114,7 @@
   }
 
   .row.request {
-      margin-left: 5px;
+    margin-left: 5px;
   }
 
   .hover-btn {

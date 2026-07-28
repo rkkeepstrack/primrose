@@ -9,8 +9,6 @@
   export let selected = false;
   export let heatBg = ''; // inline background style from the recency heatmap
   export let droppable = false; // highlighted as a drop target (folders)
-  export let menuOpen: boolean;
-  export let onMenuToggle: () => void;
   export let onRename: () => void;
   export let onDuplicate: () => void;
   export let onDelete: () => void;
@@ -32,16 +30,9 @@
   on:dragstart={(e) => startPathDrag(e, node.path)}
   on:dragover={onDragOver}
   on:dragleave={onDragLeave}
-  on:drop={onDrop}
->
+  on:drop={onDrop}>
   <slot />
-  <ContextMenu
-    open={menuOpen}
-    onToggle={onMenuToggle}
-    {onRename}
-    {onDuplicate}
-    {onDelete}
-  />
+  <ContextMenu {onRename} {onDuplicate} {onDelete} />
 </div>
 
 <style>

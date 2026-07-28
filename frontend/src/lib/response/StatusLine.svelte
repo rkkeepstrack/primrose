@@ -1,6 +1,7 @@
 <script lang="ts">
   // Status + timing/size metadata of one run, and the resolved final URL.
   import type { RunRecord } from '../shared/types';
+  import Popover from '../ui/Popover.svelte';
   import StatusBadge from './StatusBadge.svelte';
   import { fmtSize, fmtTime } from './format';
 
@@ -27,21 +28,21 @@
   {/if}
 </div>
 {#if showUrl && sentUrl && run.response}
-  <div class="url-wrap">
-    {#if hops.length}
-      <!-- redirected: one line for where the response came from; the full
-           chain (sent request + hops) lives in the hover popup -->
-      <div class="final-url redirect">↪ {run.response.finalUrl}</div>
-      <div class="url-pop">
+  {#if hops.length}
+    <!-- redirected: one line for where the response came from; the full
+         chain (sent request + hops) lives in the hover popup -->
+    <Popover trigger="hover" placement="bottom-start">
+      <div slot="trigger" class="final-url redirect">↪ {run.response.finalUrl}</div>
+      <div class="chain">
         <div class="pop-row">→ {sentUrl}</div>
         {#each hops as hop}
           <div class="pop-row hop">↪ {hop}</div>
         {/each}
       </div>
-    {:else}
-      <div class="final-url" title="URL requested, after variable resolution">→ {sentUrl}</div>
-    {/if}
-  </div>
+    </Popover>
+  {:else}
+    <div class="final-url" title="URL requested, after variable resolution">→ {sentUrl}</div>
+  {/if}
 {/if}
 
 <style>
@@ -62,24 +63,9 @@
     padding: 2px 8px;
     font-size: 12px;
   }
-  .url-wrap {
-    position: relative;
-  }
-  .url-pop {
-    display: none;
-    position: absolute;
-    top: calc(100% + 4px);
-    left: 0;
-    max-width: 100%;
-    background: #fff;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  .chain {
     padding: 6px 10px;
-    z-index: 30;
-  }
-  .url-wrap:hover .url-pop {
-    display: block;
+    max-width: 80vw;
   }
   .pop-row {
     font-size: 11.5px;

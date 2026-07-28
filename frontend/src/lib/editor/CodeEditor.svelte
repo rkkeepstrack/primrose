@@ -1,8 +1,6 @@
 <script lang="ts">
-  import { onMount, onDestroy, mount, unmount } from 'svelte';
-  import Check from '@lucide/svelte/icons/check';
-  import Copy from '@lucide/svelte/icons/copy';
-  import { ClipboardSetText } from '../../../wailsjs/runtime/runtime';
+  import { onMount, onDestroy, mount, unmount, flushSync } from 'svelte';
+  import VarTooltip from './VarTooltip.svelte';
   import {
     EditorView,
     MatchDecorator,
@@ -58,10 +56,10 @@
         this.decorations = varMatcher.updateDeco(u, this.decorations);
       }
     },
-    { decorations: (v) => v.decorations }
+    { decorations: (v) => v.decorations },
   );
-  // TODO: what the fuck is this implementation, just render the variables as a span and then we dont have to deal with this bs
-  // hovering a {{var}} shows the active environment's value for it
+  // hovering a {{var}} shows the active environment's value for it; the
+  // card itself is the VarTooltip component, CM only anchors it
   const varHover = hoverTooltip((view, pos) => {
     const line = view.state.doc.lineAt(pos);
     for (const m of line.text.matchAll(/\{\{([A-Za-z_][A-Za-z0-9_-]*)\}\}/g)) {
@@ -75,28 +73,9 @@
         end: to,
         create: () => {
           const dom = document.createElement('div');
-          dom.className = 'cm-var-tooltip';
-          const value = envVars[name];
-          if (value === undefined) {
-            dom.textContent = 'not set in the active environment';
-            dom.classList.add('missing');
-            return { dom };
-          }
-          const text = document.createElement('span');
-          text.textContent = value;
-          const btn = document.createElement('button');
-          btn.type = 'button';
-          btn.title = 'Copy value';
-          let icon = mount(Copy, { target: btn, props: { size: 12, strokeWidth: 2 } });
-          btn.addEventListener('click', () => {
-            ClipboardSetText(value);
-            // stays a checkmark for the lifetime of this tooltip
-            unmount(icon);
-            icon = mount(Check, { target: btn, props: { size: 12, strokeWidth: 2 } });
-            btn.classList.add('copied');
-          });
-          dom.append(text, btn);
-          return { dom, destroy: () => unmount(icon) };
+          // flushSync: CM measures the tooltip right away for positioning
+          const comp = flushSync(() => mount(VarTooltip, { target: dom, props: { value: envVars[name] } }));
+          return { dom, destroy: () => unmount(comp) };
         },
       };
     }
@@ -131,9 +110,7 @@
     // CM's base theme puts monospace on .cm-scroller, so 'inherit' on the
     // content would resolve to that — override the scroller itself
     '.cm-scroller': {
-      fontFamily: singleLine
-        ? 'system-ui, -apple-system, sans-serif'
-        : 'ui-monospace, SFMono-Regular, Menlo, monospace',
+      fontFamily: singleLine ? 'var(--sans)' : 'ui-monospace, SFMono-Regular, Menlo, monospace',
     },
     '.cm-content': {
       color: '#444',
@@ -151,42 +128,11 @@
       borderRight: '1px solid #eee',
     },
     '.cm-lineNumbers .cm-gutterElement': { padding: '0 6px 0 12px', minWidth: '30px' },
+    // the hover tooltip content (VarTooltip) brings its own card look
     '.cm-tooltip.cm-tooltip-hover': {
-      backgroundColor: '#fff',
-      border: '1px solid var(--border)',
-      borderRadius: '6px',
-      boxShadow: '0 4px 16px rgba(0, 0, 0, 0.08)',
-      padding: '4px 9px',
-      fontFamily: 'system-ui, -apple-system, sans-serif',
-      fontSize: '12px',
-      color: 'var(--text-soft)',
-      maxWidth: '420px',
-      overflowWrap: 'break-word',
-    },
-    '.cm-var-tooltip': {
-      display: 'flex',
-      alignItems: 'center',
-      gap: '7px',
-    },
-    '.cm-var-tooltip.missing': {
-      color: 'var(--orange-strong)',
-      fontStyle: 'italic',
-    },
-    '.cm-var-tooltip button': {
-      display: 'flex',
-      alignItems: 'center',
-      border: 'none',
       backgroundColor: 'transparent',
-      color: '#999',
-      cursor: 'pointer',
-      padding: '2px',
-      borderRadius: '4px',
+      border: 'none',
     },
-    '.cm-var-tooltip button:hover': {
-      color: 'var(--green)',
-      backgroundColor: 'var(--green-bg)',
-    },
-    '.cm-var-tooltip button.copied': { color: 'var(--green)' },
     '.cm-tooltip.cm-tooltip-autocomplete': {
       backgroundColor: '#fff',
       border: '1px solid var(--border)',
@@ -196,7 +142,7 @@
       fontFamily: 'inherit',
     },
     '.cm-tooltip-autocomplete ul li': {
-      fontFamily: 'system-ui, -apple-system, sans-serif',
+      fontFamily: 'var(--sans)',
       fontSize: '12px',
       color: 'var(--text-soft)',
       padding: '3px 8px',
@@ -214,15 +160,17 @@
   function jsonSyntaxErrors(view: EditorView): Diagnostic[] {
     if (view.state.doc.toString().trim() === '') return []; // empty body is fine
     const diagnostics: Diagnostic[] = [];
-    syntaxTree(view.state).cursor().iterate((node) => {
-      if (!node.type.isError) return;
-      diagnostics.push({
-        from: node.from,
-        to: Math.max(node.to, Math.min(node.from + 1, view.state.doc.length)),
-        severity: 'error',
-        message: 'Invalid JSON syntax',
+    syntaxTree(view.state)
+      .cursor()
+      .iterate((node) => {
+        if (!node.type.isError) return;
+        diagnostics.push({
+          from: node.from,
+          to: Math.max(node.to, Math.min(node.from + 1, view.state.doc.length)),
+          severity: 'error',
+          message: 'Invalid JSON syntax',
+        });
       });
-    });
     return diagnostics;
   }
 
@@ -241,20 +189,11 @@
     if (placeholder) ext.push(cmPlaceholder(placeholder));
     if (singleLine) {
       // block newlines entirely (paste included)
-      ext.push(
-        EditorState.transactionFilter.of((tr) =>
-          tr.newDoc.lines > 1 ? [] : tr
-        )
-      );
+      ext.push(EditorState.transactionFilter.of((tr) => (tr.newDoc.lines > 1 ? [] : tr)));
     } else {
       ext.push(EditorView.lineWrapping, lineNumbers());
       if (lang === 'json') {
-        ext.push(
-          json(),
-          syntaxHighlighting(jsonHighlightStyle),
-          lintGutter(),
-          linter(jsonSyntaxErrors)
-        );
+        ext.push(json(), syntaxHighlighting(jsonHighlightStyle), lintGutter(), linter(jsonSyntaxErrors));
       }
     }
     return ext;

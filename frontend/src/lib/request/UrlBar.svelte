@@ -8,6 +8,8 @@
   import X from '@lucide/svelte/icons/x';
   import { METHODS } from '../shared/types';
   import CodeEditor from '../editor/CodeEditor.svelte';
+  import Menu from '../ui/Menu.svelte';
+  import MenuItem from '../ui/MenuItem.svelte';
   import { toCurl } from './curl';
   import { setMethod, setUrl } from './requestEdit';
   import { saveRequest } from '../workspace/requests';
@@ -16,7 +18,6 @@
   import { activeEnvVars, dirty, diskChanged, draftName, inheritedHeaders, request, sending } from '../workspace/state';
   import { ClipboardSetText } from '../../../wailsjs/runtime/runtime';
 
-  let methodOpen = false;
   let curlCopied = false;
 
   async function copyCurl() {
@@ -24,11 +25,6 @@
     await ClipboardSetText(toCurl($request, $activeEnvVars, $inheritedHeaders));
     curlCopied = true;
     setTimeout(() => (curlCopied = false), 1200);
-  }
-
-  function pickMethod(m: string) {
-    methodOpen = false;
-    setMethod(m);
   }
 
   // ⌘S lives in the native menu now; ⌘↵ stays here (menus can't bind Return)
@@ -60,39 +56,24 @@
         value={$draftName}
         autofocus
         on:input={(e) => draftName.set(e.currentTarget.value)}
-        on:keydown={(e) => e.key === 'Enter' && saveRequest()}
-      />
+        on:keydown={(e) => e.key === 'Enter' && saveRequest()} />
       <span class="draft-hint">saved as {$draftName || 'name'}.toml on Save</span>
     </div>
   {/if}
   <div class="url-row">
     <div class="url-bar">
-      <div class="method-wrap">
-        <button class="method method-{$request.method}" on:click={() => (methodOpen = !methodOpen)}>
-          {$request.method}
-        </button>
-        {#if methodOpen}
-          <div class="method-popup">
-            {#each METHODS as m}
-              <button class="method method-{m}" on:click={() => pickMethod(m)}>{m}</button>
-            {/each}
-          </div>
-        {/if}
+      <div class="method-menu-scope">
+        <Menu placement="bottom-start">
+          <button slot="trigger" class="method method-{$request.method}">
+            {$request.method}
+          </button>
+          {#each METHODS as m}
+            <MenuItem class="method-item method-{m}" onSelect={() => setMethod(m)}>{m}</MenuItem>
+          {/each}
+        </Menu>
       </div>
-      <CodeEditor
-        singleLine
-        value={$request.url}
-        placeholder="https://api.example.com/…"
-        onChange={setUrl}
-        envVars={$activeEnvVars}
-      />
-      <button
-        class="curl-btn"
-        class:copied={curlCopied}
-        title="Copy as curl"
-        aria-label="Copy as curl"
-        on:click={copyCurl}
-      >
+      <CodeEditor singleLine value={$request.url} placeholder="https://api.example.com/…" onChange={setUrl} envVars={$activeEnvVars} />
+      <button class="curl-btn" class:copied={curlCopied} title="Copy as curl" aria-label="Copy as curl" on:click={copyCurl}>
         {#if curlCopied}
           <Check size={14} strokeWidth={2} />
         {:else}
@@ -138,8 +119,12 @@
     cursor: pointer;
     padding: 3px 10px;
   }
-  .notice-btn:hover { background: var(--yellow-bg-light); }
-  .notice-btn.keep { margin-left: auto; }
+  .notice-btn:hover {
+    background: var(--yellow-bg-light);
+  }
+  .notice-btn.keep {
+    margin-left: auto;
+  }
 
   .draft-row {
     display: flex;
@@ -158,8 +143,13 @@
     border-color: var(--yellow-border);
     width: 240px;
   }
-  .draft-name:focus { background: var(--yellow-bg-light); }
-  .draft-hint { font-size: 12px; color: #bbb; }
+  .draft-name:focus {
+    background: var(--yellow-bg-light);
+  }
+  .draft-hint {
+    font-size: 12px;
+    color: #bbb;
+  }
 
   .url-row {
     display: flex;
@@ -191,10 +181,13 @@
     padding: 0 8px 0 12px;
     margin-left: auto;
   }
-  .curl-btn:hover { color: var(--green); }
-  .curl-btn.copied { color: var(--green); }
+  .curl-btn:hover {
+    color: var(--green);
+  }
+  .curl-btn.copied {
+    color: var(--green);
+  }
 
-  .method-wrap { position: relative; }
   button.method {
     border: none;
     background: none;
@@ -205,23 +198,16 @@
     padding: 5px 8px;
     border-radius: 5px;
   }
-  button.method:hover { background: #f0ead2; }
-  .method-popup {
-    position: absolute;
-    top: calc(100% + 4px);
-    left: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    background: #fff;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-    padding: 4px;
-    z-index: 10;
+  button.method:hover {
+    background: #f0ead2;
   }
-  .method-popup button { text-align: left; }
-
+  .method-menu-scope {
+    display: contents;
+  }
+  .method-menu-scope :global(.method-item) {
+    font-weight: 600;
+    font-size: 12px;
+  }
   .action {
     position: relative;
     display: flex;
@@ -235,7 +221,9 @@
     cursor: pointer;
     padding: 0;
   }
-  .action:hover { background: #f7f7f7; }
+  .action:hover {
+    background: #f7f7f7;
+  }
   .action.save.dirty {
     border-color: var(--yellow-border);
     background: var(--yellow-bg);
@@ -256,13 +244,19 @@
     color: #fff;
     transition: background 0.1s ease;
   }
-  .action.send:hover { background: var(--green-dark); }
-  .action.send:active { background: var(--green-darker); }
+  .action.send:hover {
+    background: var(--green-dark);
+  }
+  .action.send:active {
+    background: var(--green-darker);
+  }
   .action.cancel {
     border: none;
     background: var(--red);
     color: #fff;
     transition: background 0.1s ease;
   }
-  .action.cancel:hover { background: var(--red-dark); }
+  .action.cancel:hover {
+    background: var(--red-dark);
+  }
 </style>

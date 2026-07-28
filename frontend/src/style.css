@@ -59,6 +59,14 @@ body {
 .method-DELETE { color: var(--red); }
 .method-HEAD, .method-OPTIONS { color: #999; }
 
+/* floating card look shared by every popup (Popover, CM-hosted tooltips) */
+.popover-card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
 /* borderless icon/text button base */
 .btn-plain {
     border: none;
