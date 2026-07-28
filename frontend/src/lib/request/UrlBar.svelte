@@ -198,8 +198,25 @@
     padding: 5px 8px;
     border-radius: 5px;
   }
-  button.method:hover {
-    background: #f0ead2;
+  /* hover tint follows the currently selected method's color */
+  button.method.method-GET:hover {
+    background: var(--green-bg-strong);
+  }
+  button.method.method-POST:hover {
+    background: var(--blue-bg);
+  }
+  button.method.method-PUT:hover {
+    background: var(--orange-bg);
+  }
+  button.method.method-PATCH:hover {
+    background: var(--tan-bg);
+  }
+  button.method.method-DELETE:hover {
+    background: var(--red-bg);
+  }
+  button.method.method-HEAD:hover,
+  button.method.method-OPTIONS:hover {
+    background: var(--bg-hover);
   }
   .method-menu-scope {
     display: contents;
@@ -207,6 +224,42 @@
   .method-menu-scope :global(.method-item) {
     font-weight: 600;
     font-size: 12px;
+  }
+  /* item text and hover tint follow the method's color (the scoped MenuItem
+     color would otherwise override the global .method-* classes) */
+  .method-menu-scope :global(.method-item.method-GET) {
+    color: var(--green);
+  }
+  .method-menu-scope :global(.method-item.method-GET:hover) {
+    background: var(--green-bg-strong);
+  }
+  .method-menu-scope :global(.method-item.method-POST) {
+    color: var(--blue);
+  }
+  .method-menu-scope :global(.method-item.method-POST:hover) {
+    background: var(--blue-bg);
+  }
+  .method-menu-scope :global(.method-item.method-PUT) {
+    color: var(--orange);
+  }
+  .method-menu-scope :global(.method-item.method-PUT:hover) {
+    background: var(--orange-bg);
+  }
+  .method-menu-scope :global(.method-item.method-PATCH) {
+    color: var(--tan);
+  }
+  .method-menu-scope :global(.method-item.method-PATCH:hover) {
+    background: var(--tan-bg);
+  }
+  .method-menu-scope :global(.method-item.method-DELETE) {
+    color: var(--red);
+  }
+  .method-menu-scope :global(.method-item.method-DELETE:hover) {
+    background: var(--red-bg);
+  }
+  .method-menu-scope :global(.method-item.method-HEAD),
+  .method-menu-scope :global(.method-item.method-OPTIONS) {
+    color: #999;
   }
   .action {
     position: relative;

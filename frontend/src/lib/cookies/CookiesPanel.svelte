@@ -1,4 +1,5 @@
 <script lang="ts">
+  import X from '@lucide/svelte/icons/x';
   // The collection's session cookie jar: inspect, delete, clear, add.
   import { onMount } from 'svelte';
   import { AddCookie, ClearCookies, DeleteCookie, GetCookies } from '../../../wailsjs/go/main/App';
@@ -95,7 +96,7 @@
             <td>{fmtExpiry(c.expires)}</td>
             <td class="flags">{[c.secure && 'secure', c.httpOnly && 'httpOnly'].filter(Boolean).join(' ')}</td>
             <td class="actions">
-              <button class="remove" title="Delete cookie" on:click={() => remove(c)}>×</button>
+              <button class="remove" title="Delete cookie" on:click={() => remove(c)}><X size={13} strokeWidth={2} /></button>
             </td>
           </tr>
         {/each}
@@ -181,12 +182,13 @@
     text-align: center;
   }
   .remove {
+    display: flex;
+    align-items: center;
     border: none;
     background: none;
     color: #ccc;
-    font-size: 15px;
     cursor: pointer;
-    padding: 2px 8px;
+    padding: 4px 8px;
   }
   .remove:hover {
     color: var(--red);

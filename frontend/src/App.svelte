@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import X from '@lucide/svelte/icons/x';
   import FolderOpen from '@lucide/svelte/icons/folder-open';
   import PackagePlus from '@lucide/svelte/icons/package-plus';
   import Sidebar from './lib/sidebar/Sidebar.svelte';
@@ -52,6 +53,12 @@
   function closeSpecial(id: string) {
     if (isEnvTab(id)) closeEnvView(id);
     else closeTab(id);
+  }
+
+  // every tab is closable; collections confirm via closeCollection
+  function closeAny(id: string) {
+    if (isSpecialTab(id)) closeSpecial(id);
+    else closeCollection(id);
   }
 
   // middle mouse click closes any tab; collections always confirm
@@ -119,15 +126,15 @@
         on:auxclick={(e) => middleClose(e, id)}
         on:click={() => switchTab(id)}>
         {tabLabel(id)}
-        {#if isSpecialTab(id)}
-          <span
-            class="tab-close"
-            role="button"
-            tabindex="-1"
-            title="Close tab"
-            on:click|stopPropagation={() => closeSpecial(id)}
-            on:keydown={(e) => e.key === 'Enter' && closeSpecial(id)}>×</span>
-        {/if}
+        <span
+          class="tab-close"
+          role="button"
+          tabindex="-1"
+          title={isSpecialTab(id) ? 'Close tab' : 'Close collection'}
+          on:click|stopPropagation={() => closeAny(id)}
+          on:keydown={(e) => e.key === 'Enter' && closeAny(id)}>
+          <X size={12} strokeWidth={2} />
+        </span>
       </button>
     {/each}
     <div class="strip-actions">
@@ -243,7 +250,7 @@
     border: 1px solid var(--tab-border-soft, var(--border));
     border-radius: 6px;
     background: var(--tab-bg-soft, #fff);
-    padding: 5px 18px;
+    padding: 5px 10px 5px 18px;
     font-size: 13px;
     font-family: inherit;
     color: var(--tab-text, var(--text-muted));
@@ -290,13 +297,10 @@
     --tab-text: var(--green-text);
   }
   .tab-close {
-    color: inherit;
+    display: inline-flex;
     opacity: 0.55;
-    font-size: 14px;
-    line-height: 1;
-    padding: 0 2px;
-    border-radius: 3px;
-    cursor: pointer;
+    padding: 1px;
+    margin-top: 1px;
   }
   .tab-close:hover {
     opacity: 1;

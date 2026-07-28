@@ -37,7 +37,7 @@
     display: flex;
     align-items: center;
     gap: 7px;
-    padding: 4px 9px;
+    padding: 8px 12px;
     font-family: var(--sans);
     font-size: 12px;
     color: var(--text-soft);

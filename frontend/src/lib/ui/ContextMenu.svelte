@@ -29,8 +29,10 @@
     border-radius: 5px;
     flex-shrink: 0;
   }
+  /* neutral emphasis: darker glyph on a slightly deeper pill than the row
+     hover, so it stands out on any row color without competing with it */
   .hover-btn:hover {
-    color: var(--green) !important;
-    background: var(--green-bg);
+    color: var(--text-strong) !important;
+    background: rgba(0, 0, 0, 0.07);
   }
 </style>

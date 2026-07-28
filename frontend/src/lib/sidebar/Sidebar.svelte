@@ -1,5 +1,6 @@
 <script lang="ts">
   // Layout shell: header, search row, tree, and the root drop zone.
+  import X from '@lucide/svelte/icons/x';
   import Tree from './Tree.svelte';
   import SidebarHeader from './SidebarHeader.svelte';
   import primroseLogo from '../../assets/images/primrose-logo.svg';
@@ -145,12 +146,13 @@
     right: 4px;
     top: 50%;
     transform: translateY(-50%);
+    display: flex;
+    align-items: center;
     border: none;
     background: none;
     color: var(--text-disabled);
-    font-size: 15px;
     cursor: pointer;
-    padding: 2px 6px;
+    padding: 3px 5px;
     border-radius: 4px;
   }
   .search-clear:hover {

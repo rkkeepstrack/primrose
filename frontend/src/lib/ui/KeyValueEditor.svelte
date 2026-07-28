@@ -1,4 +1,5 @@
 <script lang="ts">
+  import X from '@lucide/svelte/icons/x';
   export let entries: Record<string, string>;
   export let onChange: (entries: Record<string, string>) => void;
   // read-only rows shown pinned on top (e.g. headers inherited from the
@@ -64,7 +65,7 @@
         </td>
         <td><input placeholder="value" bind:value={row.value} on:input={emit} /></td>
         <td class="actions">
-          <button class="remove" title="Remove" on:click={() => removeRow(i)}>×</button>
+          <button class="remove" title="Remove" on:click={() => removeRow(i)}><X size={13} strokeWidth={2} /></button>
         </td>
       </tr>
     {/each}
@@ -123,10 +124,11 @@
   .remove {
     border: none;
     background: none;
+    display: flex;
+    align-items: center;
     color: #ccc;
-    font-size: 15px;
     cursor: pointer;
-    padding: 4px 10px;
+    padding: 6px 10px;
   }
   .remove:hover {
     color: var(--red);

@@ -162,8 +162,8 @@
     background: var(--bg-hover);
   }
   .env-row.active {
-    background: var(--green-bg);
-    box-shadow: inset 3px 0 0 var(--green);
+    background: var(--purple-bg);
+    box-shadow: inset 3px 0 0 var(--purple);
   }
   .env-row.active .env-name {
     font-weight: 600;
@@ -201,8 +201,8 @@
     font-size: 12px;
   }
   .new-env:hover {
-    color: var(--green);
-    background: var(--green-bg);
+    color: var(--purple-text);
+    background: var(--purple-bg);
   }
   .env-detail {
     padding: 16px 20px;

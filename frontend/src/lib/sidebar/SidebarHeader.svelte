@@ -105,11 +105,11 @@
     display: flex;
     align-items: center;
     gap: 5px;
-    border: 1px solid #eae2f4;
-    background: #faf8fd;
+    border: 1px solid var(--purple-border);
+    background: var(--purple-bg-soft);
     font-size: 13px;
     font-family: inherit;
-    color: #6c4fa1;
+    color: var(--purple-text);
     cursor: pointer;
     padding: 3px 10px;
     border-radius: 5px;
@@ -118,17 +118,17 @@
       border-color 0.12s ease;
   }
   .env-label:hover {
-    background: #f3eefa;
-    border-color: #d9c9ef;
+    background: var(--purple-bg);
+    border-color: var(--purple-border-strong);
   }
   .env-label :global(.chev) {
-    color: #6c4fa1;
+    color: var(--purple-text);
     opacity: 0.7;
   }
   /* the current environment shows in the tab's purple, not the default green */
   .env-menu-scope {
     display: contents;
-    --menu-current-color: #6c4fa1;
+    --menu-current-color: var(--purple-text);
     --menu-current-bg: #f3eefa;
   }
   .none {

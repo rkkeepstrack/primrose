@@ -64,7 +64,7 @@
     font-size: 12px;
   }
   .chain {
-    padding: 6px 10px;
+    padding: 10px 14px;
     max-width: 80vw;
   }
   .pop-row {

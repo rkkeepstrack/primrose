@@ -5,11 +5,15 @@
   --green-darker: #3a8d63;
   --green-text: #3d9469;
   --green-bg: #f4faf6;
+  --green-bg-strong: #e4f3ea;
   --green-border: #bfe3cd;
   --blue: #6b9fdb;
+  --blue-bg: #eef4fc;
   --orange: #e0a869;
   --orange-strong: #e8a94c;
+  --orange-bg: #fdf4e7;
   --tan: #c9a86b;
+  --tan-bg: #faf5ea;
   --red: #d98282;
   --red-dark: #c96f6f;
   --red-bg: #fdf0f0;
@@ -32,8 +36,35 @@
   --bg-hover: #f5f5f5;
   --bg-soft: #fafafa;
 
+  /* environment purple (matches the env tab tint) */
+  --purple: #9d7ad1;
+  --purple-text: #6c4fa1;
+  --purple-bg: #f3eefa;
+  --purple-bg-soft: #faf8fd;
+  --purple-border: #eae2f4;
+  --purple-border-strong: #d9c9ef;
+
   --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
   --sans: system-ui, -apple-system, sans-serif;
+}
+
+/* slim rounded scrollbars instead of the stock chrome */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #dcdcdc;
+  border-radius: 6px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: #c2c2c2;
 }
 
 html,
