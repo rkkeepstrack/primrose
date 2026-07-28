@@ -94,3 +94,19 @@ func TestResolveKebabEnvNames(t *testing.T) {
 		t.Errorf("url = %s", got.URL)
 	}
 }
+
+func TestResolveMergesSecondQueryMark(t *testing.T) {
+	// the env var's value carries its own query string; params appended to
+	// the URL afterwards must join it with & instead of a second ?
+	env := map[string]string{"wiwo": "http://x/api/content?path=/"}
+	got := Resolve(&Request{URL: "{{wiwo}}?limit=1"}, env, nil)
+	if got.URL != "http://x/api/content?path=/&limit=1" {
+		t.Errorf("url = %s", got.URL)
+	}
+
+	// untouched when there is at most one ?
+	got = Resolve(&Request{URL: "http://x/api?path=/"}, nil, nil)
+	if got.URL != "http://x/api?path=/" {
+		t.Errorf("url = %s", got.URL)
+	}
+}

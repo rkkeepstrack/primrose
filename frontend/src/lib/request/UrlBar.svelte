@@ -188,7 +188,7 @@
     background: none;
     color: #999;
     cursor: pointer;
-    padding: 0 8px;
+    padding: 0 8px 0 12px;
     margin-left: auto;
   }
   .curl-btn:hover { color: var(--green); }

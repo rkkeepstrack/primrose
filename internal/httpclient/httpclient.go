@@ -3,6 +3,7 @@ package httpclient
 import (
 	"context"
 	"encoding/base64"
+	"errors"
 	"io"
 	"net/http"
 	neturl "net/url"
@@ -17,7 +18,12 @@ import (
 // Response is what the frontend renders in the response pane.
 // Text bodies arrive in Body; binary bodies (images, …) in BodyBase64.
 type Response struct {
-	FinalURL string `json:"finalUrl"` // what was actually requested, after resolution
+	// FinalURL is the URL of the request that produced this response —
+	// after variable resolution AND after any redirects were followed.
+	FinalURL string `json:"finalUrl"`
+	// Redirects lists the URLs of followed redirect hops, in order. A hop
+	// that silently drops the query string is visible here.
+	Redirects []string `json:"redirects,omitempty"`
 	// RequestHeaders is what actually went over the wire, including the
 	// fields the transport adds on its own.
 	RequestHeaders map[string]string `json:"requestHeaders"`
@@ -50,6 +56,36 @@ func captureRequestHeaders(req *http.Request) map[string]string {
 		out["Accept-Encoding"] = "gzip"
 	}
 	return out
+}
+
+// normalizeQuery percent-encodes the URL's query keys and values (an
+// already-encoded value stays as it is — unescape-then-escape is
+// idempotent). Raw reserved characters like "/" otherwise survive to the
+// wire, where e.g. Cloudflare's http→https redirect drops them from the
+// Location header.
+func normalizeQuery(url string) string {
+	i := strings.Index(url, "?")
+	if i == -1 {
+		return url
+	}
+	parts := strings.Split(url[i+1:], "&")
+	for j, p := range parts {
+		k, v, has := strings.Cut(p, "=")
+		if !has {
+			parts[j] = escapePreserving(k)
+			continue
+		}
+		parts[j] = escapePreserving(k) + "=" + escapePreserving(v)
+	}
+	return url[:i+1] + strings.Join(parts, "&")
+}
+
+func escapePreserving(s string) string {
+	u, err := neturl.QueryUnescape(s)
+	if err != nil {
+		return s // malformed escape — send verbatim rather than corrupt it
+	}
+	return neturl.QueryEscape(u)
 }
 
 // isTextContentType reports whether a body should be shipped as plain text.
@@ -88,7 +124,18 @@ func Send(r *collection.Request) (*Response, error) {
 // SendCtx is Send with cancellation support and an optional cookie jar
 // (session cookies are applied and captured by the client when set).
 func SendCtx(ctx context.Context, r *collection.Request, jar http.CookieJar) (*Response, error) {
-	client := &http.Client{Timeout: requestTimeout, Jar: jar}
+	var redirects []string
+	client := &http.Client{
+		Timeout: requestTimeout,
+		Jar:     jar,
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			if len(via) >= 10 {
+				return errors.New("stopped after 10 redirects")
+			}
+			redirects = append(redirects, req.URL.String())
+			return nil
+		},
+	}
 	url := r.URL
 	existing := map[string]bool{}
 	if i := strings.Index(url, "?"); i != -1 {
@@ -121,7 +168,7 @@ func SendCtx(ctx context.Context, r *collection.Request, jar http.CookieJar) (*R
 		bodyReader = strings.NewReader(r.Body.Content)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, strings.ToUpper(r.Method), url, bodyReader)
+	req, err := http.NewRequestWithContext(ctx, strings.ToUpper(r.Method), normalizeQuery(url), bodyReader)
 	if err != nil {
 		return nil, err
 	}
@@ -161,7 +208,8 @@ func SendCtx(ctx context.Context, r *collection.Request, jar http.CookieJar) (*R
 
 	contentType := resp.Header.Get("Content-Type")
 	out := &Response{
-		FinalURL:       url,
+		FinalURL:       resp.Request.URL.String(),
+		Redirects:      redirects,
 		RequestHeaders: sentHeaders,
 		Status:         resp.StatusCode,
 		StatusText:     http.StatusText(resp.StatusCode),

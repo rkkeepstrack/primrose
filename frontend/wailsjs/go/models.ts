@@ -207,6 +207,7 @@ export namespace httpclient {
 	
 	export class Response {
 	    finalUrl: string;
+	    redirects?: string[];
 	    requestHeaders: Record<string, string>;
 	    status: number;
 	    statusText: string;
@@ -224,6 +225,7 @@ export namespace httpclient {
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.finalUrl = source["finalUrl"];
+	        this.redirects = source["redirects"];
 	        this.requestHeaders = source["requestHeaders"];
 	        this.status = source["status"];
 	        this.statusText = source["statusText"];

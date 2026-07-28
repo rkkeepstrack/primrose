@@ -18,6 +18,18 @@ var (
 	dynamicVarRe = regexp.MustCompile(`(^|[/=&?,\s]):([A-Za-z_][A-Za-z0-9_]*)`)
 )
 
+// A variable's value may itself contain a query string (e.g. a {{base}}
+// that ends in "?path=/"); params the URL then appends arrive after a
+// second "?", which HTTP would treat as part of the previous value. Merge
+// them: only the first "?" starts the query, the rest become "&".
+func mergeQueryMarks(url string) string {
+	i := strings.Index(url, "?")
+	if i == -1 {
+		return url
+	}
+	return url[:i+1] + strings.ReplaceAll(url[i+1:], "?", "&")
+}
+
 // Resolve returns a copy of the request with {{env}} placeholders and
 // :dynamic variables replaced in the URL, query keys and values, header
 // keys and values, and the body. Placeholders without a value resolve to
@@ -37,7 +49,7 @@ func Resolve(r *Request, envVars, dynamicVars map[string]string) *Request {
 
 	out := &Request{
 		Method:  r.Method,
-		URL:     sub(r.URL),
+		URL:     mergeQueryMarks(sub(r.URL)),
 		Query:   make(map[string]string, len(r.Query)),
 		Headers: make(map[string]string, len(r.Headers)),
 		Body:    Body{Type: r.Body.Type, Content: sub(r.Body.Content)},

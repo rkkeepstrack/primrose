@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount, onDestroy, mount, unmount } from 'svelte';
+  import Check from '@lucide/svelte/icons/check';
   import Copy from '@lucide/svelte/icons/copy';
   import { ClipboardSetText } from '../../../wailsjs/runtime/runtime';
   import {
@@ -59,7 +60,7 @@
     },
     { decorations: (v) => v.decorations }
   );
-
+  // TODO: what the fuck is this implementation, just render the variables as a span and then we dont have to deal with this bs
   // hovering a {{var}} shows the active environment's value for it
   const varHover = hoverTooltip((view, pos) => {
     const line = view.state.doc.lineAt(pos);
@@ -68,10 +69,10 @@
       const to = from + m[0].length;
       if (pos < from || pos > to) continue;
       const name = m[1];
+      // below the token — above the url bar sits the titlebar, which clips
       return {
         pos: from,
         end: to,
-        above: true,
         create: () => {
           const dom = document.createElement('div');
           dom.className = 'cm-var-tooltip';
@@ -86,11 +87,13 @@
           const btn = document.createElement('button');
           btn.type = 'button';
           btn.title = 'Copy value';
-          const icon = mount(Copy, { target: btn, props: { size: 12, strokeWidth: 2 } });
+          let icon = mount(Copy, { target: btn, props: { size: 12, strokeWidth: 2 } });
           btn.addEventListener('click', () => {
             ClipboardSetText(value);
+            // stays a checkmark for the lifetime of this tooltip
+            unmount(icon);
+            icon = mount(Check, { target: btn, props: { size: 12, strokeWidth: 2 } });
             btn.classList.add('copied');
-            setTimeout(() => btn.classList.remove('copied'), 1200);
           });
           dom.append(text, btn);
           return { dom, destroy: () => unmount(icon) };

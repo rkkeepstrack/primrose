@@ -25,6 +25,11 @@
         {#if run.response?.finalUrl}
           <span class="row-url">→ {run.response.finalUrl}</span>
         {/if}
+        {#if run.response?.redirects?.length}
+          {#each run.response.redirects as hop}
+            <span class="row-url redirect" title="Followed redirect">↪ {hop}</span>
+          {/each}
+        {/if}
       </button>
     </li>
   {/each}
@@ -66,6 +71,11 @@
     display: flex;
     gap: 12px;
     align-items: center;
+  }
+  .row-url.redirect {
+    color: var(--orange-strong);
+    opacity: 0.75;
+    padding-left: 10px;
   }
   .row-url {
     color: var(--text-disabled);

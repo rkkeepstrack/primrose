@@ -29,6 +29,8 @@ export interface ApiRequest {
 
 export interface ApiResponse {
   finalUrl: string;
+  // followed redirect hops, in order (present when the server redirected)
+  redirects?: string[];
   requestHeaders: Record<string, string>;
   bodyBase64?: string;
   contentType: string;
