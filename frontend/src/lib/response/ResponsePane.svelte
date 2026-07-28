@@ -54,6 +54,7 @@
     <StatusLine
       run={current}
       oldRunLabel={viewedIdx > 0 ? `viewing run #${runs.length - viewedIdx}` : ''}
+      showUrl={tab !== 'timeline'}
     />
 
     {#if tab === 'response'}

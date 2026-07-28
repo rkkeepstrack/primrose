@@ -28,6 +28,8 @@ export interface ApiRequest {
 }
 
 export interface ApiResponse {
+  // the URL primrose requested (after resolution), before any redirects
+  requestUrl?: string;
   finalUrl: string;
   // followed redirect hops, in order (present when the server redirected)
   redirects?: string[];

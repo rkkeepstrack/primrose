@@ -18,8 +18,11 @@ import (
 // Response is what the frontend renders in the response pane.
 // Text bodies arrive in Body; binary bodies (images, …) in BodyBase64.
 type Response struct {
+	// RequestURL is what primrose asked for: the URL after variable
+	// resolution and query encoding, before any redirects.
+	RequestURL string `json:"requestUrl"`
 	// FinalURL is the URL of the request that produced this response —
-	// after variable resolution AND after any redirects were followed.
+	// differs from RequestURL when redirects were followed.
 	FinalURL string `json:"finalUrl"`
 	// Redirects lists the URLs of followed redirect hops, in order. A hop
 	// that silently drops the query string is visible here.
@@ -208,6 +211,7 @@ func SendCtx(ctx context.Context, r *collection.Request, jar http.CookieJar) (*R
 
 	contentType := resp.Header.Get("Content-Type")
 	out := &Response{
+		RequestURL:     req.URL.String(),
 		FinalURL:       resp.Request.URL.String(),
 		Redirects:      redirects,
 		RequestHeaders: sentHeaders,

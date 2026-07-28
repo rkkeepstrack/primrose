@@ -22,8 +22,8 @@
           {/if}
           <span class="meta">{fmtTime(run.at)}</span>
         </span>
-        {#if run.response?.finalUrl}
-          <span class="row-url">→ {run.response.finalUrl}</span>
+        {#if run.response?.requestUrl ?? run.response?.finalUrl}
+          <span class="row-url">→ {run.response.requestUrl ?? run.response.finalUrl}</span>
         {/if}
         {#if run.response?.redirects?.length}
           {#each run.response.redirects as hop}
