@@ -1,16 +1,34 @@
 # README
 
-## About
+#### Primrose is an API Client without Request-Tabs.
 
-This is the official Wails Svelte-TS template.
+This way, Changes and Tabs can't clutter your UI and you don't have to ask yourself everytime when closing tabs if you REALLY want to discard your changes - you might need them again in a few years.
 
-## Live Development
+The way it works: 
+- The last 10 opened requests are colored in a gradient from red to blue in the sidebar, like a heatmap
+- If a request is older than that and has changes, the changes are silently discarded
+- There's an additional filter next to the request browser search bar that ONLY shows the last 10 requests without their respective folder hierarchy
 
-To run in live development mode, run `wails dev` in the project directory. This will run a Vite development
-server that will provide very fast hot reload of your frontend changes. If you want to develop in a browser
-and have access to your Go methods, there is also a dev server that runs on http://localhost:34115. Connect
-to this in your browser, and you can call your Go code from devtools.
+<img width="2132" height="1034" alt="image" src="https://github.com/user-attachments/assets/be51244b-c9f4-4600-b22d-fd8a2bf9f5d1" />
 
-## Building
 
-To build a redistributable, production mode package, use `wails build`.
+#### ...and almost without annoying popups dialogs that disturb the working flow.
+
+Other API Clients tend to ask way too much stuff. This one only asks if you want to close a collection or discard changes on the environment. 
+
+#### No Proprietary Formats
+
+The File Format for collections relies on .toml, which is not as bad as .yaml and way more human readable. Also, it does not break instantly because you missed a - or some indentation.
+Hierarchy in the Files automatically represent how it will look in-application in the request browser.
+
+#### Git-Friendly
+
+All Requests and folders are just sorted alphabetically, so no information about structure has to be stored anywhere - which makes it a charm to work with in git. 
+
+Just store your Primrose collection with your application and push new requests directly with the corresponding PR.
+
+#### There's shortcuts!
+
+With super+k you can see all available shortcuts.
+
+
