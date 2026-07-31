@@ -128,7 +128,7 @@
         on:dragend={() => (dragTabId = null)}
         on:auxclick={(e) => middleClose(e, id)}
         on:click={() => switchTab(id)}>
-        {tabLabel(id)}
+        <span class="tab-label">{tabLabel(id)}</span>
         <span
           class="tab-close"
           role="button"
@@ -241,69 +241,74 @@
   }
   .collection-tabs {
     display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 4px 14px 10px;
+    align-items: stretch;
+    background: var(--bg-lift);
     border-bottom: 1px solid var(--border-soft);
   }
   .col-tab {
-    display: inline-flex;
+    display: flex;
     align-items: center;
+    justify-content: center;
     gap: 8px;
-    border: 1px solid var(--tab-border-soft, var(--border));
-    border-radius: 6px;
-    background: var(--tab-bg-soft, var(--bg));
-    padding: 5px 10px 5px 18px;
+    flex: 1 1 0;
+    min-width: 0;
+    max-width: 220px;
+    border: none;
+    border-right: 1px solid var(--border-soft);
+    background: var(--tab-bg-soft, transparent);
+    padding: 8px 8px 8px 14px;
     font-size: 13px;
     font-family: inherit;
-    color: var(--tab-text, var(--text-muted));
+    color: var(--text-muted);
     cursor: pointer;
   }
-  .col-tab:hover {
-    background: var(--tab-bg-hover, var(--bg-lift));
+  .tab-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
-  .col-tab.active,
-  .col-tab.active:hover {
+  .col-tab:hover:not(.active) {
+    background: var(--tab-bg-hover, var(--bg-hover));
+  }
+  .col-tab.active {
     background: var(--tab-bg, var(--bg));
-    border-color: var(--tab-border-strong, var(--border));
+    color: var(--text);
+    /* accent line on top, and a 1px cover over the strip's bottom border
+       so the active tab merges with the content area */
+    box-shadow:
+      inset 0 2px 0 var(--tab-accent, var(--border)),
+      0 1px 0 var(--tab-bg, var(--bg));
   }
   .kind-collection {
+    --tab-accent: var(--tab-yellow-border-strong);
     --tab-bg-soft: var(--tab-yellow-bg-soft);
     --tab-bg-hover: var(--yellow-bg);
     --tab-bg: var(--tab-yellow-bg);
-    --tab-border-soft: var(--tab-yellow-border-soft);
-    --tab-border-strong: var(--tab-yellow-border-strong);
-    --tab-text: var(--tab-yellow-text);
   }
   .kind-env {
+    --tab-accent: var(--tab-purple-border-strong);
     --tab-bg-soft: var(--purple-bg-soft);
     --tab-bg-hover: var(--purple-bg);
     --tab-bg: var(--tab-purple-bg);
-    --tab-border-soft: var(--purple-border);
-    --tab-border-strong: var(--tab-purple-border-strong);
-    --tab-text: var(--tab-purple-text);
   }
   .kind-cookies {
+    --tab-accent: var(--blue);
     --tab-bg-soft: var(--tab-blue-bg-soft);
     --tab-bg-hover: var(--blue-bg-strong);
     --tab-bg: var(--tab-blue-bg);
-    --tab-border-soft: var(--tab-blue-border-soft);
-    --tab-border-strong: var(--blue);
-    --tab-text: var(--blue-text);
   }
   .kind-shortcuts {
+    --tab-accent: var(--green);
     --tab-bg-soft: var(--tab-green-bg-soft);
     --tab-bg-hover: var(--green-bg);
     --tab-bg: var(--tab-green-bg);
-    --tab-border-soft: var(--tab-green-border-soft);
-    --tab-border-strong: var(--green);
-    --tab-text: var(--green-text);
   }
   .tab-close {
     display: inline-flex;
+    flex-shrink: 0;
     opacity: 0.55;
-    padding: 1px;
-    margin-top: 1px;
+    padding: 2px;
+    border-radius: 3px;
   }
   .tab-close:hover {
     opacity: 1;
@@ -314,6 +319,7 @@
     align-items: center;
     gap: 2px;
     margin-left: auto;
+    padding: 0 10px;
   }
   .strip-btn {
     display: flex;
