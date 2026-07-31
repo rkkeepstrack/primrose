@@ -40,6 +40,7 @@
   .row-wrap {
     display: flex;
     align-items: center;
+    background: var(--heat-bg, none);
   }
   .row-wrap:hover:not(.selected) {
     background: var(--bg-hover);

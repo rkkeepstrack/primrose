@@ -113,7 +113,9 @@ export function heatStyle(rank: number | undefined): string {
   if (!rank) return '';
   const hue = (395 - (1 - rank) * 205) % 360;
   const alpha = 0.11 * rank;
-  return `background: hsla(${hue.toFixed(0)}, 80%, 52%, ${alpha.toFixed(3)})`;
+  // a custom property (not `background` directly) so the row's :hover rule
+  // still wins — inline backgrounds would override it
+  return `--heat-bg: hsla(${hue.toFixed(0)}, 80%, 52%, ${alpha.toFixed(3)})`;
 }
 
 // paths with unsaved edits (stashed or currently open)

@@ -58,7 +58,7 @@ describe('heatStyle', () => {
   it('produces a valid hsla with intensity scaling by rank', () => {
     const fresh = heatStyle(1);
     const old = heatStyle(0.1);
-    expect(fresh).toMatch(/^background: hsla\(\d+, 80%, 52%, 0\.110\)$/);
+    expect(fresh).toMatch(/^--heat-bg: hsla\(\d+, 80%, 52%, 0\.110\)$/);
     expect(old).toMatch(/0\.011\)$/);
   });
 });
