@@ -37,8 +37,7 @@ export async function moveItem(src: string, destDir: string) {
   });
 }
 
-export async function renameItem(node: TreeNode) {
-  const name = await promptDialog('New name:', node.name);
+export async function renameItem(node: TreeNode, name: string) {
   if (!name?.trim() || name === node.name) return;
   await runOp(async () => {
     const newPath = await RenameItem(node.path, name);

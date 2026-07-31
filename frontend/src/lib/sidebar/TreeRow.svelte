@@ -8,6 +8,7 @@
   export let node: TreeNode;
   export let selected = false;
   export let heatBg = ''; // inline background style from the recency heatmap
+  export let renaming = false; // in-place rename active: don't start drags
   export let droppable = false; // highlighted as a drop target (folders)
   export let onRename: () => void;
   export let onDuplicate: () => void;
@@ -26,7 +27,7 @@
   aria-selected={selected}
   tabindex="-1"
   style={selected ? '' : heatBg}
-  draggable="true"
+  draggable={!renaming}
   on:dragstart={(e) => startPathDrag(e, node.path)}
   on:dragover={onDragOver}
   on:dragleave={onDragLeave}

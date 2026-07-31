@@ -7,8 +7,9 @@
   import { abbrevMethod, type TreeNode } from '../shared/types';
   import Tree from './Tree.svelte';
   import TreeRow from './TreeRow.svelte';
+  import RenameInput from './RenameInput.svelte';
   import { acceptPathDrag, carriesPath, readPathDrag } from './dnd';
-  import { dirtyPaths, expanded, expandFolder, forceOpen, heat, heatStyle, toggleFolder } from './treeView';
+  import { dirtyPaths, expanded, expandFolder, forceOpen, heat, heatStyle, renamingPath, toggleFolder } from './treeView';
   import { newRequest, selectRequest } from '../workspace/requests';
   import { selectedPath } from '../workspace/state';
   import { deleteItem, duplicateItem, moveItem, newFolder, renameItem } from '../workspace/treeOps';
@@ -38,10 +39,15 @@
   function rowProps(node: TreeNode) {
     return {
       node,
-      onRename: () => renameItem(node),
+      onRename: () => renamingPath.set(node.path),
       onDuplicate: () => duplicateItem(node),
       onDelete: () => deleteItem(node),
     };
+  }
+
+  function commitRename(node: TreeNode, name: string) {
+    renamingPath.set(null);
+    renameItem(node, name);
   }
 </script>
 
@@ -51,14 +57,22 @@
       {#if node.isFolder}
         <TreeRow
           {...rowProps(node)}
+          renaming={$renamingPath === node.path}
           droppable={dropTarget === node.path}
           onDragOver={(e) => folderDragOver(e, node)}
           onDragLeave={() => (dropTarget = null)}
           onDrop={(e) => folderDrop(e, node)}>
-          <button class="row folder" on:click={() => toggleFolder(node.path)}>
-            <ChevronRight class="caret {$forceOpen || $expanded[node.path] ? 'open' : ''}" size={14} strokeWidth={2} />
-            <span class="name">{node.name}</span>
-          </button>
+          {#if $renamingPath === node.path}
+            <div class="row folder">
+              <ChevronRight class="caret {$forceOpen || $expanded[node.path] ? 'open' : ''}" size={14} strokeWidth={2} />
+              <RenameInput name={node.name} onCommit={(name) => commitRename(node, name)} onCancel={() => renamingPath.set(null)} />
+            </div>
+          {:else}
+            <button class="row folder" on:click={() => toggleFolder(node.path)}>
+              <ChevronRight class="caret {$forceOpen || $expanded[node.path] ? 'open' : ''}" size={14} strokeWidth={2} />
+              <span class="name">{node.name}</span>
+            </button>
+          {/if}
           <button class="hover-btn" title="New request in {node.name}" on:click={() => (expandFolder(node.path), newRequest(node.path))}>
             <CirclePlus size={13} strokeWidth={2} />
           </button>
@@ -72,14 +86,25 @@
           </div>
         {/if}
       {:else}
-        <TreeRow {...rowProps(node)} selected={node.path === $selectedPath} heatBg={heatStyle($heat[node.path])}>
-          <button class="row request" on:click={() => selectRequest(node)}>
-            <span class="method method-{node.method}" title={node.method}>{abbrevMethod(node.method)}</span>
-            <span class="name">{node.name}</span>
-            {#if $dirtyPaths.has(node.path)}
-              <span class="dirty-dot" title="Unsaved changes"></span>
-            {/if}
-          </button>
+        <TreeRow
+          {...rowProps(node)}
+          renaming={$renamingPath === node.path}
+          selected={node.path === $selectedPath}
+          heatBg={heatStyle($heat[node.path])}>
+          {#if $renamingPath === node.path}
+            <div class="row request">
+              <span class="method method-{node.method}" title={node.method}>{abbrevMethod(node.method)}</span>
+              <RenameInput name={node.name} onCommit={(name) => commitRename(node, name)} onCancel={() => renamingPath.set(null)} />
+            </div>
+          {:else}
+            <button class="row request" on:click={() => selectRequest(node)}>
+              <span class="method method-{node.method}" title={node.method}>{abbrevMethod(node.method)}</span>
+              <span class="name">{node.name}</span>
+              {#if $dirtyPaths.has(node.path)}
+                <span class="dirty-dot" title="Unsaved changes"></span>
+              {/if}
+            </button>
+          {/if}
         </TreeRow>
       {/if}
     </li>

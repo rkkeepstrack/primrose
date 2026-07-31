@@ -12,6 +12,9 @@ export const search = writable('');
 export const focusSearchSignal = writable(0);
 export const recentFilterOn = writable(false);
 
+// path of the item being renamed in place (F2 or the ⋮ menu), null when none
+export const renamingPath = writable<string | null>(null);
+
 // folder expansion state, shared by all tree levels
 export const expanded = writable<Record<string, boolean>>({});
 

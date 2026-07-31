@@ -6,7 +6,16 @@
   import primroseLogo from '../../assets/images/primrose-logo.svg';
   import { acceptPathDrag, carriesPath, readPathDrag } from './dnd';
   import { get } from 'svelte/store';
-  import { flatRequests, focusSearchSignal, recentFilterOn, resetFilters, revealRequest, search, visibleTree } from './treeView';
+  import {
+    flatRequests,
+    focusSearchSignal,
+    recentFilterOn,
+    renamingPath,
+    resetFilters,
+    revealRequest,
+    search,
+    visibleTree,
+  } from './treeView';
   import { selectRequest } from '../workspace/requests';
   import { activeRoot, selectedPath } from '../workspace/state';
   import { moveItem } from '../workspace/treeOps';
@@ -21,8 +30,16 @@
     searchEl?.select();
   }
 
-  // ⌥↑/⌥↓ hop between visible requests
+  // ⌥↑/⌥↓ hop between visible requests, F2 renames the selected one in place
   function onGlobalKeydown(e: KeyboardEvent) {
+    if (e.key === 'F2') {
+      const sel = get(selectedPath);
+      if (sel) {
+        e.preventDefault();
+        renamingPath.set(sel);
+      }
+      return;
+    }
     if (e.altKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
       // leave Alt-arrows alone inside text editors (CodeMirror line moves)
       const t = e.target as HTMLElement;
