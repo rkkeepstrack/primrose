@@ -10,6 +10,15 @@ import { refreshTree } from './refresh';
 import { maybeAbandonDraft, newDraftKey, stashCurrentEdit } from './drafts';
 import { clearSelection, dirty, diskChanged, draftDir, draftName, error, request, selectedPath } from './state';
 
+// URL is the source of truth for query params in the UI: requests loaded
+// from disk get their query folded into the URL before entering the store
+export function normalizeAndSetRequest(r: ApiRequest) {
+  const norm = normalizeUrlAndQuery(r.url, r.query);
+  r.url = norm.url;
+  r.query = norm.query;
+  request.set(r);
+}
+
 export async function selectRequest(node: TreeNode) {
   if (!(await maybeAbandonDraft())) return;
   error.set('');
@@ -25,11 +34,7 @@ export async function selectRequest(node: TreeNode) {
     } else {
       const r = (await ReadRequest(node.path)) as ApiRequest;
       r.vars = r.vars ?? {}; // absent in files from before request vars existed
-      // URL is the source of truth for query params in the UI
-      const norm = normalizeUrlAndQuery(r.url, r.query);
-      r.url = norm.url;
-      r.query = norm.query;
-      request.set(r);
+      normalizeAndSetRequest(r);
       dirty.set(false);
     }
     selectedPath.set(node.path);

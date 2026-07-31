@@ -3,13 +3,13 @@
 
 import { get } from 'svelte/store';
 import type { ApiRequest, Collection } from '../shared/types';
-import { normalizeUrlAndQuery } from '../shared/urlQuery';
 import { dropEdit } from '../shared/stores';
 import { GetTree, ReadRequest } from '../../../wailsjs/go/main/App';
 import { EventsOn } from '../../../wailsjs/runtime/runtime';
 import { dropCollection } from './collections';
 import { loadEnvironments } from './environments';
-import { clearSelection, collections, dirty, diskChanged, request, selectedPath } from './state';
+import { normalizeAndSetRequest } from './requests';
+import { clearSelection, collections, dirty, diskChanged, selectedPath } from './state';
 
 export function initExternalSync() {
   EventsOn('collection:changed', (root: string) => handleExternalChange(root));
@@ -49,10 +49,7 @@ async function reconcileOpenRequest(root: string) {
       diskChanged.set(true);
       return;
     }
-    const norm = normalizeUrlAndQuery(r.url, r.query);
-    r.url = norm.url;
-    r.query = norm.query;
-    request.set(r);
+    normalizeAndSetRequest(r);
   } catch (e) {
     console.warn('open request no longer readable', path, e);
     if (get(dirty)) {
@@ -69,10 +66,7 @@ export async function reloadFromDisk() {
   if (!path) return;
   try {
     const r = (await ReadRequest(path)) as ApiRequest;
-    const norm = normalizeUrlAndQuery(r.url, r.query);
-    r.url = norm.url;
-    r.query = norm.query;
-    request.set(r);
+    normalizeAndSetRequest(r);
     dirty.set(false);
     dropEdit(path);
   } catch {

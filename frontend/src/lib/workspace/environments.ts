@@ -44,17 +44,25 @@ export function pickEnvironment(root: string, name: string) {
   selectedEnvNames.update((s) => ({ ...s, [root]: name }));
 }
 
-export async function createEnvironment(root: string, name: string) {
+// every mutation re-lists the collection's environments so the stores
+// reflect what the files now say
+async function operateThenReload(root: string, fn: () => Promise<unknown>) {
   await runOp(async () => {
-    await SaveEnvironment(root, name, {}, {});
+    await fn();
     await loadEnvironments(root);
+  });
+}
+
+export async function createEnvironment(root: string, name: string) {
+  await operateThenReload(root, async () => {
+    await SaveEnvironment(root, name, {}, {});
     pickEnvironment(root, name);
   });
 }
 
 export async function deleteEnvironment(root: string, name: string) {
   if (!(await confirmDialog(`Delete environment "${name}"?`, true))) return;
-  await runOp(async () => {
+  await operateThenReload(root, async () => {
     await DeleteEnvironment(root, name);
     // drop a stale selection so activeEnvName falls back to the first env
     selectedEnvNames.update((s) => {
@@ -62,30 +70,22 @@ export async function deleteEnvironment(root: string, name: string) {
       const { [root]: _, ...rest } = s;
       return rest;
     });
-    await loadEnvironments(root);
   });
 }
 
 export async function renameEnvironment(root: string, name: string) {
   const newName = await promptDialog('New name:', name);
   if (!newName?.trim() || newName === name) return;
-  await runOp(async () => {
+  await operateThenReload(root, async () => {
     await RenameEnvironment(root, name, newName);
     selectedEnvNames.update((s) => (s[root] === name ? { ...s, [root]: newName } : s));
-    await loadEnvironments(root);
   });
 }
 
 export async function duplicateEnvironment(root: string, name: string) {
-  await runOp(async () => {
-    await DuplicateEnvironment(root, name);
-    await loadEnvironments(root);
-  });
+  await operateThenReload(root, () => DuplicateEnvironment(root, name));
 }
 
 export async function saveEnvironment(root: string, name: string, vars: Record<string, string>, headers: Record<string, string>) {
-  await runOp(async () => {
-    await SaveEnvironment(root, name, vars, headers);
-    await loadEnvironments(root);
-  });
+  await operateThenReload(root, () => SaveEnvironment(root, name, vars, headers));
 }
