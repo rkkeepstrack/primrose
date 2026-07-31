@@ -16,7 +16,10 @@
 
   function onKeydown(e: KeyboardEvent) {
     if (!$dialog) return;
-    if (e.key === 'Escape') close($dialog.kind === 'prompt' ? null : false);
+    if (e.key === 'Escape') {
+      e.preventDefault(); // unhandled Escape would beep (native responder chain)
+      close($dialog.kind === 'prompt' ? null : false);
+    }
     // Enter keeps editing on discard dialogs — losing work needs a click
     if (e.key === 'Enter') close($dialog.kind === 'prompt' ? value : $dialog.kind !== 'discard');
   }

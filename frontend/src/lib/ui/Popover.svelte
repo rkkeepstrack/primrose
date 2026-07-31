@@ -92,13 +92,24 @@
   }
 </script>
 
-<svelte:window on:click={() => trigger === 'click' && (open = false)} on:keydown={(e) => e.key === 'Escape' && (open = false)} />
+<svelte:window
+  on:click={() => trigger === 'click' && (open = false)}
+  on:keydown={(e) => {
+    if (e.key === 'Escape' && open) {
+      e.preventDefault(); // unhandled Escape would beep (native responder chain)
+      open = false;
+    }
+  }} />
 
 <!-- svelte-ignore a11y_no_static_element_interactions a11y_click_events_have_key_events -->
 <div class="pop-wrap" bind:this={wrapEl} on:mouseenter={onEnter} on:mouseleave={onLeave} on:click={onClick}>
   <slot name="trigger" />
   {#if open}
-    <div class="popover-card" class:fading bind:this={popEl} style="top: {top}px; left: {left}px; visibility: {ready ? 'visible' : 'hidden'}">
+    <div
+      class="popover-card"
+      class:fading
+      bind:this={popEl}
+      style="top: {top}px; left: {left}px; visibility: {ready ? 'visible' : 'hidden'}">
       <slot />
     </div>
   {/if}

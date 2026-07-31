@@ -82,6 +82,9 @@
     if (e.key === 'Escape') {
       if ($dialog) return; // the dialog owns Escape while open
       const t = e.target as HTMLElement;
+      // claim the key — an unhandled Escape falls through to the native
+      // responder chain and macOS plays the error beep
+      e.preventDefault();
       // first Esc leaves the field you're typing in; the next one closes
       if (t.closest('.cm-editor')) {
         (t.closest('.cm-editor')?.querySelector('.cm-content') as HTMLElement)?.blur();

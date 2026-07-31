@@ -68,6 +68,7 @@
         searchEl.blur();
       }
     } else if (e.key === 'Escape') {
+      e.preventDefault(); // unhandled Escape would beep (native responder chain)
       search.set('');
       searchEl.blur();
     }
