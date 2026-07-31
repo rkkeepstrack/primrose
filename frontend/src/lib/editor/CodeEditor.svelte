@@ -1,25 +1,15 @@
 <script lang="ts">
-  import { onMount, onDestroy, mount, unmount, flushSync } from 'svelte';
-  import VarTooltip from './VarTooltip.svelte';
-  import {
-    EditorView,
-    MatchDecorator,
-    Decoration,
-    ViewPlugin,
-    type DecorationSet,
-    type ViewUpdate,
-    keymap,
-    lineNumbers,
-    hoverTooltip,
-    placeholder as cmPlaceholder,
-  } from '@codemirror/view';
+  import { onMount, onDestroy } from 'svelte';
+  import { EditorView, keymap, lineNumbers, placeholder as cmPlaceholder } from '@codemirror/view';
   import { EditorState } from '@codemirror/state';
   import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
   import { json } from '@codemirror/lang-json';
-  import { linter, lintGutter, type Diagnostic } from '@codemirror/lint';
-  import { autocompletion, type CompletionContext } from '@codemirror/autocomplete';
-  import { syntaxHighlighting, syntaxTree } from '@codemirror/language';
+  import { linter, lintGutter } from '@codemirror/lint';
+  import { autocompletion } from '@codemirror/autocomplete';
+  import { syntaxHighlighting } from '@codemirror/language';
   import { jsonHighlightStyle } from './jsonHighlight';
+  import { jsonSyntaxErrors } from './jsonDiagnostics';
+  import { createEnvVarCompletions, createVarHover, varHighlighter } from './variableHighlight';
 
   export let value: string;
   export let onChange: (value: string) => void;
@@ -29,81 +19,14 @@
   // active environment's variables: names complete inside {{…}}, values
   // show in a hover tooltip
   export let envVars: Record<string, string> = {};
-  $: envVarNames = Object.keys(envVars);
 
   let host: HTMLDivElement;
   let view: EditorView | null = null;
 
-  // {{envVar}} and :dynamicVar tinted green, per the mockups; patterns
-  // mirror the Go/TS variable syntax contract (see request/vars.ts).
-  // decorate() marks only the variable itself, not the preceding delimiter.
-  const varMark = Decoration.mark({ class: 'cm-primrose-var' });
-  const varMatcher = new MatchDecorator({
-    regexp: /(\{\{[A-Za-z_][A-Za-z0-9_-]*\}\})|(^|[/=&?,\s])(:[A-Za-z_][A-Za-z0-9_]*)/g,
-    decorate: (add, from, to, m) => {
-      if (m[1]) add(from, to, varMark);
-      else add(from + m[2].length, to, varMark);
-    },
-  });
-
-  const varHighlighter = ViewPlugin.fromClass(
-    class {
-      decorations: DecorationSet;
-      constructor(v: EditorView) {
-        this.decorations = varMatcher.createDeco(v);
-      }
-      update(u: ViewUpdate) {
-        this.decorations = varMatcher.updateDeco(u, this.decorations);
-      }
-    },
-    { decorations: (v) => v.decorations },
-  );
-  // hovering a {{var}} shows the active environment's value for it; the
-  // card itself is the VarTooltip component, CM only anchors it
-  const varHover = hoverTooltip((view, pos) => {
-    const line = view.state.doc.lineAt(pos);
-    for (const m of line.text.matchAll(/\{\{([A-Za-z_][A-Za-z0-9_-]*)\}\}/g)) {
-      const from = line.from + (m.index ?? 0);
-      const to = from + m[0].length;
-      if (pos < from || pos > to) continue;
-      const name = m[1];
-      // below the token — above the url bar sits the titlebar, which clips
-      return {
-        pos: from,
-        end: to,
-        create: () => {
-          const dom = document.createElement('div');
-          // flushSync: CM measures the tooltip right away for positioning
-          const comp = flushSync(() => mount(VarTooltip, { target: dom, props: { value: envVars[name] } }));
-          return { dom, destroy: () => unmount(comp) };
-        },
-      };
-    }
-    return null;
-  });
-
-  // Suggest env vars while typing inside {{…}}; typing "{{" pops the list.
-  // Accepting a completion also closes the braces if they aren't closed yet.
-  function envVarCompletions(ctx: CompletionContext) {
-    const m = ctx.matchBefore(/\{\{[A-Za-z0-9_-]*$/);
-    if (!m || envVarNames.length === 0) return null;
-    return {
-      from: m.from + 2,
-      options: envVarNames.map((name) => ({
-        label: name,
-        type: 'variable',
-        apply: (view: EditorView, _c: unknown, from: number, to: number) => {
-          const alreadyClosed = view.state.sliceDoc(to, to + 2) === '}}';
-          const insert = alreadyClosed ? name : `${name}}}`;
-          view.dispatch({
-            changes: { from, to, insert },
-            selection: { anchor: from + name.length + 2 },
-          });
-        },
-      })),
-      validFor: /^[A-Za-z0-9_-]*$/,
-    };
-  }
+  // getters keep the extensions reading the current prop value without
+  // rebuilding the editor when the environment changes
+  const varHover = createVarHover(() => envVars);
+  const envVarCompletions = createEnvVarCompletions(() => envVars);
 
   const theme = EditorView.theme({
     '&': { fontSize: '13px', backgroundColor: 'transparent' },
@@ -153,26 +76,6 @@
       color: 'var(--green-text)',
     },
   });
-
-  // Editor-style diagnostics: the Lezer JSON parser is error-tolerant and
-  // marks every broken node, so each error attaches to its own line instead
-  // of only reporting the first JSON.parse failure.
-  function jsonSyntaxErrors(view: EditorView): Diagnostic[] {
-    if (view.state.doc.toString().trim() === '') return []; // empty body is fine
-    const diagnostics: Diagnostic[] = [];
-    syntaxTree(view.state)
-      .cursor()
-      .iterate((node) => {
-        if (!node.type.isError) return;
-        diagnostics.push({
-          from: node.from,
-          to: Math.max(node.to, Math.min(node.from + 1, view.state.doc.length)),
-          severity: 'error',
-          message: 'Invalid JSON syntax',
-        });
-      });
-    return diagnostics;
-  }
 
   function extensions() {
     const ext = [
