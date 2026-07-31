@@ -1,5 +1,6 @@
 <script lang="ts">
   import X from '@lucide/svelte/icons/x';
+  import { findDuplicateKeys, toEntries, toRows, type Row } from './keyValueTable';
   export let entries: Record<string, string>;
   export let onChange: (entries: Record<string, string>) => void;
   // read-only rows shown pinned on top (e.g. headers inherited from the
@@ -7,7 +8,6 @@
   export let inherited: Record<string, string> = {};
 
   // Local row model so keys can be edited without map-key collisions.
-  type Row = { key: string; value: string };
   let rows: Row[] = toRows(entries);
   let lastEntries = entries;
 
@@ -17,21 +17,13 @@
     rows = toRows(entries);
   }
 
-  function toRows(e: Record<string, string>): Row[] {
-    return Object.entries(e).map(([key, value]) => ({ key, value }));
-  }
-
   function emit() {
-    const out: Record<string, string> = {};
-    for (const r of rows) {
-      if (r.key.trim() !== '') out[r.key] = r.value;
-    }
+    const out = toEntries(rows);
     lastEntries = out;
     onChange(out);
   }
 
-  // duplicate keys would silently collapse (last one wins on emit) — flag them
-  $: duplicateKeys = new Set(rows.map((r) => r.key).filter((k, i, all) => k.trim() !== '' && all.indexOf(k) !== i));
+  $: duplicateKeys = findDuplicateKeys(rows);
 
   function addRow() {
     rows = [...rows, { key: '', value: '' }];

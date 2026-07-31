@@ -4,10 +4,10 @@
   import type { ApiResponse } from '../shared/types';
   import CodeViewer from '../editor/CodeViewer.svelte';
   import { fmtSize, prettyJson } from './format';
+  import { autoMode, type BodyMode as Mode } from './responseMode';
 
   export let response: ApiResponse;
 
-  type Mode = 'json' | 'raw' | 'image';
   let mode: Mode = 'json';
   let modeTouched = false;
 
@@ -15,23 +15,6 @@
   $: if (response !== lastResponse) {
     lastResponse = response;
     modeTouched = false;
-  }
-
-  function autoMode(r: ApiResponse): Mode {
-    if (r.contentType?.startsWith('image/')) return 'image';
-    if (looksLikeJson(r)) return 'json';
-    return 'raw';
-  }
-
-  // heuristic: trusts the content type, falls back to attempting a parse
-  function looksLikeJson(r: ApiResponse): boolean {
-    if (r.contentType?.includes('json')) return true;
-    try {
-      JSON.parse(r.body);
-      return true;
-    } catch {
-      return false;
-    }
   }
 
   $: if (!modeTouched) mode = autoMode(response);
