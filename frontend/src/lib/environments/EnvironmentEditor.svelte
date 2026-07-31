@@ -1,11 +1,13 @@
 <script lang="ts">
+  // Orchestrates the environment editor: draft/stash lifecycle, dirty state
+  // and confirmation flows. Rendering lives in EnvList / EnvDetail.
   import type { Environment } from '../shared/types';
-  import KeyValueEditor from '../ui/KeyValueEditor.svelte';
   import SplitPane from '../ui/SplitPane.svelte';
-  import ContextMenu from '../ui/ContextMenu.svelte';
-  import { confirmDialog, promptDialog } from '../ui/dialogs';
+  import { promptDialog } from '../ui/dialogs';
   import { confirmDiscardEnvEdits, deleteEnvironment, duplicateEnvironment, renameEnvironment } from '../workspace/environments';
   import { envDrafts, envSaveSignal } from '../workspace/state';
+  import EnvList from './EnvList.svelte';
+  import EnvDetail from './EnvDetail.svelte';
 
   export let root: string;
   export let environments: Environment[];
@@ -60,15 +62,18 @@
 
   // keep the shared stash in sync: dirty drafts survive unmounting (tab
   // switches), clean state drops the stash again
-  $: syncStash(dirty, draft, headersDraft);
-  function syncStash(d: boolean, vars: Record<string, string> | null, headers: Record<string, string> | null) {
+  $: if (dirty && draftFor && draft && headersDraft) stashEnvDraft(draftFor, draft, headersDraft);
+  else if (!dirty) clearEnvDraft();
+
+  function stashEnvDraft(name: string, vars: Record<string, string>, headers: Record<string, string>) {
+    envDrafts.update((m) => ({ ...m, [root]: { name, vars, headers } }));
+  }
+
+  function clearEnvDraft() {
     envDrafts.update((m) => {
-      if (d && draftFor && vars && headers) return { ...m, [root]: { name: draftFor, vars, headers } };
-      if (!d && m[root]) {
-        const { [root]: _, ...rest } = m;
-        return rest;
-      }
-      return m;
+      if (!m[root]) return m;
+      const { [root]: _, ...rest } = m;
+      return rest;
     });
   }
 
@@ -117,45 +122,25 @@
 
 <div class="env-editor">
   <SplitPane initialPct={18} minPct={12} maxPct={40}>
-    <aside class="env-list" slot="left">
-      {#each environments as e (e.name)}
-        <div class="env-row" class:active={e.name === activeName}>
-          <button class="env-name" on:click={() => pick(e.name)}>
-            {e.name}
-          </button>
-          <ContextMenu
-            onRename={() => menuAction(renameEnvironment, e.name)}
-            onDuplicate={() => menuAction(duplicateEnvironment, e.name)}
-            onDelete={() => menuAction(deleteEnvironment, e.name)} />
-        </div>
-      {:else}
-        <p class="empty">No environments yet.</p>
-      {/each}
-      <button class="new-env" on:click={createEnv}>+ New environment</button>
-    </aside>
-
-    <section class="env-detail" slot="right">
-      {#if active && draft}
-        <div class="toolbar">
-          <input class="search text-input" placeholder="Search for Variables or Values…" bind:value={search} />
-          <button class="save btn-save" class:dirty on:click={save} disabled={!dirty}>
-            Save{dirty ? ' •' : ''}
-          </button>
-        </div>
-        <KeyValueEditor entries={filtered} onChange={handleChange} />
-        {#if search}
-          <p class="note">Filtered view — hidden variables are kept as they are.</p>
-        {/if}
-
-        <h3 class="section-title">Headers</h3>
-        <p class="note">Inherited by every request while this environment is active — auth lives here.</p>
-        {#if headersDraft}
-          <KeyValueEditor entries={headersDraft} onChange={(h) => (headersDraft = h)} />
-        {/if}
-      {:else}
-        <p class="empty">Select an environment on the left.</p>
-      {/if}
-    </section>
+    <EnvList
+      slot="left"
+      {environments}
+      {activeName}
+      onPick={pick}
+      onCreate={createEnv}
+      onRename={(name) => menuAction(renameEnvironment, name)}
+      onDuplicate={(name) => menuAction(duplicateEnvironment, name)}
+      onDelete={(name) => menuAction(deleteEnvironment, name)} />
+    <EnvDetail
+      slot="right"
+      active={!!(active && draft)}
+      bind:search
+      {filtered}
+      {dirty}
+      {headersDraft}
+      onChange={handleChange}
+      onHeadersChange={(h) => (headersDraft = h)}
+      onSave={save} />
   </SplitPane>
 </div>
 
@@ -164,95 +149,5 @@
     display: flex;
     height: 100%;
     min-height: 0;
-  }
-  .env-list {
-    padding: 12px;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
-  .env-row {
-    display: flex;
-    align-items: center;
-  }
-  .env-row:hover:not(.active) {
-    background: var(--bg-hover);
-  }
-  .env-row.active {
-    background: var(--purple-bg);
-    box-shadow: inset 3px 0 0 var(--purple);
-  }
-  .env-row.active .env-name {
-    font-weight: 600;
-    color: var(--text-strong);
-  }
-  .env-row.active :global(.hover-btn),
-  .env-row:hover :global(.hover-btn) {
-    color: var(--text-soft);
-  }
-  .env-name {
-    flex: 1;
-    min-width: 0;
-    border: none;
-    background: none;
-    text-align: left;
-    font-size: 13px;
-    font-family: inherit;
-    color: #666;
-    padding: 6px 10px;
-    cursor: pointer;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .new-env {
-    margin-top: 6px;
-    border: none;
-    background: none;
-    text-align: left;
-    font-family: inherit;
-    cursor: pointer;
-    padding: 6px 10px;
-    border-radius: 6px;
-    color: #999;
-    font-size: 12px;
-  }
-  .new-env:hover {
-    color: var(--purple-text);
-    background: var(--purple-bg);
-  }
-  .env-detail {
-    padding: 16px 20px;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-  }
-  .toolbar {
-    display: flex;
-    gap: 8px;
-  }
-  .search {
-    flex: 1;
-  }
-  .save {
-    font-size: 13px;
-    padding: 0 16px;
-  }
-  .note {
-    color: #bbb;
-    font-size: 12px;
-    margin: 0;
-  }
-  .section-title {
-    margin: 14px 0 0;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--green-text);
-  }
-  .empty {
-    color: #aaa;
-    font-size: 13px;
   }
 </style>
