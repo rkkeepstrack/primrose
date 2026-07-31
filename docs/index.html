@@ -28,9 +28,8 @@
     }
     a.download:hover { background: #c74a77; }
     img.screenshot {
-      max-width: 100%;
-      border-radius: 12px;
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+      width: min(1320px, 100vw - 2rem);
+      margin-left: calc(50% - min(1320px, 100vw - 2rem) / 2);
     }
     footer { margin-top: 2rem; font-size: 0.9rem; }
     footer a { color: #e05a8a; }
@@ -43,9 +42,6 @@
   <a class="download" href="https://github.com/rkkeepstrack/primrose/releases/latest">Download the latest release</a>
   <div>
     <img class="screenshot" src="screenshot.png" alt="Primrose screenshot">
-  </div>
-  <div>
-    <img class="screenshot" src="screenshot-variables.png" alt="Primrose variables panel screenshot" style="margin-top: 2rem;">
   </div>
   <footer><a href="https://github.com/rkkeepstrack/primrose">View on GitHub</a></footer>
 </body>
