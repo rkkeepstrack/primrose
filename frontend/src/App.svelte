@@ -187,12 +187,12 @@
         onCreate={(name) => createEnvironment(envRoot, name)} />
     {/key}
   {:else}
-    <SplitPane initialPct={22} minPct={14} maxPct={45} flushLeft>
+    <SplitPane storageKey="sidebar" initialPct={22} minPct={14} maxPct={45} flushLeft>
       <Sidebar slot="left" />
       <section class="detail" slot="right">
         {#if $request}
           <UrlBar />
-          <SplitPane>
+          <SplitPane storageKey="request-response">
             <RequestView slot="left" />
             <ResponsePane slot="right" runs={$runs} />
           </SplitPane>
@@ -251,8 +251,8 @@
     justify-content: center;
     gap: 8px;
     flex: 1 1 0;
+    /* lets tabs shrink below their label width so the label ellipsizes */
     min-width: 0;
-    max-width: 220px;
     border: none;
     border-right: 1px solid var(--border-soft);
     background: var(--tab-bg-soft, transparent);
@@ -263,6 +263,8 @@
     cursor: pointer;
   }
   .tab-label {
+    flex: 1;
+    text-align: center;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -305,10 +307,9 @@
   }
   .tab-close {
     display: inline-flex;
-    flex-shrink: 0;
     opacity: 0.55;
     padding: 2px;
-    border-radius: 3px;
+    margin-top: 3px;
   }
   .tab-close:hover {
     opacity: 1;

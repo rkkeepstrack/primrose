@@ -121,7 +121,7 @@
 </script>
 
 <div class="env-editor">
-  <SplitPane initialPct={18} minPct={12} maxPct={40}>
+  <SplitPane storageKey="env-editor" initialPct={18} minPct={12} maxPct={40}>
     <EnvList
       slot="left"
       {environments}

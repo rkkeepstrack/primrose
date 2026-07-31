@@ -6,10 +6,20 @@
   // flushLeft removes the gutter between the left pane and the divider, so a
   // tinted left panel (the sidebar) runs right up to the divider line
   export let flushLeft = false;
+  // when set, the divider position survives unmounts via localStorage
+  export let storageKey: string | undefined = undefined;
 
   let host: HTMLDivElement;
   let dividerEl: HTMLDivElement;
-  let pct = initialPct;
+  let pct = restore() ?? initialPct;
+
+  function restore(): number | null {
+    if (!storageKey) return null;
+    const saved = Number(localStorage.getItem(`splitpane:${storageKey}`));
+    return Number.isFinite(saved) && saved >= minPct && saved <= maxPct ? saved : null;
+  }
+
+  $: if (storageKey) localStorage.setItem(`splitpane:${storageKey}`, String(pct));
   let dragging = false;
   // focus given by mouse shouldn't show the keyboard focus ring; WebKit
   // treats the explicit focus() in startDrag as :focus-visible
