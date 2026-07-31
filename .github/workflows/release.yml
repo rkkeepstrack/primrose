@@ -19,7 +19,7 @@ jobs:
     if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Tag and push
         run: |
           git config user.name "github-actions[bot]"
@@ -52,13 +52,13 @@ jobs:
             asset: primrose-linux-amd64.zip
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: npm
@@ -89,7 +89,7 @@ jobs:
         if: runner.os == 'Linux'
         run: zip -j ${{ matrix.asset }} build/bin/primrose
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: ${{ matrix.name }}
           path: |
@@ -100,9 +100,10 @@ jobs:
   release:
     name: Publish GitHub Release
     needs: build
+    if: always() && needs.build.result == 'success'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           path: dist
           merge-multiple: true
