@@ -2,7 +2,6 @@
 // collection operations.
 
 import { derived, get } from 'svelte/store';
-import { discardDialog } from '../ui/dialogs';
 import { runHistory, stashEdit } from '../shared/stores';
 import { dirty, draftDir, request, selectedPath } from './state';
 
@@ -26,12 +25,4 @@ export function stashCurrentEdit() {
   const path = get(selectedPath);
   const req = get(request);
   if (get(dirty) && path && req) stashEdit(path, req);
-}
-
-// drafts have no file to return to, so leaving one needs confirmation
-export async function maybeAbandonDraft(): Promise<boolean> {
-  if (get(draftDir) !== null && get(dirty)) {
-    return discardDialog('Discard the unsaved new request?');
-  }
-  return true;
 }

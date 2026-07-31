@@ -7,7 +7,7 @@ import { normalizeUrlAndQuery } from '../shared/urlQuery';
 import { dropEdit, touchRecent, unsavedEdits } from '../shared/stores';
 import { CreateRequest, ReadRequest, SaveRequest } from '../../../wailsjs/go/main/App';
 import { refreshTree } from './refresh';
-import { maybeAbandonDraft, newDraftKey, stashCurrentEdit } from './drafts';
+import { newDraftKey, stashCurrentEdit } from './drafts';
 import { clearSelection, dirty, diskChanged, draftDir, draftName, error, request, selectedPath } from './state';
 
 // URL is the source of truth for query params in the UI: requests loaded
@@ -20,7 +20,6 @@ export function normalizeAndSetRequest(r: ApiRequest) {
 }
 
 export async function selectRequest(node: TreeNode) {
-  if (!(await maybeAbandonDraft())) return;
   error.set('');
   diskChanged.set(false);
   stashCurrentEdit();
@@ -45,7 +44,6 @@ export async function selectRequest(node: TreeNode) {
 }
 
 export async function newRequest(dir: string) {
-  if (!(await maybeAbandonDraft())) return;
   stashCurrentEdit();
   request.set({
     method: 'GET',
@@ -63,10 +61,9 @@ export async function newRequest(dir: string) {
 }
 
 // Esc: close the open request; unsaved edits are stashed (orange dot),
-// an unsaved draft asks for confirmation since it has no file to return to.
-export async function closeRequest() {
+// an unsaved draft is discarded silently — nothing on disk is lost.
+export function closeRequest() {
   if (!get(request)) return;
-  if (!(await maybeAbandonDraft())) return;
   stashCurrentEdit();
   clearSelection();
 }

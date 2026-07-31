@@ -5,7 +5,26 @@ import { derived, writable } from 'svelte/store';
 import type { TreeNode } from '../shared/types';
 import { filterTree } from './fuzzy';
 import { RECENT_MAX, recentPaths, unsavedEdits } from '../shared/stores';
-import { activeIdx, collections, dirty, selectedPath } from '../workspace/state';
+import { activeIdx, collections, dirty, draftDir, draftName, selectedPath } from '../workspace/state';
+
+// sentinel path of the synthetic tree row that mirrors an unsaved draft
+export const DRAFT_PATH = '\u0000draft';
+
+// returns a copy of `nodes` with the draft row appended to the folder at
+// `dir`, or null when that folder isn't in the (possibly filtered) tree
+function appendDraft(nodes: TreeNode[], dir: string, draft: TreeNode): TreeNode[] | null {
+  for (let i = 0; i < nodes.length; i++) {
+    const n = nodes[i];
+    if (!n.isFolder) continue;
+    const children = n.path === dir ? [...(n.children ?? []), draft] : n.children && appendDraft(n.children, dir, draft);
+    if (children) {
+      const copy = [...nodes];
+      copy[i] = { ...n, children };
+      return copy;
+    }
+  }
+  return null;
+}
 
 export const search = writable('');
 // incremented to ask the sidebar to focus its search field (menu Quick Open)
@@ -78,13 +97,24 @@ function findRequestNode(nodes: TreeNode[], path: string): TreeNode | null {
 }
 
 export const visibleTree = derived(
-  [collections, activeIdx, search, recentFilterOn, recentPaths],
-  ([$collections, $activeIdx, $search, $recentOn, $recents]) => {
+  [collections, activeIdx, search, recentFilterOn, recentPaths, draftDir, draftName],
+  ([$collections, $activeIdx, $search, $recentOn, $recents, $draftDir, $draftName]) => {
     const tree = $collections[$activeIdx]?.tree ?? [];
-    if (!$recentOn) return filterTree(tree, $search);
-    // flat list of the recent requests, chronological (newest first)
-    const flat = $recents.map((p) => findRequestNode(tree, p)).filter((n): n is TreeNode => n !== null);
-    return filterTree(flat, $search);
+    let visible: TreeNode[];
+    if (!$recentOn) {
+      visible = filterTree(tree, $search);
+    } else {
+      // flat list of the recent requests, chronological (newest first)
+      const flat = $recents.map((p) => findRequestNode(tree, p)).filter((n): n is TreeNode => n !== null);
+      visible = filterTree(flat, $search);
+    }
+    // mirror an unsaved draft as a synthetic row in its target folder
+    if ($draftDir !== null && $draftName !== null) {
+      const draft: TreeNode = { name: $draftName, path: DRAFT_PATH, isFolder: false };
+      const root = $collections[$activeIdx]?.root;
+      visible = ($draftDir !== root && appendDraft(visible, $draftDir, draft)) || [...visible, draft];
+    }
+    return visible;
   },
 );
 
@@ -95,7 +125,7 @@ export const flatRequests = derived(visibleTree, ($tree) => {
   const walk = (nodes: TreeNode[]) => {
     for (const n of nodes) {
       if (n.isFolder) walk(n.children ?? []);
-      else out.push(n);
+      else if (n.path !== DRAFT_PATH) out.push(n); // the draft row isn't hoppable
     }
   };
   walk($tree);

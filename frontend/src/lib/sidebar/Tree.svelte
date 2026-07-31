@@ -9,9 +9,9 @@
   import TreeRow from './TreeRow.svelte';
   import RenameInput from './RenameInput.svelte';
   import { acceptPathDrag, carriesPath, readPathDrag } from './dnd';
-  import { dirtyPaths, expanded, expandFolder, forceOpen, heat, heatStyle, renamingPath, toggleFolder } from './treeView';
+  import { dirtyPaths, DRAFT_PATH, expanded, expandFolder, forceOpen, heat, heatStyle, renamingPath, toggleFolder } from './treeView';
   import { newRequest, selectRequest } from '../workspace/requests';
-  import { selectedPath } from '../workspace/state';
+  import { request, selectedPath } from '../workspace/state';
   import { deleteItem, duplicateItem, moveItem, newFolder, renameItem } from '../workspace/treeOps';
 
   export let nodes: TreeNode[];
@@ -85,6 +85,15 @@
             <Tree nodes={node.children} root={false} />
           </div>
         {/if}
+      {:else if node.path === DRAFT_PATH}
+        <!-- unsaved draft, mirrored from the name field; always the current request -->
+        <TreeRow {node} draft selected>
+          <div class="row request">
+            <span class="method method-{$request?.method}" title={$request?.method}>{abbrevMethod($request?.method ?? '')}</span>
+            <span class="name" class:placeholder={!node.name}>{node.name || 'request name…'}</span>
+            <span class="dirty-dot" title="Unsaved new request"></span>
+          </div>
+        </TreeRow>
       {:else}
         <TreeRow
           {...rowProps(node)}
@@ -176,6 +185,10 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+  .name.placeholder {
+    color: #bbb;
+    font-style: italic;
   }
   .dirty-dot {
     width: 7px;

@@ -1,7 +1,12 @@
 <script lang="ts">
-  // Name row for an unsaved request draft; Enter saves.
-  import { saveRequest } from '../workspace/requests';
+  // Name row for an unsaved request draft; Enter saves, Esc discards.
+  import { closeRequest, saveRequest } from '../workspace/requests';
   import { draftName } from '../workspace/state';
+
+  function onKeydown(e: KeyboardEvent) {
+    if (e.key === 'Enter') saveRequest();
+    else if (e.key === 'Escape') closeRequest();
+  }
 </script>
 
 <div class="draft-row">
@@ -13,7 +18,7 @@
     value={$draftName}
     autofocus
     on:input={(e) => draftName.set(e.currentTarget.value)}
-    on:keydown={(e) => e.key === 'Enter' && saveRequest()} />
+    on:keydown={onKeydown} />
   <span class="draft-hint">saved as {$draftName || 'name'}.toml on Save</span>
 </div>
 

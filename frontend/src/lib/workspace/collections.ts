@@ -4,7 +4,7 @@ import { get } from 'svelte/store';
 import type { Collection, TreeNode } from '../shared/types';
 import { ChooseDirectory, CreateCollection, OpenCollectionDialog } from '../../../wailsjs/go/main/App';
 import { closeEnvView, confirmDiscardEnvEdits, loadEnvironments } from './environments';
-import { maybeAbandonDraft, stashCurrentEdit } from './drafts';
+import { stashCurrentEdit } from './drafts';
 import { selectRequest } from './requests';
 import { activeIdx, activeRoot, clearSelection, collections, envDrafts, error, lastRequestByRoot, selectedPath } from './state';
 import {
@@ -71,7 +71,6 @@ export async function closeActiveTab() {
 
 export async function switchTab(id: string) {
   if (id === get(activeTabId)) return;
-  if (!(await maybeAbandonDraft())) return;
   const prevRoot = get(activeRoot);
   const prevPath = get(selectedPath);
   activateTab(id);
