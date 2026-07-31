@@ -3,6 +3,7 @@ export namespace appstate {
 	export class State {
 	    openRoots: string[];
 	    activeRoot: string;
+	    theme?: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new State(source);
@@ -12,6 +13,7 @@ export namespace appstate {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.openRoots = source["openRoots"];
 	        this.activeRoot = source["activeRoot"];
+	        this.theme = source["theme"];
 	    }
 	}
 

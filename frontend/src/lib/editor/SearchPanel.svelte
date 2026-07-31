@@ -124,7 +124,7 @@
     display: flex;
     align-items: center;
     gap: 3px;
-    background: #fff;
+    background: var(--bg);
     border: 1px solid var(--border);
     border-radius: 8px;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
@@ -165,7 +165,7 @@
     justify-content: center;
     border: none;
     background: none;
-    color: #999;
+    color: var(--text-placeholder);
     cursor: pointer;
     padding: 3px;
     border-radius: 5px;

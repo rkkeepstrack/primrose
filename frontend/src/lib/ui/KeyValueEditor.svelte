@@ -80,7 +80,7 @@
     padding: 7px 12px;
     font-size: 13px;
     font-family: inherit;
-    color: #444;
+    color: var(--text-soft);
     background: transparent;
   }
   td input:focus {
@@ -92,7 +92,7 @@
     text-decoration: underline wavy var(--red);
   }
   .inherited-row td {
-    background: #faf8fd; /* whisper of environment purple */
+    background: var(--purple-bg-soft); /* whisper of environment purple */
     color: var(--text-faint);
   }
   .inherited-row td.ro {
@@ -100,7 +100,7 @@
   }
   .inherited-row td.origin {
     font-size: 11px;
-    color: #a08cc0;
+    color: var(--purple-soft);
     text-align: center;
     white-space: nowrap;
     padding: 7px 10px;
@@ -118,7 +118,7 @@
     background: none;
     display: flex;
     align-items: center;
-    color: #ccc;
+    color: var(--text-ghost);
     cursor: pointer;
     padding: 6px 10px;
   }
@@ -128,7 +128,7 @@
   .add {
     border: none;
     background: none;
-    color: #999;
+    color: var(--text-placeholder);
     font-size: 12px;
     font-family: inherit;
     cursor: pointer;

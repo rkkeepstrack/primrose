@@ -7,10 +7,12 @@ import { appstate } from '../../../wailsjs/go/models';
 import { loadEnvironments } from './environments';
 import { activeIdx, collections, restored } from './state';
 import { activateTab, addCollectionTab, isSpecialTab, tabOrder } from './tabs';
+import { applyTheme, currentTheme } from './theme';
 
 export async function restoreSession() {
   try {
     const state = await LoadUIState();
+    applyTheme(state?.theme, { syncMenu: true });
     const cols: Collection[] = [];
     for (const root of state?.openRoots ?? []) {
       try {
@@ -43,6 +45,7 @@ export function persistSession() {
     // tab order is the user-visible order; special tabs are session-only
     openRoots: get(tabOrder).filter((id) => !isSpecialTab(id) && roots.has(id)),
     activeRoot: get(collections)[get(activeIdx)]?.root ?? '',
+    theme: currentTheme(),
   };
   const enc = JSON.stringify(state);
   if (enc === lastSavedState) return; // avoid rewriting on unrelated updates

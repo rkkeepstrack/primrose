@@ -24,14 +24,14 @@
     align-items: center;
     gap: 4px;
     font-size: 13px;
-    color: #bbb;
+    color: var(--text-ghost);
   }
   .body-switch button {
     border: none;
     background: none;
     font-size: 13px;
     font-family: inherit;
-    color: #bbb;
+    color: var(--text-ghost);
     cursor: pointer;
     padding: 2px 4px;
   }

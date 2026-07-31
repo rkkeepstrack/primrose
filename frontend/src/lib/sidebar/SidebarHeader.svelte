@@ -75,7 +75,7 @@
     align-items: center;
     border: none;
     background: none;
-    color: #999;
+    color: var(--text-placeholder);
     font-size: 16px;
     cursor: pointer;
     padding: 3px 8px;
@@ -90,15 +90,15 @@
     align-items: center;
     border: none;
     background: none;
-    color: #999;
+    color: var(--text-placeholder);
     cursor: pointer;
     padding: 3px 6px;
     border-radius: 5px;
     margin-left: auto;
   }
   .cookies-btn:hover {
-    color: #4a7cb5;
-    background: #e9f1fa;
+    color: var(--blue-text);
+    background: var(--blue-bg-strong);
   }
   /* purple, matching the environment tab's palette (.kind-env in App.svelte) */
   .env-label {
@@ -129,7 +129,7 @@
   .env-menu-scope {
     display: contents;
     --menu-current-color: var(--purple-text);
-    --menu-current-bg: #f3eefa;
+    --menu-current-bg: var(--purple-bg);
   }
   .none {
     color: var(--text-disabled);

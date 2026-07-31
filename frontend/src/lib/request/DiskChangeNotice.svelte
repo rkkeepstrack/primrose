@@ -24,7 +24,7 @@
   .notice-btn {
     border: 1px solid var(--yellow-border);
     border-radius: 5px;
-    background: #fff;
+    background: var(--bg);
     font-size: 12px;
     font-family: inherit;
     color: var(--text);

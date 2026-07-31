@@ -57,3 +57,5 @@ export function SaveRequest(arg1:string,arg2:collection.Request):Promise<void>;
 export function SaveUIState(arg1:appstate.State):Promise<void>;
 
 export function SendRequest(arg1:collection.Request,arg2:Record<string, string>,arg3:Record<string, string>,arg4:Record<string, string>,arg5:string):Promise<httpclient.Response>;
+
+export function SetTheme(arg1:string):Promise<void>;

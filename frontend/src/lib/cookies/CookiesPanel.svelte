@@ -157,7 +157,7 @@
     align-items: center;
     border: none;
     background: none;
-    color: #ccc;
+    color: var(--text-ghost);
     cursor: pointer;
     padding: 4px 8px;
   }

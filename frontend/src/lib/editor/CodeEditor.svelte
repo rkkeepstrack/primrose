@@ -36,19 +36,19 @@
       fontFamily: singleLine ? 'var(--sans)' : 'ui-monospace, SFMono-Regular, Menlo, monospace',
     },
     '.cm-content': {
-      color: '#444',
+      color: 'var(--text-soft)',
       padding: singleLine ? '5px 4px' : '8px 4px',
     },
     '.cm-line': { padding: '0 2px' },
     '&.cm-focused': { outline: 'none' },
     '.cm-activeLine': { backgroundColor: 'transparent' },
-    '.cm-primrose-var': { color: '#3d9469', fontWeight: '600' },
-    '.cm-placeholder': { color: '#bbb' },
+    '.cm-primrose-var': { color: 'var(--green-text)', fontWeight: '600' },
+    '.cm-placeholder': { color: 'var(--text-ghost)' },
     '.cm-gutters': {
       backgroundColor: 'transparent',
-      color: '#b8b8b8',
+      color: 'var(--editor-gutter)',
       border: 'none',
-      borderRight: '1px solid #eee',
+      borderRight: '1px solid var(--border-faint)',
     },
     '.cm-lineNumbers .cm-gutterElement': { padding: '0 6px 0 12px', minWidth: '30px' },
     // the hover tooltip content (VarTooltip) brings its own card look
@@ -57,7 +57,7 @@
       border: 'none',
     },
     '.cm-tooltip.cm-tooltip-autocomplete': {
-      backgroundColor: '#fff',
+      backgroundColor: 'var(--bg)',
       border: '1px solid var(--border)',
       borderRadius: '8px',
       boxShadow: '0 4px 16px rgba(0, 0, 0, 0.08)',
@@ -136,7 +136,7 @@
     flex: 1;
   }
   .editor:not(.single) {
-    border: 1px solid #ddd;
+    border: 1px solid var(--border-input);
     border-radius: 8px;
     min-height: 220px;
     overflow: hidden;
@@ -145,7 +145,7 @@
     min-height: 220px;
   }
   .editor:not(.single):focus-within {
-    border-color: #ecdfa8;
+    border-color: var(--yellow-border);
   }
   .editor :global(.cm-scroller) {
     overflow-x: auto;

@@ -45,6 +45,6 @@
   }
   .draft-hint {
     font-size: 12px;
-    color: #bbb;
+    color: var(--text-ghost);
   }
 </style>

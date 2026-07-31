@@ -11,6 +11,7 @@ import (
 type State struct {
 	OpenRoots  []string `json:"openRoots"`
 	ActiveRoot string   `json:"activeRoot"`
+	Theme      string   `json:"theme,omitempty"` // "" means the default theme
 }
 
 func statePath() (string, error) {

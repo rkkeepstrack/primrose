@@ -43,7 +43,7 @@
 
 <style>
   .inherit-note {
-    color: #bbb;
+    color: var(--text-ghost);
     font-size: 12px;
     margin: 0;
   }

@@ -62,7 +62,7 @@
     text-align: left;
     font-size: 13px;
     font-family: inherit;
-    color: #666;
+    color: var(--text-muted);
     padding: 6px 10px;
     cursor: pointer;
     white-space: nowrap;
@@ -78,7 +78,7 @@
     cursor: pointer;
     padding: 6px 10px;
     border-radius: 6px;
-    color: #999;
+    color: var(--text-placeholder);
     font-size: 12px;
   }
   .new-env:hover {
@@ -86,7 +86,7 @@
     background: var(--purple-bg);
   }
   .empty {
-    color: #aaa;
+    color: var(--text-disabled);
     font-size: 13px;
   }
 </style>

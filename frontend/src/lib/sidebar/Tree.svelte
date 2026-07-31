@@ -169,7 +169,7 @@
   }
   .row :global(.caret) {
     flex-shrink: 0;
-    color: #a0a0a0;
+    color: var(--text-placeholder);
     transition: transform 0.12s ease;
   }
   .row :global(.caret.open) {
@@ -187,7 +187,7 @@
     text-overflow: ellipsis;
   }
   .name.placeholder {
-    color: #bbb;
+    color: var(--text-ghost);
     font-style: italic;
   }
   .dirty-dot {

@@ -187,7 +187,7 @@
         onCreate={(name) => createEnvironment(envRoot, name)} />
     {/key}
   {:else}
-    <SplitPane initialPct={22} minPct={14} maxPct={45}>
+    <SplitPane initialPct={22} minPct={14} maxPct={45} flushLeft>
       <Sidebar slot="left" />
       <section class="detail" slot="right">
         {#if $request}
@@ -210,7 +210,7 @@
     display: flex;
     flex-direction: column;
     height: 100vh;
-    background: #fff;
+    background: var(--bg);
     color: var(--text);
   }
   .titlebar {
@@ -236,7 +236,7 @@
   .brand-name {
     font-size: 13px;
     font-weight: 600;
-    color: #555;
+    color: var(--text-soft);
     letter-spacing: 0.01em;
   }
   .collection-tabs {
@@ -252,7 +252,7 @@
     gap: 8px;
     border: 1px solid var(--tab-border-soft, var(--border));
     border-radius: 6px;
-    background: var(--tab-bg-soft, #fff);
+    background: var(--tab-bg-soft, var(--bg));
     padding: 5px 10px 5px 18px;
     font-size: 13px;
     font-family: inherit;
@@ -260,42 +260,42 @@
     cursor: pointer;
   }
   .col-tab:hover {
-    background: var(--tab-bg-hover, #f7f7f7);
+    background: var(--tab-bg-hover, var(--bg-lift));
   }
   .col-tab.active,
   .col-tab.active:hover {
-    background: var(--tab-bg, #fff);
+    background: var(--tab-bg, var(--bg));
     border-color: var(--tab-border-strong, var(--border));
   }
   .kind-collection {
-    --tab-bg-soft: #fdfbf0;
+    --tab-bg-soft: var(--tab-yellow-bg-soft);
     --tab-bg-hover: var(--yellow-bg);
-    --tab-bg: #fbf0c2;
-    --tab-border-soft: #f2ead0;
-    --tab-border-strong: #d9bc55;
-    --tab-text: #8a7a33;
+    --tab-bg: var(--tab-yellow-bg);
+    --tab-border-soft: var(--tab-yellow-border-soft);
+    --tab-border-strong: var(--tab-yellow-border-strong);
+    --tab-text: var(--tab-yellow-text);
   }
   .kind-env {
-    --tab-bg-soft: #faf8fd;
-    --tab-bg-hover: #f3eefa;
-    --tab-bg: #ece2f8;
-    --tab-border-soft: #eae2f4;
-    --tab-border-strong: #a07fd0;
-    --tab-text: #7d5bab;
+    --tab-bg-soft: var(--purple-bg-soft);
+    --tab-bg-hover: var(--purple-bg);
+    --tab-bg: var(--tab-purple-bg);
+    --tab-border-soft: var(--purple-border);
+    --tab-border-strong: var(--tab-purple-border-strong);
+    --tab-text: var(--tab-purple-text);
   }
   .kind-cookies {
-    --tab-bg-soft: #f7fafd;
-    --tab-bg-hover: #e9f1fa;
-    --tab-bg: #ddeaf8;
-    --tab-border-soft: #e0eaf5;
+    --tab-bg-soft: var(--tab-blue-bg-soft);
+    --tab-bg-hover: var(--blue-bg-strong);
+    --tab-bg: var(--tab-blue-bg);
+    --tab-border-soft: var(--tab-blue-border-soft);
     --tab-border-strong: var(--blue);
-    --tab-text: #4a7cb5;
+    --tab-text: var(--blue-text);
   }
   .kind-shortcuts {
-    --tab-bg-soft: #f9fcfa;
+    --tab-bg-soft: var(--tab-green-bg-soft);
     --tab-bg-hover: var(--green-bg);
-    --tab-bg: #ddf1e6;
-    --tab-border-soft: #e0efe6;
+    --tab-bg: var(--tab-green-bg);
+    --tab-border-soft: var(--tab-green-border-soft);
     --tab-border-strong: var(--green);
     --tab-text: var(--green-text);
   }
@@ -320,7 +320,7 @@
     align-items: center;
     border: none;
     background: none;
-    color: #999;
+    color: var(--text-placeholder);
     cursor: pointer;
     padding: 5px 8px;
     border-radius: 5px;
@@ -371,7 +371,7 @@
     cursor: pointer;
   }
   .primary:hover {
-    background: #f8efc7;
+    background: var(--yellow-bg-strong);
   }
   .error {
     background: var(--red-bg);

@@ -55,7 +55,7 @@
     align-items: center;
     border: none;
     background: none;
-    color: #999;
+    color: var(--text-placeholder);
     cursor: pointer;
     padding: 2px;
     border-radius: 4px;

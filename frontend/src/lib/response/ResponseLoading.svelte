@@ -33,7 +33,7 @@
   }
   .elapsed {
     font-size: 13px;
-    color: #999;
+    color: var(--text-placeholder);
     font-variant-numeric: tabular-nums;
   }
   @keyframes primrose-spin {

@@ -3,9 +3,9 @@ import { tags } from '@lezer/highlight';
 
 // VS Code Light+ JSON colors — the most widely recognized light palette.
 export const jsonHighlightStyle = HighlightStyle.define([
-  { tag: tags.propertyName, color: '#0451a5' },
-  { tag: tags.string, color: '#a31515' },
-  { tag: tags.number, color: '#098658' },
-  { tag: [tags.bool, tags.null, tags.keyword], color: '#0000ff' },
-  { tag: [tags.punctuation, tags.separator, tags.bracket], color: '#444444' },
+  { tag: tags.propertyName, color: 'var(--code-key)' },
+  { tag: tags.string, color: 'var(--code-string)' },
+  { tag: tags.number, color: 'var(--code-number)' },
+  { tag: [tags.bool, tags.null, tags.keyword], color: 'var(--code-atom)' },
+  { tag: [tags.punctuation, tags.separator, tags.bracket], color: 'var(--code-punct)' },
 ]);

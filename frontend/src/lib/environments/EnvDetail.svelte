@@ -56,7 +56,7 @@
     padding: 0 16px;
   }
   .note {
-    color: #bbb;
+    color: var(--text-ghost);
     font-size: 12px;
     margin: 0;
   }
@@ -67,7 +67,7 @@
     color: var(--green-text);
   }
   .empty {
-    color: #aaa;
+    color: var(--text-disabled);
     font-size: 13px;
   }
 </style>

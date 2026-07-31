@@ -58,7 +58,7 @@
     background: none;
     font-size: 12px;
     font-family: inherit;
-    color: #bbb;
+    color: var(--text-ghost);
     cursor: pointer;
     padding: 2px 8px;
     border-radius: 4px;

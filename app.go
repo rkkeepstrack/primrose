@@ -28,6 +28,17 @@ type App struct {
 
 	jarMu sync.Mutex
 	jars  map[string]*cookies.Jar // per collection root, session-only
+
+	themeMu    sync.Mutex
+	themeItems map[string]*menu.MenuItem // theme id -> radio item, for checkmark sync
+}
+
+// themes lists the selectable color themes; ids double as the frontend's
+// data-theme attribute values ("default" clears it).
+var themes = []struct{ id, label string }{
+	{"default", "Default"},
+	{"gruvbox-light", "Gruvbox Light"},
+	{"pastel", "Pastel"},
 }
 
 // NewApp creates a new App application struct
@@ -102,8 +113,43 @@ func (a *App) appMenu() *menu.Menu {
 	view := root.AddSubmenu("View")
 	view.AddText("Quick Open Search", keys.CmdOrCtrl("p"), emit("menu:quick-open"))
 	view.AddText("Keyboard Shortcuts", keys.CmdOrCtrl("k"), emit("menu:shortcuts"))
+	view.AddSeparator()
+	// the app menu ("primrose") is a native role Wails expands on the
+	// Objective-C side, so custom items can't live there — View it is
+	view.Append(menu.SubMenu("Theme", a.themesMenu()))
 
 	return root
+}
+
+// themesMenu builds the theme radio group. Clicking an item tells the
+// frontend, which applies and persists the theme, then confirms via SetTheme.
+func (a *App) themesMenu() *menu.Menu {
+	m := menu.NewMenu()
+	a.themeItems = map[string]*menu.MenuItem{}
+	for _, t := range themes {
+		id := t.id
+		item := menu.Radio(t.label, id == "default", nil, func(*menu.CallbackData) {
+			a.SetTheme(id)
+			runtime.EventsEmit(a.ctx, "menu:set-theme", id)
+		})
+		a.themeItems[id] = item
+		m.Append(item)
+	}
+	return m
+}
+
+// SetTheme moves the checkmark in the Themes menu; called from menu clicks
+// and by the frontend when it restores the persisted theme on startup.
+func (a *App) SetTheme(id string) {
+	a.themeMu.Lock()
+	defer a.themeMu.Unlock()
+	if a.themeItems[id] == nil {
+		id = "default"
+	}
+	for tid, item := range a.themeItems {
+		item.Checked = tid == id
+	}
+	runtime.MenuUpdateApplicationMenu(a.ctx)
 }
 
 // ChooseDirectory shows a folder picker (empty string on cancel).

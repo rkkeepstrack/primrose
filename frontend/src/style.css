@@ -8,7 +8,9 @@
   --green-bg-strong: #e4f3ea;
   --green-border: #bfe3cd;
   --blue: #6b9fdb;
+  --blue-text: #4a7cb5;
   --blue-bg: #eef4fc;
+  --blue-bg-strong: #e9f1fa;
   --orange: #e0a869;
   --orange-strong: #e8a94c;
   --orange-bg: #fdf4e7;
@@ -19,6 +21,7 @@
   --red-bg: #fdf0f0;
   --red-text: #b06a6a;
   --yellow-bg: #fdf7dc;
+  --yellow-bg-strong: #f8efc7;
   --yellow-border: #ecdfa8;
   --yellow-bg-light: #fffdf2;
   --yellow-text: #b8a23f;
@@ -29,23 +32,223 @@
   --text-soft: #444;
   --text-muted: #666;
   --text-faint: #888;
+  --text-placeholder: #999;
   --text-disabled: #aaa;
+  --text-ghost: #bbb;
+  --text-on-accent: #fff;
   --border: #e0e0e0;
   --border-soft: #e5e5e5;
   --border-faint: #eee;
+  --border-input: #ddd;
+  --border-strong: #cfcfcf;
+  --bg: #fff;
   --bg-hover: #f5f5f5;
   --bg-soft: #fafafa;
+  --bg-lift: #f7f7f7;
+  --bg-sidebar: #f9f8f6;
+  --bg-sidebar-hover: #edebe7;
+  --scrollbar-thumb: #dcdcdc;
+  --scrollbar-thumb-hover: #c2c2c2;
 
   /* environment purple (matches the env tab tint) */
   --purple: #9d7ad1;
+  --purple-soft: #a08cc0;
   --purple-text: #6c4fa1;
   --purple-bg: #f3eefa;
   --purple-bg-soft: #faf8fd;
   --purple-border: #eae2f4;
   --purple-border-strong: #d9c9ef;
 
+  /* collection-tab tints (per tab kind, see App.svelte) */
+  --tab-yellow-bg-soft: #fdfbf0;
+  --tab-yellow-bg: #fbf0c2;
+  --tab-yellow-border-soft: #f2ead0;
+  --tab-yellow-border-strong: #d9bc55;
+  --tab-yellow-text: #8a7a33;
+  --tab-purple-bg: #ece2f8;
+  --tab-purple-border-strong: #a07fd0;
+  --tab-purple-text: #7d5bab;
+  --tab-blue-bg-soft: #f7fafd;
+  --tab-blue-bg: #ddeaf8;
+  --tab-blue-border-soft: #e0eaf5;
+  --tab-green-bg-soft: #f9fcfa;
+  --tab-green-bg: #ddf1e6;
+  --tab-green-border-soft: #e0efe6;
+
+  /* code editor (CodeMirror themes + JSON syntax highlighting) */
+  --code-key: #0451a5;
+  --code-string: #a31515;
+  --code-number: #098658;
+  --code-atom: #0000ff;
+  --code-punct: #444444;
+  --editor-gutter: #b8b8b8;
+
   --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
   --sans: system-ui, -apple-system, sans-serif;
+}
+
+/* gruvbox light — warm cream background, muted retro accents */
+:root[data-theme='gruvbox-light'] {
+  --green: #98971a;
+  --green-dark: #8a8917;
+  --green-darker: #79740e;
+  --green-text: #79740e;
+  --green-bg: #f4f0c4;
+  --green-bg-strong: #e9e3a8;
+  --green-border: #d3cd82;
+  --blue: #458588;
+  --blue-text: #076678;
+  --blue-bg: #e9e8c5;
+  --blue-bg-strong: #dfe0ba;
+  --orange: #d65d0e;
+  --orange-strong: #d65d0e;
+  --orange-bg: #f8dfae;
+  --tan: #b57614;
+  --tan-bg: #f5e6b3;
+  --red: #cc241d;
+  --red-dark: #9d0006;
+  --red-bg: #f4d3a8;
+  --red-text: #9d0006;
+  --yellow-bg: #f5e1a9;
+  --yellow-bg-strong: #f0d98c;
+  --yellow-border: #e5c56e;
+  --yellow-bg-light: #f9ecc0;
+  --yellow-text: #b57614;
+
+  --text: #3c3836;
+  --text-strong: #282828;
+  --text-soft: #504945;
+  --text-muted: #665c54;
+  --text-faint: #7c6f64;
+  --text-placeholder: #928374;
+  --text-disabled: #a89984;
+  --text-ghost: #bdae93;
+  --text-on-accent: #fbf1c7;
+  --border: #d5c4a1;
+  --border-soft: #dccfa9;
+  --border-faint: #ebdbb2;
+  --border-input: #d5c4a1;
+  --border-strong: #bdae93;
+  --bg: #fbf1c7;
+  --bg-hover: #ebdbb2;
+  --bg-soft: #f9f5d7;
+  --bg-lift: #f2e5bc;
+  --bg-sidebar: #f7ebbd;
+  --bg-sidebar-hover: #e9d9ae;
+  --scrollbar-thumb: #d5c4a1;
+  --scrollbar-thumb-hover: #bdae93;
+
+  --purple: #b16286;
+  --purple-soft: #c48c9f;
+  --purple-text: #8f3f71;
+  --purple-bg: #f2e0bf;
+  --purple-bg-soft: #f7e9c3;
+  --purple-border: #e8d0b4;
+  --purple-border-strong: #d3a488;
+
+  --tab-yellow-bg-soft: #f9f5d7;
+  --tab-yellow-bg: #f5e1a9;
+  --tab-yellow-border-soft: #ebdbb2;
+  --tab-yellow-border-strong: #d79921;
+  --tab-yellow-text: #b57614;
+  --tab-purple-bg: #ebd2b9;
+  --tab-purple-border-strong: #b16286;
+  --tab-purple-text: #8f3f71;
+  --tab-blue-bg-soft: #f4eec6;
+  --tab-blue-bg: #d9dcb4;
+  --tab-blue-border-soft: #e0e0ba;
+  --tab-green-bg-soft: #f4f0c4;
+  --tab-green-bg: #e2db9c;
+  --tab-green-border-soft: #e8e2a8;
+
+  --code-key: #076678;
+  --code-string: #9d0006;
+  --code-number: #79740e;
+  --code-atom: #8f3f71;
+  --code-punct: #504945;
+  --editor-gutter: #bdae93;
+}
+
+/* pastel — soft mint, periwinkle and pink accents, gently muted base */
+:root[data-theme='pastel'] {
+  --green: #79bd98;
+  --green-dark: #6bb28b;
+  --green-darker: #5da37d;
+  --green-text: #4e9a72;
+  --green-bg: #e9f7ef;
+  --green-bg-strong: #d3ecdf;
+  --green-border: #b1dfc6;
+  --blue: #8aa8e4;
+  --blue-text: #6a87c2;
+  --blue-bg: #e7eefb;
+  --blue-bg-strong: #dfe9f9;
+  --orange: #e8ab72;
+  --orange-strong: #e29d54;
+  --orange-bg: #faecdc;
+  --tan: #cfb184;
+  --tan-bg: #f7efe0;
+  --red: #e78a9b;
+  --red-dark: #d97487;
+  --red-bg: #fae4e9;
+  --red-text: #bb5f73;
+  --yellow-bg: #faf3d2;
+  --yellow-bg-strong: #f5e8b8;
+  --yellow-border: #e6d491;
+  --yellow-bg-light: #fdfaea;
+  --yellow-text: #ab9440;
+
+  --text: #42424d;
+  --text-strong: #2d2d36;
+  --text-soft: #50505a;
+  --text-muted: #6d6d78;
+  --text-faint: #8b8b96;
+  --text-placeholder: #9c9ca8;
+  --text-disabled: #b0b0bc;
+  --text-ghost: #c2c2ce;
+  --text-on-accent: #fff;
+  --border: #e0ddea;
+  --border-soft: #e6e4ef;
+  --border-faint: #edecf4;
+  --border-input: #d9d6e4;
+  --border-strong: #c9c6d6;
+  --bg: #fbfbfe;
+  --bg-hover: #f1f0f7;
+  --bg-soft: #f8f7fb;
+  --bg-lift: #f4f3f9;
+  --bg-sidebar: #f4f3f9;
+  --bg-sidebar-hover: #e7e5f0;
+  --scrollbar-thumb: #d9d6e4;
+  --scrollbar-thumb-hover: #c4c1d2;
+
+  --purple: #a688d2;
+  --purple-soft: #ab96cc;
+  --purple-text: #7c5cb0;
+  --purple-bg: #f1eaf9;
+  --purple-bg-soft: #f8f5fd;
+  --purple-border: #e6dbf4;
+  --purple-border-strong: #d2bcee;
+
+  --tab-yellow-bg-soft: #fdfaee;
+  --tab-yellow-bg: #f6e9b8;
+  --tab-yellow-border-soft: #efe4c2;
+  --tab-yellow-border-strong: #d8bd62;
+  --tab-yellow-text: #99854a;
+  --tab-purple-bg: #e6d8f5;
+  --tab-purple-border-strong: #b493e0;
+  --tab-purple-text: #7c5cb0;
+  --tab-blue-bg-soft: #f4f7fd;
+  --tab-blue-bg: #d6e2f7;
+  --tab-blue-border-soft: #dde7f6;
+  --tab-green-bg-soft: #f4faf6;
+  --tab-green-bg: #d5eee0;
+  --tab-green-border-soft: #d9ecdf;
+
+  --code-key: #5f82c8;
+  --code-string: #c97b8e;
+  --code-number: #5fa981;
+  --code-atom: #9377cc;
+  --code-punct: #6d6d78;
+  --editor-gutter: #c2c2ce;
 }
 
 /* slim rounded scrollbars instead of the stock chrome */
@@ -58,19 +261,19 @@
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #dcdcdc;
+  background: var(--scrollbar-thumb);
   border-radius: 6px;
   border: 3px solid transparent;
   background-clip: content-box;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background-color: #c2c2c2;
+  background-color: var(--scrollbar-thumb-hover);
 }
 
 html,
 body {
   margin: 0;
-  background: #fff;
+  background: var(--bg);
   color: var(--text);
   font-family: var(--sans);
   font-size: 14px;
@@ -101,12 +304,12 @@ body {
 }
 .method-HEAD,
 .method-OPTIONS {
-  color: #999;
+  color: var(--text-placeholder);
 }
 
 /* floating card look shared by every popup (Popover, CM-hosted tooltips) */
 .popover-card {
-  background: #fff;
+  background: var(--bg);
   border: 1px solid var(--border);
   border-radius: 8px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
@@ -131,13 +334,13 @@ body {
   background: var(--bg-soft);
 }
 .text-input:hover:not(:focus) {
-  border-color: #cfcfcf;
-  background: #fff;
+  border-color: var(--border-strong);
+  background: var(--bg);
 }
 .text-input:focus {
   outline: none;
   border-color: var(--yellow-border);
-  background: #fff;
+  background: var(--bg);
 }
 
 /* key-value / header tables */
@@ -163,7 +366,7 @@ body {
 .btn-save {
   border: 1px solid var(--border);
   border-radius: 6px;
-  background: #fff;
+  background: var(--bg);
   font-family: inherit;
   color: var(--text-muted);
   cursor: pointer;

@@ -3,6 +3,9 @@
   export let initialPct = 50;
   export let minPct = 20;
   export let maxPct = 80;
+  // flushLeft removes the gutter between the left pane and the divider, so a
+  // tinted left panel (the sidebar) runs right up to the divider line
+  export let flushLeft = false;
 
   let host: HTMLDivElement;
   let dividerEl: HTMLDivElement;
@@ -61,6 +64,7 @@
   <div
     bind:this={dividerEl}
     class="divider"
+    class:flush-left={flushLeft}
     class:dragging
     class:mouse-focus={mouseFocus}
     role="separator"
@@ -101,6 +105,9 @@
     margin: 0 10px;
     cursor: col-resize;
     border-left: 1px solid var(--border-soft);
+  }
+  .divider.flush-left {
+    margin-left: 0;
   }
   .divider:hover,
   .divider.dragging {

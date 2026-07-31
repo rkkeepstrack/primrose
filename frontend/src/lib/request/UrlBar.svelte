@@ -102,7 +102,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    border: 1px solid #ddd;
+    border: 1px solid var(--border-input);
     border-radius: 8px;
     padding: 4px 6px;
     font-size: 13px;
@@ -118,7 +118,7 @@
     border: none;
     border-left: 1px solid var(--border-soft);
     background: none;
-    color: #999;
+    color: var(--text-placeholder);
     cursor: pointer;
     padding: 0 8px 0 12px;
     margin-left: auto;
@@ -207,7 +207,7 @@
   }
   .method-menu-scope :global(.method-item.method-HEAD),
   .method-menu-scope :global(.method-item.method-OPTIONS) {
-    color: #999;
+    color: var(--text-placeholder);
   }
   .action {
     position: relative;
@@ -217,13 +217,13 @@
     width: 36px;
     border: 1px solid var(--border);
     border-radius: 8px;
-    background: #fff;
+    background: var(--bg);
     color: var(--text-muted);
     cursor: pointer;
     padding: 0;
   }
   .action:hover {
-    background: #f7f7f7;
+    background: var(--bg-lift);
   }
   .action.save.dirty {
     border-color: var(--yellow-border);
@@ -242,7 +242,7 @@
   .action.send {
     border: none;
     background: var(--green);
-    color: #fff;
+    color: var(--text-on-accent);
     transition: background 0.1s ease;
   }
   .action.send:hover {
@@ -254,7 +254,7 @@
   .action.cancel {
     border: none;
     background: var(--red);
-    color: #fff;
+    color: var(--text-on-accent);
     transition: background 0.1s ease;
   }
   .action.cancel:hover {

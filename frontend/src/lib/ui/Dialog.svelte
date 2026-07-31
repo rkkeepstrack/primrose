@@ -70,7 +70,7 @@
     z-index: 100;
   }
   .dialog {
-    background: #fff;
+    background: var(--bg);
     border-radius: 10px;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.18);
     padding: 18px 20px;
@@ -83,21 +83,21 @@
   .message {
     margin: 0;
     font-size: 13.5px;
-    color: #333;
+    color: var(--text);
     line-height: 1.45;
   }
   .input {
-    border: 1px solid #e0e0e0;
+    border: 1px solid var(--border);
     border-radius: 6px;
     padding: 7px 12px;
     font-size: 13px;
     font-family: inherit;
-    color: #333;
+    color: var(--text);
   }
   .input:focus {
     outline: none;
-    border-color: #ecdfa8;
-    background: #fffdf2;
+    border-color: var(--yellow-border);
+    background: var(--yellow-bg-light);
   }
   .buttons {
     display: flex;
@@ -105,41 +105,41 @@
     gap: 8px;
   }
   .btn {
-    border: 1px solid #e0e0e0;
+    border: 1px solid var(--border);
     border-radius: 6px;
-    background: #fff;
+    background: var(--bg);
     font-size: 13px;
     font-family: inherit;
-    color: #666;
+    color: var(--text-muted);
     cursor: pointer;
     padding: 6px 16px;
   }
   .btn:hover {
-    background: #f7f7f7;
+    background: var(--bg-lift);
   }
   .btn.primary {
     border: none;
-    background: #4caf7d;
-    color: #fff;
+    background: var(--green);
+    color: var(--text-on-accent);
     font-weight: 500;
   }
   .btn.primary:hover {
-    background: #429e70;
+    background: var(--green-dark);
   }
   .btn.primary.danger {
-    background: #d98282;
+    background: var(--red);
   }
   .btn.primary.danger:hover {
-    background: #c96f6f;
+    background: var(--red-dark);
   }
   .btn.discard {
     border: none;
-    background: #d98282;
-    color: #fff;
+    background: var(--red);
+    color: var(--text-on-accent);
     font-weight: 500;
   }
   .btn.discard:hover {
-    background: #c96f6f;
+    background: var(--red-dark);
   }
   .btn.keep {
     border: 1px solid var(--yellow-border);
@@ -148,6 +148,6 @@
     font-weight: 500;
   }
   .btn.keep:hover {
-    background: #f8efc7;
+    background: var(--yellow-bg-strong);
   }
 </style>

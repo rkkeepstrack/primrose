@@ -8,6 +8,8 @@ import { closeActiveTab, createCollectionViaDialog, openCollectionViaDialog, tog
 import { newRequest, saveRequest } from './requests';
 import { activeRoot, envSaveSignal } from './state';
 import { activeTabId, isEnvTab } from './tabs';
+import { persistSession } from './session';
+import { applyTheme } from './theme';
 
 export function initMenuHandlers() {
   EventsOn('menu:new-request', () => {
@@ -26,4 +28,9 @@ export function initMenuHandlers() {
   EventsOn('menu:close-tab', closeActiveTab);
   EventsOn('menu:quick-open', () => focusSearchSignal.update((n) => n + 1));
   EventsOn('menu:shortcuts', toggleShortcutsTab);
+  // the native menu already moved its own checkmark; apply and persist here
+  EventsOn('menu:set-theme', (id: string) => {
+    applyTheme(id);
+    persistSession();
+  });
 }

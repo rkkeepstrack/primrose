@@ -20,16 +20,16 @@
     '&': { fontSize: '11px', height: '100%', backgroundColor: 'transparent' },
     '.cm-content': {
       fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
-      color: '#444',
+      color: 'var(--text-soft)',
       lineHeight: '1.65',
       padding: '8px 12px',
     },
     // no per-line padding: it breaks indentation-marker alignment
     '.cm-gutters': {
       backgroundColor: 'transparent',
-      color: '#b8b8b8',
+      color: 'var(--editor-gutter)',
       border: 'none',
-      borderRight: '1px solid #eee',
+      borderRight: '1px solid var(--border-faint)',
       lineHeight: '1.65',
     },
     '.cm-lineNumbers .cm-gutterElement': { padding: '0 6px 0 14px', minWidth: '32px' },
@@ -40,16 +40,16 @@
       justifyContent: 'center',
     },
     '.cm-foldPlaceholder': {
-      background: '#f5f5f5',
-      border: '1px solid #e5e5e5',
-      color: '#888',
+      background: 'var(--bg-hover)',
+      border: '1px solid var(--border-soft)',
+      color: 'var(--text-faint)',
       borderRadius: '4px',
       padding: '0 5px',
       margin: '0 2px',
       cursor: 'pointer',
     },
     '.cm-fold-count': {
-      color: '#999',
+      color: 'var(--text-placeholder)',
       fontStyle: 'italic',
     },
     '.cm-activeLine': { backgroundColor: 'transparent' },
@@ -166,7 +166,7 @@
   function foldMarker(open: boolean): HTMLElement {
     const el = document.createElement('span');
     el.style.cssText =
-      'display:inline-flex;align-items:center;justify-content:center;' + 'width:14px;height:14px;cursor:pointer;color:#9a9a9a;';
+      'display:inline-flex;align-items:center;justify-content:center;' + 'width:14px;height:14px;cursor:pointer;color:var(--text-placeholder);';
     el.innerHTML =
       `<svg width="9" height="9" viewBox="0 0 8 8" style="transform:rotate(${open ? 90 : 0}deg)">` +
       '<path d="M1.5 0.5 L6.5 4 L1.5 7.5 Z" fill="currentColor"/></svg>';

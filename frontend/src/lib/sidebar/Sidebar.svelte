@@ -136,6 +136,9 @@
     min-height: 0;
     padding: 12px;
     overflow-y: auto;
+    background: var(--bg-sidebar);
+    /* row hovers need a step darker than the sidebar's own tint */
+    --bg-hover: var(--bg-sidebar-hover);
   }
   .sidebar.root-droppable {
     background: var(--green-bg);
