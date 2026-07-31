@@ -9,8 +9,7 @@ The way it works:
 - If a request is older than that and has changes, the changes are silently discarded
 - There's an additional filter next to the request browser search bar that ONLY shows the last 10 requests without their respective folder hierarchy
 
-<img width="2132" height="1034" alt="image" src="https://github.com/user-attachments/assets/be51244b-c9f4-4600-b22d-fd8a2bf9f5d1" />
-
+<img width="2081" height="1067" alt="image" src="https://github.com/user-attachments/assets/8306b349-c648-4d4b-9c61-f38b59eaa395" />
 
 #### ...and almost without annoying popups dialogs that disturb the working flow.
 
