@@ -11,11 +11,12 @@
   import Menu from '../ui/Menu.svelte';
   import Popover from '../ui/Popover.svelte';
   import MenuItem from '../ui/MenuItem.svelte';
+  import DiskChangeNotice from './DiskChangeNotice.svelte';
+  import DraftNameRow from './DraftNameRow.svelte';
   import { toCurl } from './curl';
   import { setMethod, setUrl } from './requestEdit';
   import { saveRequest } from '../workspace/requests';
   import { cancelRequest, sendRequest } from '../workspace/send';
-  import { keepMyEdits, reloadFromDisk } from '../workspace/sync';
   import { activeEnvVars, dirty, diskChanged, draftName, inheritedHeaders, request, sending } from '../workspace/state';
   import { ClipboardSetText } from '../../../wailsjs/runtime/runtime';
 
@@ -40,25 +41,10 @@
 
 {#if $request}
   {#if $diskChanged}
-    <div class="disk-notice">
-      <span>This request changed on disk while you have unsaved edits.</span>
-      <button class="notice-btn" on:click={reloadFromDisk}>Load disk version</button>
-      <button class="notice-btn keep" on:click={keepMyEdits}>Keep my edits</button>
-    </div>
+    <DiskChangeNotice />
   {/if}
   {#if $draftName !== null}
-    <div class="draft-row">
-      <span class="draft-label">New request</span>
-      <!-- svelte-ignore a11y_autofocus -->
-      <input
-        class="draft-name text-input"
-        placeholder="request name…"
-        value={$draftName}
-        autofocus
-        on:input={(e) => draftName.set(e.currentTarget.value)}
-        on:keydown={(e) => e.key === 'Enter' && saveRequest()} />
-      <span class="draft-hint">saved as {$draftName || 'name'}.toml on Save</span>
-    </div>
+    <DraftNameRow />
   {/if}
   <div class="url-row">
     <div class="url-bar">
@@ -107,59 +93,6 @@
 {/if}
 
 <style>
-  .disk-notice {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 12.5px;
-    color: var(--yellow-text);
-    background: var(--yellow-bg);
-    border: 1px solid var(--yellow-border);
-    border-radius: 6px;
-    padding: 6px 12px;
-  }
-  .notice-btn {
-    border: 1px solid var(--yellow-border);
-    border-radius: 5px;
-    background: #fff;
-    font-size: 12px;
-    font-family: inherit;
-    color: var(--text);
-    cursor: pointer;
-    padding: 3px 10px;
-  }
-  .notice-btn:hover {
-    background: var(--yellow-bg-light);
-  }
-  .notice-btn.keep {
-    margin-left: auto;
-  }
-
-  .draft-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .draft-label {
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--yellow-text);
-    background: var(--yellow-bg);
-    border-radius: 4px;
-    padding: 3px 8px;
-  }
-  .draft-name {
-    border-color: var(--yellow-border);
-    width: 240px;
-  }
-  .draft-name:focus {
-    background: var(--yellow-bg-light);
-  }
-  .draft-hint {
-    font-size: 12px;
-    color: #bbb;
-  }
-
   .url-row {
     display: flex;
     gap: 8px;
