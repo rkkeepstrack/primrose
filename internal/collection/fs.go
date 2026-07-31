@@ -65,7 +65,9 @@ func RenameItem(path, newName string) (string, error) {
 	if dest == path {
 		return path, nil
 	}
-	if _, err := os.Stat(dest); err == nil {
+	// on a case-insensitive filesystem a case-only rename stats as a
+	// collision with itself — only a genuinely different file blocks
+	if destInfo, err := os.Stat(dest); err == nil && !os.SameFile(info, destInfo) {
 		return "", fmt.Errorf("%q already exists here", newName)
 	}
 	if err := os.Rename(path, dest); err != nil {

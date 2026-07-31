@@ -70,6 +70,19 @@ func TestMoveRenameDeleteDuplicate(t *testing.T) {
 		t.Errorf("renamed = %s", renamed)
 	}
 
+	// case-only rename must not collide with itself (case-insensitive FS)
+	upper, err := RenameItem(renamed, "RENAMED")
+	if err != nil {
+		t.Fatalf("case-only rename failed: %v", err)
+	}
+	if filepath.Base(upper) != "RENAMED.toml" {
+		t.Errorf("upper = %s", upper)
+	}
+	renamed, err = RenameItem(upper, "renamed")
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	dup, err := DuplicateItem(renamed)
 	if err != nil {
 		t.Fatal(err)
