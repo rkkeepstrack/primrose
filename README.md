@@ -4,7 +4,8 @@
 
 This way, Changes and Tabs can't clutter your UI and you don't have to ask yourself everytime when closing tabs if you REALLY want to discard your changes - you might need them again in a few years.
 
-The way it works: 
+The way it works:
+
 - The last 10 opened requests are colored in a gradient from red to blue in the sidebar, like a heatmap
 - If a request is older than that and has changes, the changes are silently discarded
 - There's an additional filter next to the request browser search bar that ONLY shows the last 10 requests without their respective folder hierarchy
@@ -13,7 +14,7 @@ The way it works:
 
 #### ...and almost without annoying popups dialogs that disturb the working flow.
 
-Other API Clients tend to ask way too much stuff. This one only asks if you want to close a collection or discard changes on the environment. 
+Other API Clients tend to ask way too much stuff. This one only asks if you want to close a collection or discard changes on the environment.
 
 #### No Proprietary Formats
 
@@ -22,7 +23,7 @@ Hierarchy in the Files automatically represent how it will look in-application i
 
 #### Git-Friendly
 
-All Requests and folders are just sorted alphabetically, so no information about structure has to be stored anywhere - which makes it a charm to work with in git. 
+All Requests and folders are just sorted alphabetically, so no information about structure has to be stored anywhere - which makes it a charm to work with in git.
 
 Just store your Primrose collection with your application and push new requests directly with the corresponding PR.
 
@@ -55,4 +56,6 @@ gh workflow run release.yml -f version=v0.1.0
 # or: git tag v0.1.0 && git push origin v0.1.0
 ```
 
+### License
 
+Primrose is free for personal and other noncommercial use under the [PolyForm Noncommercial License 1.0.0](LICENSE.md) — use it, modify it, share it, just not commercially.
