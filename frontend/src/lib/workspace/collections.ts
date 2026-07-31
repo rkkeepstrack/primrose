@@ -2,9 +2,10 @@
 
 import { get } from 'svelte/store';
 import type { Collection, TreeNode } from '../shared/types';
-import { ChooseDirectory, CreateCollection, GetTree, OpenCollectionDialog } from '../../../wailsjs/go/main/App';
+import { ChooseDirectory, CreateCollection, OpenCollectionDialog } from '../../../wailsjs/go/main/App';
 import { closeEnvView, confirmDiscardEnvEdits, loadEnvironments } from './environments';
 import { maybeAbandonDraft, stashCurrentEdit } from './drafts';
+import { selectRequest } from './requests';
 import { activeIdx, activeRoot, clearSelection, collections, envDrafts, error, lastRequestByRoot, selectedPath } from './state';
 import {
   activateTab,
@@ -60,7 +61,6 @@ export async function closeActiveTab() {
   const id = get(activeTabId);
   if (!id) return;
   if (isEnvTab(id)) {
-    const { closeEnvView } = await import('./environments');
     await closeEnvView(id);
   } else if (isSpecialTab(id)) {
     closeTab(id);
@@ -84,7 +84,6 @@ export async function switchTab(id: string) {
     if (node && !node.isFolder) {
       // selectRequest stashes the outgoing edit itself; not clearing first
       // keeps the old view up until the new request is loaded (no flicker)
-      const { selectRequest } = await import('./requests'); // lazy: requests.ts imports this module
       await selectRequest(node);
     } else {
       stashCurrentEdit();
@@ -158,13 +157,4 @@ export async function openEnvironmentTab(root: string) {
 
 export async function openCookiesTab(root: string) {
   openSpecialTab(cookiesTabId(root));
-}
-
-export async function refreshTree() {
-  const root = get(activeRoot);
-  if (!root) return;
-  const col = (await GetTree(root)) as Collection;
-  const cols = get(collections);
-  cols[get(activeIdx)] = col;
-  collections.set(cols);
 }

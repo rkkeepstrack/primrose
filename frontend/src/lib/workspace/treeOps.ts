@@ -7,7 +7,7 @@ import { confirmDialog, promptDialog } from '../ui/dialogs';
 import { runOp } from './op';
 import { dropEdit, renameRecent } from '../shared/stores';
 import { CreateFolder, DeleteItem, DuplicateItem, MoveItem, RenameItem } from '../../../wailsjs/go/main/App';
-import { refreshTree } from './collections';
+import { refreshTree } from './refresh';
 import { dirty, error, request, selectedPath } from './state';
 
 export async function newFolder(dir: string) {

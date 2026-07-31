@@ -6,7 +6,7 @@ import { errMsg } from '../shared/errors';
 import { normalizeUrlAndQuery } from '../shared/urlQuery';
 import { dropEdit, touchRecent, unsavedEdits } from '../shared/stores';
 import { CreateRequest, ReadRequest, SaveRequest } from '../../../wailsjs/go/main/App';
-import { refreshTree } from './collections';
+import { refreshTree } from './refresh';
 import { maybeAbandonDraft, newDraftKey, stashCurrentEdit } from './drafts';
 import { clearSelection, dirty, diskChanged, draftDir, draftName, error, request, selectedPath } from './state';
 
