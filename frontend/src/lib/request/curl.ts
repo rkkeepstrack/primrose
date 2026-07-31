@@ -1,9 +1,5 @@
 import type { ApiRequest } from '../shared/types';
-
-// Same variable syntax contract as vars.ts / the Go resolver
-// (internal/collection/resolve.go).
-const ENV_VAR_RE = /\{\{([A-Za-z_][A-Za-z0-9_-]*)\}\}/g;
-const DYNAMIC_VAR_RE = /(^|[/=&?,\s]):([A-Za-z_][A-Za-z0-9_]*)/g;
+import { DYNAMIC_VAR_RE, ENV_VAR_RE } from './vars';
 
 function shellQuote(s: string): string {
   return `'${s.replace(/'/g, `'\\''`)}'`;
