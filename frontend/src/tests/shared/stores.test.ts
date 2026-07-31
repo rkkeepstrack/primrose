@@ -1,6 +1,6 @@
 import { describe, expect, it, beforeEach } from 'vitest';
 import { get } from 'svelte/store';
-import { RECENT_MAX, recentPaths, touchRecent, renameRecent, unsavedEdits, stashEdit, dropEdit, pruneEdits } from '../../lib/shared/stores';
+import { RECENT_MAX, recentPaths, touchRecent, renameRecent, unsavedEdits, stashEdit, dropEdit } from '../../lib/shared/stores';
 import type { ApiRequest } from '../../lib/shared/types';
 
 const fakeReq = { method: 'GET', url: '' } as ApiRequest;
@@ -35,10 +35,13 @@ describe('unsavedEdits', () => {
     expect(get(unsavedEdits)).toEqual({});
   });
 
-  it('prunes edits outside the keep list', () => {
-    stashEdit('/keep', fakeReq);
-    stashEdit('/discard', fakeReq);
-    pruneEdits(['/keep']);
-    expect(Object.keys(get(unsavedEdits))).toEqual(['/keep']);
+  it('discards stashed edits once the request leaves the recents window', () => {
+    touchRecent('/old');
+    stashEdit('/old', fakeReq);
+    touchRecent('/still-recent');
+    stashEdit('/still-recent', fakeReq);
+    for (let i = 0; i < RECENT_MAX - 1; i++) touchRecent(`/r${i}`);
+    expect(get(unsavedEdits)['/still-recent']).toBe(fakeReq);
+    expect(get(unsavedEdits)['/old']).toBeUndefined();
   });
 });

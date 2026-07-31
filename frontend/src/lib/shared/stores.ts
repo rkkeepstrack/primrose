@@ -17,7 +17,11 @@ export const RECENT_MAX = 10;
 export const recentPaths = writable<string[]>([]);
 
 export function touchRecent(path: string) {
-  recentPaths.update((list) => [path, ...list.filter((p) => p !== path)].slice(0, RECENT_MAX));
+  recentPaths.update((list) => {
+    const next = [path, ...list.filter((p) => p !== path)].slice(0, RECENT_MAX);
+    pruneEdits(next);
+    return next;
+  });
 }
 
 export function renameRecent(oldPath: string, newPath: string) {
@@ -31,7 +35,6 @@ export function renameRecent(oldPath: string, newPath: string) {
 
 // Unsaved edits per request path, kept while the request stays within the
 // recents window; pruned (silently discarded) once it falls out.
-// NOTE: the window size (10) is planned to become a global setting — see plans/bug-fixes.md.
 export const unsavedEdits = writable<Record<string, ApiRequest>>({});
 
 export function stashEdit(path: string, request: ApiRequest) {
@@ -45,7 +48,7 @@ export function dropEdit(path: string) {
   });
 }
 
-export function pruneEdits(keep: string[]) {
+function pruneEdits(keep: string[]) {
   const keepSet = new Set(keep);
   unsavedEdits.update((e) => Object.fromEntries(Object.entries(e).filter(([p]) => keepSet.has(p))));
 }
