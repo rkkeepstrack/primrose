@@ -97,5 +97,36 @@ its own project, and the review pass (H) after A–C have landed.
 
 ## H. Process (not a fix)
 
-- [ ] recurring code review check (SOLID, Clean Code, test coverage,
+- [x] recurring code review check (SOLID, Clean Code, test coverage,
       redundancy check, sanity check) — run after batches A–C have landed
+      (first pass 2026-07-31; /architecture-review skill)
+
+### Architecture review 2026-07-31 — decisions
+
+Fixed in this batch: collections↔requests cycle (workspace/refresh.ts),
+variable regexes shared vars.ts→curl.ts (+ toCurl tests),
+workspace/cookies.ts operations module, UrlBar split (DiskChangeNotice,
+DraftNameRow), CodeEditor plugin extraction (variableHighlight.ts,
+jsonDiagnostics.ts), EnvironmentEditor rendering split (EnvList/EnvDetail,
+stashEnvDraft/clearEnvDraft), normalizeAndSetRequest(), operateThenReload(),
+KeyValueViewer, responseMode.ts + keyValueTable.ts extractions with tests.
+
+- [x] DECIDED: workspace/menu.ts may import sidebar UI signals
+      (focusSearchSignal stays in sidebar/treeView.ts — it is sidebar
+      view-state; moving it to workspace/ would pollute state.ts with UI
+      detail). Don't re-raise the cross-feature import.
+- [x] DECIDED: the edge-triggered `let last; $: if (x !== last)` pattern is
+      idiomatic Svelte — no useOnChange()-style helper.
+- [x] DECIDED: no shared HoverRow / HoverButton / SaveButton components —
+      the visual similarities are superficial; the call sites differ in
+      structure and semantics.
+- [x] DECIDED: Sidebar keeps its global keyboard handling (F2, Alt-Up/Down,
+      ⌘P) — extracting it adds indirection without value.
+- [x] DECIDED: error handling stays as-is — sync.ts logging external-sync
+      failures via console.warn instead of the error store is intentional
+      (external changes must not interrupt the UI).
+- [ ] deferred: tests for workspace/collections.ts (switchTab /
+      dropCollection) and workspace/requests.ts (selectRequest stash
+      restoration) — need a Wails-bindings mock harness first
+- [ ] deferred: Go tests for internal/collection/write.go (sanitizeName,
+      WriteRequest TOML ordering)
