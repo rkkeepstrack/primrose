@@ -2,62 +2,33 @@
   import X from '@lucide/svelte/icons/x';
   // The collection's session cookie jar: inspect, delete, clear, add.
   import { onMount } from 'svelte';
-  import { AddCookie, ClearCookies, DeleteCookie, GetCookies } from '../../../wailsjs/go/main/App';
-  import { confirmDialog } from '../ui/dialogs';
-  import { runOp } from '../workspace/op';
+  import { addCookie, clearAllCookies, deleteCookie, loadCookies, type Cookie } from '../workspace/cookies';
 
   export let root: string;
-
-  interface Cookie {
-    domain: string;
-    path: string;
-    name: string;
-    value: string;
-    expires: string;
-    secure: boolean;
-    httpOnly: boolean;
-    hostOnly: boolean;
-  }
 
   let cookies: Cookie[] = [];
   let draft = { domain: '', name: '', value: '' };
 
   async function refresh() {
-    cookies = ((await GetCookies(root)) ?? []) as Cookie[];
+    cookies = await loadCookies(root);
   }
   onMount(refresh);
 
   async function remove(c: Cookie) {
-    await runOp(async () => {
-      await DeleteCookie(root, c.domain, c.path, c.name);
-      await refresh();
-    });
+    await deleteCookie(root, c);
+    await refresh();
   }
 
   async function clearAll() {
-    if (!(await confirmDialog('Delete all session cookies of this collection?', true))) return;
-    await runOp(async () => {
-      await ClearCookies(root);
-      await refresh();
-    });
+    await clearAllCookies(root);
+    await refresh();
   }
 
   async function add() {
     if (!draft.domain.trim() || !draft.name.trim()) return;
-    await runOp(async () => {
-      await AddCookie(root, {
-        domain: draft.domain.trim(),
-        path: '/',
-        name: draft.name.trim(),
-        value: draft.value,
-        expires: '',
-        secure: false,
-        httpOnly: false,
-        hostOnly: false,
-      } as never);
-      draft = { domain: '', name: '', value: '' };
-      await refresh();
-    });
+    await addCookie(root, draft);
+    draft = { domain: '', name: '', value: '' };
+    await refresh();
   }
 
   function fmtExpiry(iso: string): string {
