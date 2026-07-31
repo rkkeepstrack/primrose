@@ -17,7 +17,8 @@
   function onKeydown(e: KeyboardEvent) {
     if (!$dialog) return;
     if (e.key === 'Escape') close($dialog.kind === 'prompt' ? null : false);
-    if (e.key === 'Enter') close($dialog.kind === 'prompt' ? value : true);
+    // Enter keeps editing on discard dialogs — losing work needs a click
+    if (e.key === 'Enter') close($dialog.kind === 'prompt' ? value : $dialog.kind !== 'discard');
   }
 </script>
 
@@ -36,13 +37,18 @@
         <input class="input" bind:value autofocus spellcheck="false" />
       {/if}
       <div class="buttons">
-        <button class="btn" on:click={() => close($dialog.kind === 'prompt' ? null : false)}> Cancel </button>
-        {#if $dialog.kind === 'prompt'}
-          <button class="btn primary" on:click={() => close(value)}>OK</button>
+        {#if $dialog.kind === 'discard'}
+          <button class="btn discard" on:click={() => close(true)}>Discard</button>
+          <button class="btn keep" on:click={() => close(false)}>Keep editing</button>
         {:else}
-          <button class="btn primary" class:danger={$dialog.danger} on:click={() => close(true)}>
-            {$dialog.danger ? 'Delete' : 'OK'}
-          </button>
+          <button class="btn" on:click={() => close($dialog.kind === 'prompt' ? null : false)}> Cancel </button>
+          {#if $dialog.kind === 'prompt'}
+            <button class="btn primary" on:click={() => close(value)}>OK</button>
+          {:else}
+            <button class="btn primary" class:danger={$dialog.danger} on:click={() => close(true)}>
+              {$dialog.danger ? 'Delete' : 'OK'}
+            </button>
+          {/if}
         {/if}
       </div>
     </div>
@@ -122,5 +128,23 @@
   }
   .btn.primary.danger:hover {
     background: #c96f6f;
+  }
+  .btn.discard {
+    border: none;
+    background: #d98282;
+    color: #fff;
+    font-weight: 500;
+  }
+  .btn.discard:hover {
+    background: #c96f6f;
+  }
+  .btn.keep {
+    border: 1px solid var(--yellow-border);
+    background: var(--yellow-bg);
+    color: var(--text);
+    font-weight: 500;
+  }
+  .btn.keep:hover {
+    background: #f8efc7;
   }
 </style>

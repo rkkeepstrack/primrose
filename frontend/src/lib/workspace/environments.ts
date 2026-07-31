@@ -10,7 +10,7 @@ import {
   RenameEnvironment,
   SaveEnvironment,
 } from '../../../wailsjs/go/main/App';
-import { confirmDialog, promptDialog } from '../ui/dialogs';
+import { confirmDialog, discardDialog, promptDialog } from '../ui/dialogs';
 import { runOp } from './op';
 import { environments, envDrafts } from './state';
 import { closeTab, envTabRoot, isEnvTab } from './tabs';
@@ -19,7 +19,7 @@ import { closeTab, envTabRoot, isEnvTab } from './tabs';
 // clean); returns false if the user chose to keep editing
 export async function confirmDiscardEnvEdits(root: string): Promise<boolean> {
   if (!get(envDrafts)[root]) return true;
-  if (!(await confirmDialog('Discard unsaved environment changes?'))) return false;
+  if (!(await discardDialog('Discard unsaved environment changes?'))) return false;
   envDrafts.update(({ [root]: _, ...rest }) => rest);
   return true;
 }

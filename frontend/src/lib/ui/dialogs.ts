@@ -4,7 +4,7 @@ import { writable } from 'svelte/store';
 // are rendered in-app (see Dialog.svelte).
 
 export interface DialogState {
-  kind: 'confirm' | 'prompt';
+  kind: 'confirm' | 'prompt' | 'discard';
   message: string;
   initial?: string;
   danger?: boolean;
@@ -16,6 +16,14 @@ export const dialog = writable<DialogState | null>(null);
 export function confirmDialog(message: string, danger = false): Promise<boolean> {
   return new Promise((resolve) => {
     dialog.set({ kind: 'confirm', message, danger, resolve: (v) => resolve(Boolean(v)) });
+  });
+}
+
+// unsaved-changes dialogs: a red "Discard" and a yellow "Keep editing";
+// resolves true when the user chose to discard
+export function discardDialog(message: string): Promise<boolean> {
+  return new Promise((resolve) => {
+    dialog.set({ kind: 'discard', message, resolve: (v) => resolve(Boolean(v)) });
   });
 }
 
