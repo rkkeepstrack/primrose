@@ -31,4 +31,29 @@ Just store your Primrose collection with your application and push new requests 
 
 With super+k you can see all available shortcuts.
 
+## Quickstart
+
+### Run
+
+Grab the latest build for your OS from the [Releases](https://github.com/rkkeepstrack/primrose/releases) page, unzip it, and launch it. On macOS the app is unsigned, so on first launch you may need to right-click → Open.
+
+### Development
+
+Requires Go 1.25+, Node 22+, and the [Wails CLI](https://wails.io/docs/gettingstarted/installation) (`go install github.com/wailsapp/wails/v2/cmd/wails@latest`).
+
+```sh
+wails dev          # run the app with hot reload
+go test ./...      # backend tests
+cd frontend && npm test   # frontend tests
+```
+
+### Deployment
+
+GitHub Actions builds macOS, Windows, and Linux binaries and publishes them as a GitHub Release. Either run the "Release" workflow from the Actions tab (it tags for you), or push a tag manually:
+
+```sh
+gh workflow run release.yml -f version=v0.1.0
+# or: git tag v0.1.0 && git push origin v0.1.0
+```
+
 

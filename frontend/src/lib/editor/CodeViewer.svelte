@@ -166,7 +166,8 @@
   function foldMarker(open: boolean): HTMLElement {
     const el = document.createElement('span');
     el.style.cssText =
-      'display:inline-flex;align-items:center;justify-content:center;' + 'width:14px;height:14px;cursor:pointer;color:var(--text-placeholder);';
+      'display:inline-flex;align-items:center;justify-content:center;' +
+      'width:14px;height:14px;cursor:pointer;color:var(--text-placeholder);';
     el.innerHTML =
       `<svg width="9" height="9" viewBox="0 0 8 8" style="transform:rotate(${open ? 90 : 0}deg)">` +
       '<path d="M1.5 0.5 L6.5 4 L1.5 7.5 Z" fill="currentColor"/></svg>';
