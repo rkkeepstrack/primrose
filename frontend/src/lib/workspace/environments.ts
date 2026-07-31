@@ -12,15 +12,15 @@ import {
 } from '../../../wailsjs/go/main/App';
 import { confirmDialog, promptDialog } from '../ui/dialogs';
 import { runOp } from './op';
-import { environments, envEditorDirty } from './state';
+import { environments, envDrafts } from './state';
 import { closeTab, envTabRoot, isEnvTab } from './tabs';
 
-// asks to discard unsaved environment edits (no-op when clean);
-// returns false if the user chose to keep editing
-export async function confirmDiscardEnvEdits(): Promise<boolean> {
-  if (!get(envEditorDirty)) return true;
+// asks to discard the collection's unsaved environment edits (no-op when
+// clean); returns false if the user chose to keep editing
+export async function confirmDiscardEnvEdits(root: string): Promise<boolean> {
+  if (!get(envDrafts)[root]) return true;
   if (!(await confirmDialog('Discard unsaved environment changes?'))) return false;
-  envEditorDirty.set(false);
+  envDrafts.update(({ [root]: _, ...rest }) => rest);
   return true;
 }
 
@@ -28,7 +28,7 @@ export async function confirmDiscardEnvEdits(): Promise<boolean> {
 // returns false if the user chose to stay
 export async function closeEnvView(id: string): Promise<boolean> {
   if (!isEnvTab(id)) return false;
-  if (!(await confirmDiscardEnvEdits())) return false;
+  if (!(await confirmDiscardEnvEdits(envTabRoot(id)))) return false;
   closeTab(id);
   return true;
 }

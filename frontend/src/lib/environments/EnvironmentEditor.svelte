@@ -1,12 +1,11 @@
 <script lang="ts">
-  import { onDestroy } from 'svelte';
   import type { Environment } from '../shared/types';
   import KeyValueEditor from '../ui/KeyValueEditor.svelte';
   import SplitPane from '../ui/SplitPane.svelte';
   import ContextMenu from '../ui/ContextMenu.svelte';
   import { confirmDialog, promptDialog } from '../ui/dialogs';
   import { confirmDiscardEnvEdits, deleteEnvironment, duplicateEnvironment, renameEnvironment } from '../workspace/environments';
-  import { envEditorDirty, envSaveSignal } from '../workspace/state';
+  import { envDrafts, envSaveSignal } from '../workspace/state';
 
   export let root: string;
   export let environments: Environment[];
@@ -26,11 +25,18 @@
 
   $: active = environments.find((e) => e.name === activeName) ?? null;
 
-  // reset draft when switching environments
+  // reset draft when switching environments; a stashed draft from a previous
+  // tab switch takes precedence so unsaved edits survive leaving the tab
   $: if (active && draftFor !== active.name) {
     draftFor = active.name;
-    draft = { ...active.vars };
-    headersDraft = { ...active.headers };
+    const stash = $envDrafts[root];
+    if (stash && stash.name === active.name) {
+      draft = { ...stash.vars };
+      headersDraft = { ...stash.headers };
+    } else {
+      draft = { ...active.vars };
+      headersDraft = { ...active.headers };
+    }
     search = '';
   }
 
@@ -51,11 +57,23 @@
   }
 
   $: dirty = active && draft && headersDraft ? !sameVars(draft, active.vars) || !sameVars(headersDraft, active.headers) : false;
-  $: envEditorDirty.set(dirty);
-  onDestroy(() => envEditorDirty.set(false));
+
+  // keep the shared stash in sync: dirty drafts survive unmounting (tab
+  // switches), clean state drops the stash again
+  $: syncStash(dirty, draft, headersDraft);
+  function syncStash(d: boolean, vars: Record<string, string> | null, headers: Record<string, string> | null) {
+    envDrafts.update((m) => {
+      if (d && draftFor && vars && headers) return { ...m, [root]: { name: draftFor, vars, headers } };
+      if (!d && m[root]) {
+        const { [root]: _, ...rest } = m;
+        return rest;
+      }
+      return m;
+    });
+  }
 
   async function createEnv() {
-    if (!(await confirmDiscardEnvEdits())) return;
+    if (!(await confirmDiscardEnvEdits(root))) return;
     const name = await promptDialog('Environment name:');
     if (!name?.trim()) return;
     draftFor = null;
@@ -64,7 +82,7 @@
 
   async function pick(name: string) {
     if (name === activeName) return;
-    if (!(await confirmDiscardEnvEdits())) return;
+    if (!(await confirmDiscardEnvEdits(root))) return;
     draftFor = null; // force a fresh draft for the newly picked environment
     onSelect(name);
   }

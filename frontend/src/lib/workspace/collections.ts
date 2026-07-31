@@ -5,7 +5,7 @@ import type { Collection, TreeNode } from '../shared/types';
 import { ChooseDirectory, CreateCollection, GetTree, OpenCollectionDialog } from '../../../wailsjs/go/main/App';
 import { closeEnvView, confirmDiscardEnvEdits, loadEnvironments } from './environments';
 import { maybeAbandonDraft, stashCurrentEdit } from './drafts';
-import { activeIdx, activeRoot, clearSelection, collections, envEditorDirty, error, lastRequestByRoot, selectedPath } from './state';
+import { activeIdx, activeRoot, clearSelection, collections, envDrafts, error, lastRequestByRoot, selectedPath } from './state';
 import {
   activateTab,
   activeTabId,
@@ -69,17 +69,8 @@ export async function closeActiveTab() {
   }
 }
 
-// leaving the active environment tab unmounts its editor — unsaved edits
-// need a confirmation before any tab switch away from it
-async function mayLeaveEnvTab(): Promise<boolean> {
-  const id = get(activeTabId);
-  if (!id || !isEnvTab(id)) return true;
-  return confirmDiscardEnvEdits();
-}
-
 export async function switchTab(id: string) {
   if (id === get(activeTabId)) return;
-  if (!(await mayLeaveEnvTab())) return;
   if (!(await maybeAbandonDraft())) return;
   const prevRoot = get(activeRoot);
   const prevPath = get(selectedPath);
@@ -116,7 +107,6 @@ export async function toggleShortcutsTab() {
     closeTab('shortcuts');
     return;
   }
-  if (!(await mayLeaveEnvTab())) return;
   openSpecialTab('shortcuts');
 }
 
@@ -124,6 +114,7 @@ export async function toggleShortcutsTab() {
 // folder on disk is untouched
 export function dropCollection(root: string) {
   lastRequestByRoot.update(({ [root]: _, ...rest }) => rest);
+  envDrafts.update(({ [root]: _, ...rest }) => rest);
   const wasActive = removeCollectionTabs(root);
   const remaining = removeFromCollections(root);
   if (wasActive) fallBackToRemaining(remaining);
@@ -156,18 +147,16 @@ export async function closeCollection(root: string) {
   const col = get(collections).find((c) => c.root === root);
   if (!col) return;
   if (!(await confirmDialog(`Close collection "${col.name}"?`))) return;
-  // its env editor may hold unsaved edits
-  if (get(activeTabId) === envTabId(root) && !(await confirmDiscardEnvEdits())) return;
+  // its env editor may hold unsaved edits (drafts survive tab switches)
+  if (!(await confirmDiscardEnvEdits(root))) return;
   dropCollection(root);
 }
 
 export async function openEnvironmentTab(root: string) {
-  if (!(await mayLeaveEnvTab())) return;
   openSpecialTab(envTabId(root));
 }
 
 export async function openCookiesTab(root: string) {
-  if (!(await mayLeaveEnvTab())) return;
   openSpecialTab(cookiesTabId(root));
 }
 

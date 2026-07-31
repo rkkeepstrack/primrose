@@ -16,8 +16,9 @@ export const environments = writable<Record<string, Environment[]>>({});
 export const restored = writable(false);
 // the open request was modified on disk while it had unsaved edits here
 export const diskChanged = writable(false);
-// the environment editor has unsaved variable edits
-export const envEditorDirty = writable(false);
+// unsaved environment-editor drafts per collection root; they survive tab
+// switches and are only confirmed away when the env tab itself closes
+export const envDrafts = writable<Record<string, { name: string; vars: Record<string, string>; headers: Record<string, string> }>>({});
 // bumped by the ⌘S menu handler while an environment tab is active
 export const envSaveSignal = writable(0);
 // last opened request per collection root, restored when switching back
