@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
-  import { EditorView, keymap, lineNumbers, placeholder as cmPlaceholder } from '@codemirror/view';
+  import { drawSelection, EditorView, keymap, lineNumbers, placeholder as cmPlaceholder } from '@codemirror/view';
   import { EditorState } from '@codemirror/state';
   import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
   import { json } from '@codemirror/lang-json';
@@ -40,6 +40,9 @@
       padding: singleLine ? '5px 4px' : '8px 4px',
     },
     '.cm-line': { padding: '0 2px' },
+    '.cm-cursor': { borderLeftColor: 'var(--text)' },
+    '.cm-selectionBackground': { backgroundColor: 'var(--blue-bg-strong)' },
+    '&.cm-focused .cm-selectionBackground': { backgroundColor: 'var(--blue-bg-strong)' },
     '&.cm-focused': { outline: 'none' },
     '.cm-activeLine': { backgroundColor: 'transparent' },
     '.cm-primrose-var': { color: 'var(--green-text)', fontWeight: '600' },
@@ -79,6 +82,9 @@
 
   function extensions() {
     const ext = [
+      // draw the cursor ourselves: WKWebView's native caret leaves stale
+      // paint artifacts ("ghost cursors") when the editor scrolls internally
+      drawSelection(),
       history(),
       keymap.of([...defaultKeymap, ...historyKeymap]),
       varHighlighter,
