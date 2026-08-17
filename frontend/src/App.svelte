@@ -165,8 +165,11 @@
     <div class="empty-state">
       <img class="splash-logo" src={primroseLogo} alt="" />
       <h1>Primrose</h1>
-      <p>Open a collection folder to get started.</p>
-      <button class="primary" on:click={openCollectionViaDialog}>Open Collection…</button>
+      <p>Open a collection folder to get started — or create a new one.</p>
+      <div class="empty-actions">
+        <button class="primary" on:click={openCollectionViaDialog}>Open Collection…</button>
+        <button class="primary" on:click={createCollectionViaDialog}>New Collection…</button>
+      </div>
     </div>
   {:else if $activeTabId === 'shortcuts'}
     <ShortcutsPanel />
@@ -366,6 +369,10 @@
     width: 72px;
     height: 72px;
     margin-bottom: 6px;
+  }
+  .empty-actions {
+    display: flex;
+    gap: 10px;
   }
   .primary {
     border: 1px solid var(--yellow-border);
