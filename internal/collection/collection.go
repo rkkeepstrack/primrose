@@ -70,6 +70,9 @@ func Open(root string) (*Collection, error) {
 	if err != nil {
 		return nil, err
 	}
+	if tree == nil {
+		tree = []*Node{} // an empty collection must serialize as [], not null
+	}
 	return &Collection{Name: filepath.Base(root), Root: root, Tree: tree}, nil
 }
 

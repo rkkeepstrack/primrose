@@ -82,6 +82,9 @@ func TestOpenCreatesManifest(t *testing.T) {
 	if _, err := os.Stat(filepath.Join(root, "primrose.toml")); err != nil {
 		t.Error("manifest should have been created")
 	}
+	if col.Tree == nil {
+		t.Error("empty collection must have a non-nil tree (serializes as [], not null)")
+	}
 }
 
 func TestWriteRequestRoundTrip(t *testing.T) {

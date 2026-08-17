@@ -22,7 +22,7 @@
   }
 
   $: col = $collections[$activeIdx] ?? null;
-  $: counts = col ? countTree(col.tree) : { requests: 0, folders: 0 };
+  $: counts = col ? countTree(col.tree ?? []) : { requests: 0, folders: 0 };
 </script>
 
 {#if col}
