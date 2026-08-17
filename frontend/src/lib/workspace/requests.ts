@@ -8,7 +8,7 @@ import { dropEdit, touchRecent, unsavedEdits } from '../shared/stores';
 import { CreateRequest, ReadRequest, SaveRequest } from '../../../wailsjs/go/main/App';
 import { refreshTree } from './refresh';
 import { newDraftKey, stashCurrentEdit } from './drafts';
-import { clearSelection, dirty, diskChanged, draftDir, draftName, error, request, selectedPath } from './state';
+import { activeRoot, clearSelection, dirty, diskChanged, draftDir, draftName, error, request, selectedPath } from './state';
 
 // URL is the source of truth for query params in the UI: requests loaded
 // from disk get their query folded into the URL before entering the store
@@ -37,7 +37,8 @@ export async function selectRequest(node: TreeNode) {
       dirty.set(false);
     }
     selectedPath.set(node.path);
-    touchRecent(node.path);
+    const root = get(activeRoot);
+    if (root) touchRecent(root, node.path);
   } catch (e) {
     error.set(errMsg(e));
   }

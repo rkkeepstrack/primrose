@@ -5,7 +5,7 @@ import { derived, writable } from 'svelte/store';
 import type { TreeNode } from '../shared/types';
 import { filterTree } from './fuzzy';
 import { RECENT_MAX, recentPaths, unsavedEdits } from '../shared/stores';
-import { activeIdx, collections, dirty, draftDir, draftName, selectedPath } from '../workspace/state';
+import { activeIdx, activeRoot, collections, dirty, draftDir, draftName, selectedPath } from '../workspace/state';
 
 // sentinel path of the synthetic tree row that mirrors an unsaved draft
 export const DRAFT_PATH = '\u0000draft';
@@ -104,8 +104,9 @@ export const visibleTree = derived(
     if (!$recentOn) {
       visible = filterTree(tree, $search);
     } else {
-      // flat list of the recent requests, chronological (newest first)
-      const flat = $recents.map((p) => findRequestNode(tree, p)).filter((n): n is TreeNode => n !== null);
+      // flat list of this collection's recent requests, chronological (newest first)
+      const recents = $recents[$collections[$activeIdx]?.root ?? ''] ?? [];
+      const flat = recents.map((p) => findRequestNode(tree, p)).filter((n): n is TreeNode => n !== null);
       visible = filterTree(flat, $search);
     }
     // mirror an unsaved draft as a synthetic row in its target folder
@@ -132,8 +133,10 @@ export const flatRequests = derived(visibleTree, ($tree) => {
   return out;
 });
 
-// path -> 0..1 recency rank (1 = most recent)
-export const heat = derived(recentPaths, ($recents) => Object.fromEntries($recents.map((p, i) => [p, (RECENT_MAX - i) / RECENT_MAX])));
+// path -> 0..1 recency rank (1 = most recent), for the active collection
+export const heat = derived([recentPaths, activeRoot], ([$recents, $root]) =>
+  Object.fromEntries(($recents[$root ?? ''] ?? []).map((p, i) => [p, (RECENT_MAX - i) / RECENT_MAX])),
+);
 
 // True heatmap semantics: warm when fresh, cooling with age.
 // Newest = orange (35°, blending into the yellow/orange selection), aging

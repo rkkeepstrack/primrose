@@ -20,7 +20,7 @@ beforeEach(() => {
   activeIdx.set(0);
   search.set('');
   recentFilterOn.set(false);
-  recentPaths.set([]);
+  recentPaths.set({});
 });
 
 describe('visibleTree', () => {
@@ -30,14 +30,14 @@ describe('visibleTree', () => {
 
   it('recent mode flattens to recents, newest first, skipping unknown paths', () => {
     recentFilterOn.set(true);
-    recentPaths.set(['/c/get-users.toml', '/gone.toml', '/c/teasers/create.toml']);
+    recentPaths.set({ '/c': ['/c/get-users.toml', '/gone.toml', '/c/teasers/create.toml'] });
     const names = get(visibleTree).map((n) => n.name);
     expect(names).toEqual(['get-users', 'create']);
   });
 
   it('search applies inside recent mode', () => {
     recentFilterOn.set(true);
-    recentPaths.set(['/c/get-users.toml', '/c/teasers/create.toml']);
+    recentPaths.set({ '/c': ['/c/get-users.toml', '/c/teasers/create.toml'] });
     search.set('create');
     expect(get(visibleTree).map((n) => n.name)).toEqual(['create']);
   });

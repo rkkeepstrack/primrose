@@ -11,21 +11,25 @@ export function recordRun(path: string, run: RunRecord) {
 // Selected environment name per collection root. Session-only.
 export const selectedEnvNames = writable<Record<string, string>>({});
 
-// Recency heatmap: the last 10 opened requests, most recent first.
-// Session-only, never persisted.
+// Recency heatmap: the last 10 opened requests per collection root, most
+// recent first. Session-only, never persisted.
 export const RECENT_MAX = 10;
-export const recentPaths = writable<string[]>([]);
+export const recentPaths = writable<Record<string, string[]>>({});
 
-export function touchRecent(path: string) {
-  recentPaths.update((list) => {
-    const next = [path, ...list.filter((p) => p !== path)].slice(0, RECENT_MAX);
-    pruneEdits(next);
-    return next;
+export function touchRecent(root: string, path: string) {
+  recentPaths.update((m) => {
+    const next = [path, ...(m[root] ?? []).filter((p) => p !== path)].slice(0, RECENT_MAX);
+    pruneEdits(root, next);
+    return { ...m, [root]: next };
   });
 }
 
+export function dropRecents(root: string) {
+  recentPaths.update(({ [root]: _, ...rest }) => rest);
+}
+
 export function renameRecent(oldPath: string, newPath: string) {
-  recentPaths.update((list) => list.map((p) => (p === oldPath ? newPath : p)));
+  recentPaths.update((m) => Object.fromEntries(Object.entries(m).map(([root, list]) => [root, list.map((p) => (p === oldPath ? newPath : p))])));
   unsavedEdits.update((e) => {
     if (!(oldPath in e)) return e;
     const { [oldPath]: moved, ...rest } = e;
@@ -48,7 +52,10 @@ export function dropEdit(path: string) {
   });
 }
 
-function pruneEdits(keep: string[]) {
+// drops stashed edits of `root`'s requests that fell out of its recents
+// window; other collections' edits are untouched
+function pruneEdits(root: string, keep: string[]) {
   const keepSet = new Set(keep);
-  unsavedEdits.update((e) => Object.fromEntries(Object.entries(e).filter(([p]) => keepSet.has(p))));
+  const sep = root.endsWith('/') ? root : root + '/';
+  unsavedEdits.update((e) => Object.fromEntries(Object.entries(e).filter(([p]) => !p.startsWith(sep) || keepSet.has(p))));
 }

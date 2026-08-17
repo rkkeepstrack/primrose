@@ -5,6 +5,7 @@ import type { Collection, TreeNode } from '../shared/types';
 import { ChooseDirectory, CreateCollection, OpenCollectionDialog } from '../../../wailsjs/go/main/App';
 import { closeEnvView, confirmDiscardEnvEdits, loadEnvironments } from './environments';
 import { stashCurrentEdit } from './drafts';
+import { dropRecents } from '../shared/stores';
 import { selectRequest } from './requests';
 import { activeIdx, activeRoot, clearSelection, collections, envDrafts, error, lastRequestByRoot, selectedPath } from './state';
 import {
@@ -111,6 +112,7 @@ export async function toggleShortcutsTab() {
 // removes a collection from the workspace (tabs, stores, selection); the
 // folder on disk is untouched
 export function dropCollection(root: string) {
+  dropRecents(root);
   lastRequestByRoot.update(({ [root]: _, ...rest }) => rest);
   envDrafts.update(({ [root]: _, ...rest }) => rest);
   const wasActive = removeCollectionTabs(root);
