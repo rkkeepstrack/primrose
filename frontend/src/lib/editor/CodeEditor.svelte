@@ -138,16 +138,20 @@
   .editor:not(.single) {
     border: 1px solid var(--border-input);
     border-radius: 8px;
+    /* fill the pane and let CodeMirror scroll long documents internally,
+       so the tab bar and body-type switch stay in view */
+    flex: 1;
     min-height: 220px;
     overflow: hidden;
   }
   .editor:not(.single) :global(.cm-editor) {
+    height: 100%;
     min-height: 220px;
   }
   .editor:not(.single):focus-within {
     border-color: var(--yellow-border);
   }
   .editor :global(.cm-scroller) {
-    overflow-x: auto;
+    overflow: auto;
   }
 </style>
