@@ -127,7 +127,9 @@
       <img src={primroseLogo} alt="recent filter" />
     </button>
   </div>
-  <Tree nodes={$visibleTree} />
+  <div class="tree-scroll">
+    <Tree nodes={$visibleTree} />
+  </div>
 </aside>
 
 <style>
@@ -135,7 +137,10 @@
     flex: 1;
     min-height: 0;
     padding: 12px;
-    overflow-y: auto;
+    /* header and search row stay put; only the tree below scrolls */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
     background: var(--bg-sidebar);
     /* row hovers need a step darker than the sidebar's own tint */
     --bg-hover: var(--bg-sidebar-hover);
@@ -145,11 +150,17 @@
     outline: 1px dashed var(--green);
     outline-offset: -4px;
   }
+  .tree-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+  }
   .search-row {
     display: flex;
     align-items: center;
     gap: 6px;
     margin-bottom: 12px;
+    flex-shrink: 0;
   }
   .search-wrap {
     position: relative;
