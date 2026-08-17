@@ -29,7 +29,9 @@ export function dropRecents(root: string) {
 }
 
 export function renameRecent(oldPath: string, newPath: string) {
-  recentPaths.update((m) => Object.fromEntries(Object.entries(m).map(([root, list]) => [root, list.map((p) => (p === oldPath ? newPath : p))])));
+  recentPaths.update((m) =>
+    Object.fromEntries(Object.entries(m).map(([root, list]) => [root, list.map((p) => (p === oldPath ? newPath : p))])),
+  );
   unsavedEdits.update((e) => {
     if (!(oldPath in e)) return e;
     const { [oldPath]: moved, ...rest } = e;

@@ -1,6 +1,15 @@
 import { describe, expect, it, beforeEach } from 'vitest';
 import { get } from 'svelte/store';
-import { RECENT_MAX, recentPaths, touchRecent, dropRecents, renameRecent, unsavedEdits, stashEdit, dropEdit } from '../../lib/shared/stores';
+import {
+  RECENT_MAX,
+  recentPaths,
+  touchRecent,
+  dropRecents,
+  renameRecent,
+  unsavedEdits,
+  stashEdit,
+  dropEdit,
+} from '../../lib/shared/stores';
 import type { ApiRequest } from '../../lib/shared/types';
 
 const fakeReq = { method: 'GET', url: '' } as ApiRequest;
