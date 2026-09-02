@@ -15,19 +15,33 @@ import (
 // Environment is one file in a collection's environments/ directory.
 // Headers are environment-wide defaults inherited by every request while
 // this environment is active (auth lives here, typically).
+// Secrets lists the vars declared secret in the committed file; their
+// values are merged into Vars from the gitignored <name>.secrets.toml.
+// MissingSecrets are declared secrets with no local value (resolve to "").
 type Environment struct {
-	Name    string            `json:"name"`
-	Path    string            `json:"path"`
-	Vars    map[string]string `json:"vars"`
-	Headers map[string]string `json:"headers"`
+	Name           string            `json:"name"`
+	Path           string            `json:"path"`
+	Vars           map[string]string `json:"vars"`
+	Headers        map[string]string `json:"headers"`
+	Secrets        []string          `json:"secrets"`
+	MissingSecrets []string          `json:"missingSecrets"`
 }
 
 type envFile struct {
 	Vars    map[string]string `toml:"vars"`
 	Headers map[string]string `toml:"headers"`
+	Secrets struct {
+		Vars []string `toml:"vars"`
+	} `toml:"secrets"`
 }
 
 const dirName = "environments"
+const secretsSuffix = ".secrets.toml"
+
+// path of an environment's gitignored secrets sibling file.
+func secretsFilePath(root, name string) string {
+	return filepath.Join(root, dirName, name+secretsSuffix)
+}
 
 // List loads all environments of a collection, sorted by name.
 func List(root string) ([]Environment, error) {
@@ -42,7 +56,7 @@ func List(root string) ([]Environment, error) {
 
 	envs := []Environment{}
 	for _, e := range entries {
-		if e.IsDir() || !strings.HasSuffix(e.Name(), ".toml") {
+		if e.IsDir() || !strings.HasSuffix(e.Name(), ".toml") || strings.HasSuffix(e.Name(), secretsSuffix) {
 			continue
 		}
 		path := filepath.Join(dir, e.Name())
@@ -56,11 +70,31 @@ func List(root string) ([]Environment, error) {
 		if f.Headers == nil {
 			f.Headers = map[string]string{}
 		}
+		name := strings.TrimSuffix(e.Name(), ".toml")
+		secretVals := map[string]string{}
+		if _, err := toml.DecodeFile(secretsFilePath(root, name), &secretVals); err != nil && !os.IsNotExist(err) {
+			return nil, fmt.Errorf("reading %s%s: %w", name, secretsSuffix, err)
+		}
+		secrets := f.Secrets.Vars
+		if secrets == nil {
+			secrets = []string{}
+		}
+		missing := []string{}
+		for _, s := range secrets {
+			if v, ok := secretVals[s]; ok {
+				f.Vars[s] = v
+			} else {
+				f.Vars[s] = ""
+				missing = append(missing, s)
+			}
+		}
 		envs = append(envs, Environment{
-			Name:    strings.TrimSuffix(e.Name(), ".toml"),
-			Path:    path,
-			Vars:    f.Vars,
-			Headers: f.Headers,
+			Name:           name,
+			Path:           path,
+			Vars:           f.Vars,
+			Headers:        f.Headers,
+			Secrets:        secrets,
+			MissingSecrets: missing,
 		})
 	}
 	sort.Slice(envs, func(i, j int) bool {
@@ -70,8 +104,10 @@ func List(root string) ([]Environment, error) {
 }
 
 // Save writes an environment file (creating environments/ if needed).
-// The name is sanitized to a safe filename.
-func Save(root, name string, vars, headers map[string]string) error {
+// The name is sanitized to a safe filename. Secret values go to the
+// gitignored <name>.secrets.toml sibling; the committed file only lists
+// their names.
+func Save(root, name string, vars, headers, secrets map[string]string) error {
 	name = strings.Trim(strings.Map(func(c rune) rune {
 		switch c {
 		case '/', '\\', ':', 0:

@@ -315,8 +315,8 @@ func (a *App) ListEnvironments(root string) ([]env.Environment, error) {
 }
 
 // SaveEnvironment writes an environment file back to disk.
-func (a *App) SaveEnvironment(root, name string, vars, headers map[string]string) error {
-	return env.Save(root, name, vars, headers)
+func (a *App) SaveEnvironment(root, name string, vars, headers, secrets map[string]string) error {
+	return env.Save(root, name, vars, headers, secrets)
 }
 
 // DeleteEnvironment removes an environment file.
