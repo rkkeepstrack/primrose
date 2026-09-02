@@ -108,6 +108,37 @@ func TestRunHeadersAreLowercase(t *testing.T) {
 	}
 }
 
+func TestRunErrorInHelperAttributedToScriptLine(t *testing.T) {
+	script := strings.Join([]string{
+		`def helper():`,
+		`    return res.body["missing"]`,
+		``,
+		`assert res.status == 200`,
+		`x = helper()`,
+	}, "\n")
+	rep := Run(script, input())
+	if rep.Total != 2 || rep.Passed != 1 {
+		t.Fatalf("passed/total = %d/%d, want 1/2; results: %+v", rep.Passed, rep.Total, rep.Results)
+	}
+	last := rep.Results[len(rep.Results)-1]
+	if last.Ok || last.Message == "" {
+		t.Errorf("error entry = %+v (want ok=false with error text)", last)
+	}
+	if last.Line < 1 || last.Line > 5 {
+		t.Errorf("error line = %d, want a line inside the user script (1-5)", last.Line)
+	}
+}
+
+func TestRunDirectCheckWithEmptyListDoesNotPanic(t *testing.T) {
+	rep := Run(`_check(1, "sneaky", [])`, input())
+	if rep.Total != 1 || rep.Passed != 0 {
+		t.Fatalf("passed/total = %d/%d, want 0/1; results: %+v", rep.Passed, rep.Total, rep.Results)
+	}
+	if rep.Results[0].Ok {
+		t.Errorf("empty-list _check must report a failure, got %+v", rep.Results[0])
+	}
+}
+
 func TestRunEmptyScriptEmptyReport(t *testing.T) {
 	rep := Run("", input())
 	if rep.Total != 0 || rep.Passed != 0 || len(rep.Results) != 0 {

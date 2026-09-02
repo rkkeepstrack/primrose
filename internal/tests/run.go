@@ -35,6 +35,10 @@ type Input struct {
 	URL        string
 }
 
+// scriptFilename names the user's script in Starlark positions; error
+// attribution keys off it to find frames in the user's code.
+const scriptFilename = "tests"
+
 // fileOpts loosens Starlark's default file grammar: test scripts naturally
 // use top-level for/if, which core Starlark reserves for REPLs.
 var fileOpts = &syntax.FileOptions{
@@ -67,6 +71,15 @@ func Run(script string, in Input) *Report {
 			byLine[line] = r
 			results = append(results, r)
 		}
+		// a direct _check call with an empty list (only possible by
+		// bypassing instrument) must not panic the runner
+		if parts.Len() == 0 {
+			if r.Ok {
+				r.Ok = false
+				r.Message = "assertion failed"
+			}
+			return starlark.None, nil
+		}
 		// only the first failing call marks the entry, so a loop reports
 		// the earliest failing iteration's message
 		if r.Ok && !bool(parts.Index(0).Truth()) {
@@ -81,13 +94,22 @@ func Run(script string, in Input) *Report {
 
 	predeclared := starlark.StringDict{"res": resValue(in), "_check": check}
 	thread := &starlark.Thread{Name: "tests"}
-	_, err := starlark.ExecFileOptions(fileOpts, thread, "tests", instrument(script), predeclared)
+	_, err := starlark.ExecFileOptions(fileOpts, thread, scriptFilename, instrument(script), predeclared)
 	if err != nil {
 		line, msg := 0, err.Error()
 		if ee, ok := err.(*starlark.EvalError); ok {
 			msg = ee.Msg
+			// pick the innermost frame that is in the user's script, so an
+			// error raised inside a helper (or a builtin) is attributed to a
+			// line the user can see; fall back to the deepest frame
 			if n := len(ee.CallStack); n > 0 {
 				line = int(ee.CallStack.At(n - 1).Pos.Line)
+				for i := n - 1; i >= 0; i-- {
+					if pos := ee.CallStack.At(i).Pos; pos.Filename() == scriptFilename {
+						line = int(pos.Line)
+						break
+					}
+				}
 			}
 		}
 		results = append(results, &Result{Line: line, Source: sourceLine(script, line), Ok: false, Message: msg})
