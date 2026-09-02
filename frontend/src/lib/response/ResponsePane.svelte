@@ -36,6 +36,7 @@
 
   $: current = runs[viewedIdx] ?? null;
   $: secretVals = secretValues($activeEnv);
+  $: maskFn = (s: string) => maskSecrets(s, secretVals);
 </script>
 
 <svelte:window on:keydown={onKeydown} />
@@ -48,7 +49,7 @@
   {:else if !current}
     <p class="empty">Send the request to see the response.</p>
   {:else}
-    <StatusLine run={current} oldRunLabel={viewedIdx > 0 ? `viewing run #${runs.length - viewedIdx}` : ''} showUrl={tab !== 'timeline'} />
+    <StatusLine run={current} mask={maskFn} oldRunLabel={viewedIdx > 0 ? `viewing run #${runs.length - viewedIdx}` : ''} showUrl={tab !== 'timeline'} />
 
     {#if tab === 'response'}
       {#if current.error}
@@ -66,7 +67,7 @@
       <Timeline
         {runs}
         {viewedIdx}
-        mask={(s) => maskSecrets(s, secretVals)}
+        mask={maskFn}
         onView={(i) => {
           viewedIdx = i;
           tab = 'response';

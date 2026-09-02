@@ -8,6 +8,8 @@
   export let run: RunRecord;
   export let oldRunLabel = ''; // e.g. "viewing run #3" when not the latest
   export let showUrl = true; // the timeline tab lists URLs itself
+  // render-only masking of secret values (identity when no env is active)
+  export let mask: (s: string) => string = (s) => s;
 
   $: sentUrl = run.response?.requestUrl ?? run.response?.finalUrl;
   $: hops = run.response?.redirects ?? [];
@@ -32,16 +34,16 @@
     <!-- redirected: one line for where the response came from; the full
          chain (sent request + hops) lives in the hover popup -->
     <Popover trigger="hover" placement="bottom-start">
-      <div slot="trigger" class="final-url redirect">↪ {run.response.finalUrl}</div>
+      <div slot="trigger" class="final-url redirect">↪ {mask(run.response.finalUrl)}</div>
       <div class="chain">
-        <div class="pop-row">→ {sentUrl}</div>
+        <div class="pop-row">→ {mask(sentUrl)}</div>
         {#each hops as hop}
-          <div class="pop-row hop">↪ {hop}</div>
+          <div class="pop-row hop">↪ {mask(hop)}</div>
         {/each}
       </div>
     </Popover>
   {:else}
-    <div class="final-url" title="URL requested, after variable resolution">→ {sentUrl}</div>
+    <div class="final-url" title="URL requested, after variable resolution">→ {mask(sentUrl)}</div>
   {/if}
 {/if}
 
