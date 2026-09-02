@@ -69,6 +69,16 @@ describe('sticky path overlay', () => {
     view.destroy();
   });
 
+  it('remaps the tracked position when text is inserted above the sticky region', () => {
+    const { view, host } = makeView(nested);
+    refreshSticky(view, view.state.doc.line(5).from);
+    // insert a new property line right after the opening brace, above everything sticky
+    view.dispatch({ changes: { from: view.state.doc.line(1).to, insert: '\n  "inserted": 0,' } });
+    const lines = [...host.querySelectorAll<HTMLElement>('.cm-sticky-line')];
+    expect(lines.map((l) => l.textContent)).toEqual(['  "user": {', '    "profile": {', '      "tags": [']);
+    view.destroy();
+  });
+
   it('recomputes on document changes', () => {
     const { view, host } = makeView(nested);
     refreshSticky(view, view.state.doc.line(5).from);

@@ -83,6 +83,7 @@ const stickyPlugin = ViewPlugin.fromClass(
     lines: StickyLine[] = [];
     private key = '';
     private lastTopPos = 0;
+    private contentLeft = 0;
 
     constructor(readonly view: EditorView) {
       this.overlay = document.createElement('div');
@@ -91,18 +92,33 @@ const stickyPlugin = ViewPlugin.fromClass(
       this.overlay.addEventListener('mousedown', this.onClick);
       view.scrollDOM.addEventListener('scroll', this.onScroll);
       view.dom.appendChild(this.overlay);
+      view.requestMeasure(this.measureGutter);
     }
 
     update(u: ViewUpdate) {
       // fold changes arrive as viewport/geometry changes; use last known topPos
       // because layout reads are not allowed during an update call
       if (u.docChanged || u.viewportChanged || u.geometryChanged) {
+        // keep the tracked position pointing at the same text after edits
+        if (u.docChanged) this.lastTopPos = u.changes.mapPos(this.lastTopPos);
         this.refresh(this.lastTopPos);
+        // layout reads (gutter offset) must happen outside the update cycle
+        this.view.requestMeasure(this.measureGutter);
       }
     }
 
+    // read the gutter offset in a measure phase, then apply it to the overlay
+    measureGutter = {
+      read: () => this.view.contentDOM.offsetLeft,
+      write: (left: number) => {
+        this.contentLeft = left;
+        this.overlay.style.paddingLeft = `${left}px`;
+      },
+    };
+
     onScroll = () => {
       this.lastTopPos = this.topVisiblePos();
+      this.contentLeft = this.view.contentDOM.offsetLeft;
       this.refresh(this.lastTopPos);
     };
 
@@ -130,6 +146,7 @@ const stickyPlugin = ViewPlugin.fromClass(
     }
 
     refresh(topPos = this.lastTopPos) {
+      this.lastTopPos = topPos; // keep doc-change remapping anchored to the last shown position
       const lines = computeStickyLines(this.view.state, topPos);
       const key = lines.map((l) => `${l.from}:${l.text}`).join('\n');
       if (key === this.key) return;
@@ -137,8 +154,9 @@ const stickyPlugin = ViewPlugin.fromClass(
       this.lines = lines;
       this.overlay.replaceChildren(...lines.map((l) => this.renderLine(l)));
       this.overlay.style.display = lines.length ? '' : 'none';
-      // start the copies where real line text starts (right of the gutter)
-      this.overlay.style.paddingLeft = `${this.view.contentDOM.offsetLeft}px`;
+      // start the copies where real line text starts (right of the gutter);
+      // cached value — offsetLeft is a layout read, not allowed during update()
+      this.overlay.style.paddingLeft = `${this.contentLeft}px`;
     }
 
     // re-render the line's text through the editor's highlight style so the
