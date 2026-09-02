@@ -76,6 +76,13 @@ describe('historyPaths', () => {
     expect(get(historyPaths)['/c'][0]).toBe('/c/r0');
   });
 
+  it('dropRecents clears the session recents but not the history', () => {
+    touchRecent('/c', '/c/a');
+    dropRecents('/c');
+    expect(get(recentPaths)['/c']).toBeUndefined();
+    expect(get(historyPaths)['/c']).toEqual(['/c/a']);
+  });
+
   it('renameRecent renames history entries too', () => {
     touchRecent('/c', '/c/a');
     renameRecent('/c/a', '/c/b');

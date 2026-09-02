@@ -22,20 +22,26 @@ export const recentPaths = writable<Record<string, string[]>>({});
 export const HISTORY_MAX = 100;
 export const historyPaths = writable<Record<string, string[]>>({});
 
-// replaces a root's history wholesale (used when loading from the backend)
+// replaces a root's history wholesale (used when loading from the backend);
+// paths must be ordered most-recent-first — the first HISTORY_MAX are kept
 export function setHistory(root: string, paths: string[]) {
   historyPaths.update((m) => ({ ...m, [root]: paths.slice(0, HISTORY_MAX) }));
 }
 
+// moves/inserts `item` at the front, deduped, capped at `max`
+function prependDeduped(list: string[], item: string, max: number): string[] {
+  return [item, ...list.filter((p) => p !== item)].slice(0, max);
+}
+
 export function touchRecent(root: string, path: string) {
   recentPaths.update((m) => {
-    const next = [path, ...(m[root] ?? []).filter((p) => p !== path)].slice(0, RECENT_MAX);
+    const next = prependDeduped(m[root] ?? [], path, RECENT_MAX);
     pruneEdits(root, next);
     return { ...m, [root]: next };
   });
   historyPaths.update((m) => ({
     ...m,
-    [root]: [path, ...(m[root] ?? []).filter((p) => p !== path)].slice(0, HISTORY_MAX),
+    [root]: prependDeduped(m[root] ?? [], path, HISTORY_MAX),
   }));
 }
 
