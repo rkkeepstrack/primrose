@@ -9,6 +9,7 @@ import (
 	"primrose/internal/collection"
 	"primrose/internal/cookies"
 	"primrose/internal/env"
+	"primrose/internal/history"
 	"primrose/internal/httpclient"
 	"primrose/internal/tests"
 	"primrose/internal/watch"
@@ -313,6 +314,17 @@ func (a *App) LoadUIState() (*appstate.State, error) {
 // SaveUIState persists the UI state.
 func (a *App) SaveUIState(s appstate.State) error {
 	return appstate.Save(&s)
+}
+
+// LoadHistory returns the persisted request history of a collection,
+// pruned of request files that no longer exist.
+func (a *App) LoadHistory(root string) ([]string, error) {
+	return history.Load(root)
+}
+
+// SaveHistory persists the request history of a collection (newest first).
+func (a *App) SaveHistory(root string, paths []string) error {
+	return history.Save(root, paths)
 }
 
 // CancelRequest aborts the in-flight request, if any.

@@ -36,6 +36,8 @@ export function GetTree(arg1:string):Promise<collection.Collection>;
 
 export function ListEnvironments(arg1:string):Promise<Array<env.Environment>>;
 
+export function LoadHistory(arg1:string):Promise<Array<string>>;
+
 export function LoadUIState():Promise<appstate.State>;
 
 export function MoveItem(arg1:string,arg2:string):Promise<string>;
@@ -51,6 +53,8 @@ export function RenameEnvironment(arg1:string,arg2:string,arg3:string):Promise<v
 export function RenameItem(arg1:string,arg2:string):Promise<string>;
 
 export function SaveEnvironment(arg1:string,arg2:string,arg3:Record<string, string>,arg4:Record<string, string>,arg5:Record<string, string>):Promise<void>;
+
+export function SaveHistory(arg1:string,arg2:Array<string>):Promise<void>;
 
 export function SaveRequest(arg1:string,arg2:collection.Request):Promise<void>;
 

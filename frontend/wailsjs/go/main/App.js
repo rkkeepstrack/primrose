@@ -62,6 +62,10 @@ export function ListEnvironments(arg1) {
   return window['go']['main']['App']['ListEnvironments'](arg1);
 }
 
+export function LoadHistory(arg1) {
+  return window['go']['main']['App']['LoadHistory'](arg1);
+}
+
 export function LoadUIState() {
   return window['go']['main']['App']['LoadUIState']();
 }
@@ -92,6 +96,10 @@ export function RenameItem(arg1, arg2) {
 
 export function SaveEnvironment(arg1, arg2, arg3, arg4, arg5) {
   return window['go']['main']['App']['SaveEnvironment'](arg1, arg2, arg3, arg4, arg5);
+}
+
+export function SaveHistory(arg1, arg2) {
+  return window['go']['main']['App']['SaveHistory'](arg1, arg2);
 }
 
 export function SaveRequest(arg1, arg2) {
