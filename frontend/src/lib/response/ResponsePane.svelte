@@ -56,7 +56,11 @@
   {:else if !current}
     <p class="empty">Send the request to see the response.</p>
   {:else}
-    <StatusLine run={current} mask={maskFn} oldRunLabel={viewedIdx > 0 ? `viewing run #${runs.length - viewedIdx}` : ''} showUrl={tab !== 'timeline'} />
+    <StatusLine
+      run={current}
+      mask={maskFn}
+      oldRunLabel={viewedIdx > 0 ? `viewing run #${runs.length - viewedIdx}` : ''}
+      showUrl={tab !== 'timeline'} />
 
     {#if tab === 'response'}
       {#if current.error}
@@ -66,7 +70,9 @@
       {/if}
     {:else if tab === 'headers'}
       {#if current.response}
-        <ResponseHeaders headers={current.response.headers} requestHeaders={maskEntries(current.response.requestHeaders ?? {}, secretVals)} />
+        <ResponseHeaders
+          headers={current.response.headers}
+          requestHeaders={maskEntries(current.response.requestHeaders ?? {}, secretVals)} />
       {:else}
         <p class="empty">No response headers (request failed).</p>
       {/if}
@@ -80,7 +86,7 @@
           tab = 'response';
         }} />
     {:else if report}
-      <TestResults {report} />
+      <TestResults {report} mask={maskFn} />
     {/if}
   {/if}
 </div>

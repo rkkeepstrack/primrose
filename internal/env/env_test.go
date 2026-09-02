@@ -330,6 +330,37 @@ func TestSecretsResolveThroughPipeline(t *testing.T) {
 	}
 }
 
+// TestSaveStripsSecretFromVars is the belt-and-braces regression for the
+// EnvPanel bug: even if the caller passes a secret's value inside the vars
+// map (as env.List merges secret values into Vars), Save must not write it
+// to the committed file.
+func TestSaveStripsSecretFromVars(t *testing.T) {
+	root := t.TempDir()
+	// Simulate the bug: caller passes the secret value inside vars too.
+	err := Save(root, "staging",
+		map[string]string{"api_url": "https://api.staging", "api_token": "sk-leaked"},
+		nil,
+		map[string]string{"api_token": "sk-leaked"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	main, _ := os.ReadFile(filepath.Join(root, "environments", "staging.toml"))
+	if strings.Contains(string(main), "sk-leaked") {
+		t.Fatalf("secret value leaked into committed env file:\n%s", main)
+	}
+	if !strings.Contains(string(main), "api_url") {
+		t.Errorf("plain var should still be present:\n%s", main)
+	}
+	// value must still be readable via the secrets file
+	envs, err := List(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if envs[0].Vars["api_token"] != "sk-leaked" {
+		t.Errorf("secret not round-tripped via secrets file: %q", envs[0].Vars["api_token"])
+	}
+}
+
 func TestListSecretOverridesVar(t *testing.T) {
 	root := t.TempDir()
 	dir := filepath.Join(root, "environments")

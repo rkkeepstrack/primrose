@@ -168,6 +168,7 @@ func (a *App) CreateCollection(parent, name string) (*collection.Collection, err
 	col, err := collection.Open(dir)
 	if err == nil {
 		a.watchCollection(dir)
+		_ = env.EnsureSecretsIgnored(dir) // best effort; never blocks creation
 	}
 	return col, err
 }

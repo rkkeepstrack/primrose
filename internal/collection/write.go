@@ -84,6 +84,10 @@ func WriteRequest(path string, r *Request) error {
 		if strings.Contains(r.Tests.Script, "'''") {
 			fmt.Fprintf(&b, "script = %s\n", tomlutil.String(r.Tests.Script))
 		} else {
+			// Intentional asymmetry with body: body appends a trailing newline
+			// ('''\n%s\n''') as a normalising convention, but tests uses exact
+			// round-trip semantics ('''\n%s''') — the trailing newline is part
+			// of the script content and must be preserved verbatim.
 			script := strings.TrimSuffix(r.Tests.Script, "\n")
 			fmt.Fprintf(&b, "script = '''\n%s'''\n", script)
 		}

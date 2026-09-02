@@ -23,9 +23,7 @@ describe('secretValues', () => {
 
 describe('maskSecrets', () => {
   it('replaces every occurrence with the placeholder', () => {
-    expect(maskSecrets('Bearer sk-abc123 and sk-abc123', { api_token: 'sk-abc123' })).toBe(
-      'Bearer {{api_token}} and {{api_token}}',
-    );
+    expect(maskSecrets('Bearer sk-abc123 and sk-abc123', { api_token: 'sk-abc123' })).toBe('Bearer {{api_token}} and {{api_token}}');
   });
 
   it('leaves strings without secrets alone and ignores empty values', () => {
@@ -33,9 +31,7 @@ describe('maskSecrets', () => {
   });
 
   it('masks the longest value first when secret values overlap', () => {
-    expect(maskSecrets('use sk-abc123 or sk-abc', { token: 'sk-abc', full_token: 'sk-abc123' })).toBe(
-      'use {{full_token}} or {{token}}',
-    );
+    expect(maskSecrets('use sk-abc123 or sk-abc', { token: 'sk-abc', full_token: 'sk-abc123' })).toBe('use {{full_token}} or {{token}}');
     // no partial leakage regardless of insertion order
     expect(maskSecrets('use sk-abc123', { token: 'sk-abc', full_token: 'sk-abc123' })).toBe('use {{full_token}}');
     expect(maskSecrets('use sk-abc123', { full_token: 'sk-abc123', token: 'sk-abc' })).toBe('use {{full_token}}');

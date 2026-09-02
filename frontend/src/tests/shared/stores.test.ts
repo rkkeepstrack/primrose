@@ -71,7 +71,10 @@ describe('historyPaths', () => {
   });
 
   it('setHistory replaces a root list and enforces the cap', () => {
-    setHistory('/c', Array.from({ length: HISTORY_MAX + 3 }, (_, i) => `/c/r${i}`));
+    setHistory(
+      '/c',
+      Array.from({ length: HISTORY_MAX + 3 }, (_, i) => `/c/r${i}`),
+    );
     expect(get(historyPaths)['/c']).toHaveLength(HISTORY_MAX);
     expect(get(historyPaths)['/c'][0]).toBe('/c/r0');
   });

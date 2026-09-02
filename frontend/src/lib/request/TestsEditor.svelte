@@ -14,7 +14,9 @@
     lang="python"
     envVars={$activeEnvVars}
     placeholder={'assert res.status == 200\nassert "json" in res.headers["content-type"]'} />
-  <p class="hint">Starlark (Python syntax). Each top-level assert becomes one result; res has status, headers, body, duration_ms, size, url.</p>
+  <p class="hint">
+    Starlark (Python syntax). Each top-level assert becomes one result; res has status, headers, body, duration_ms, size, url.
+  </p>
 {/if}
 
 <style>

@@ -35,8 +35,13 @@
     if ($activeEnvName && $activeRoot) {
       const activeEnv = $envs.find((e) => e.name === $activeEnvName);
       const headers = activeEnv?.headers ?? {};
-      const secrets = Object.fromEntries((activeEnv?.secrets ?? []).map((s) => [s, merged[s] ?? '']));
-      await saveEnvironment($activeRoot, $activeEnvName, merged, headers, secrets);
+      const secretKeys = new Set(activeEnv?.secrets ?? []);
+      // Split into plain vars and secrets — secret values must never be
+      // written into the committed env file (Go Save is a belt-and-braces
+      // backup, but we enforce the invariant here too).
+      const secrets = Object.fromEntries([...secretKeys].map((s) => [s, merged[s] ?? '']));
+      const plainVars = Object.fromEntries(Object.entries(merged).filter(([k]) => !secretKeys.has(k)));
+      await saveEnvironment($activeRoot, $activeEnvName, plainVars, headers, secrets);
       draft = {};
     }
   }

@@ -1,9 +1,11 @@
 <script lang="ts">
   // One row per assert statement: its source text, pass/fail mark, and the
-  // failure message when it failed.
+  // failure message when it failed. The optional mask function redacts
+  // secret values that may appear in resolved source/message strings.
   import type { TestReport } from '../shared/types';
 
   export let report: TestReport;
+  export let mask: (s: string) => string = (s) => s;
 </script>
 
 <ul class="results">
@@ -11,9 +13,9 @@
     <li class:fail={!r.ok}>
       <span class="mark">{r.ok ? '✓' : '✗'}</span>
       <div class="detail">
-        <code>{r.source}</code>
+        <code>{mask(r.source)}</code>
         {#if !r.ok && r.message}
-          <span class="msg">{r.message}</span>
+          <span class="msg">{mask(r.message)}</span>
         {/if}
       </div>
     </li>

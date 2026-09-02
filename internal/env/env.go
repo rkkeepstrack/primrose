@@ -154,6 +154,17 @@ func Save(root, name string, vars, headers, secrets map[string]string) error {
 		return err
 	}
 
+	// Belt-and-braces: strip any key that is also declared in the secrets
+	// map from vars before writing, so secret values can never land in the
+	// committed file even if the caller passes them in vars by mistake.
+	safeVars := make(map[string]string, len(vars))
+	for k, v := range vars {
+		if _, isSecret := secrets[k]; !isSecret {
+			safeVars[k] = v
+		}
+	}
+	vars = safeVars
+
 	var b strings.Builder
 	writeSection := func(section string, m map[string]string) {
 		fmt.Fprintf(&b, "[%s]\n", section)

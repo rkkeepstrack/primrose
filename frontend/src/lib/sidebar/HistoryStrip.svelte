@@ -54,7 +54,13 @@
 </script>
 
 {#if entries.length}
-  <div class="history-strip" bind:this={stripEl} role="toolbar" tabindex="-1" aria-label="Request history" on:mouseleave={() => (hover = null)}>
+  <div
+    class="history-strip"
+    bind:this={stripEl}
+    role="toolbar"
+    tabindex="-1"
+    aria-label="Request history"
+    on:mouseleave={() => (hover = null)}>
     {#each entries as entry, i (entry.path)}
       <button
         class="slot"

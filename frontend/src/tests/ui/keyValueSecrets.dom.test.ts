@@ -31,9 +31,7 @@ describe('KeyValueEditor secrets', () => {
     // reveal — the branch swap renders a new input node, so re-query
     host.querySelector<HTMLButtonElement>('button.reveal')!.click();
     flushSync();
-    const revealedInput = [...host.querySelectorAll<HTMLInputElement>('td input[placeholder="value"]')].find(
-      (i) => i.value === 'sk-abc',
-    )!;
+    const revealedInput = [...host.querySelectorAll<HTMLInputElement>('td input[placeholder="value"]')].find((i) => i.value === 'sk-abc')!;
     expect(revealedInput.type).toBe('text');
 
     // toggle secret <-> normal reports the key

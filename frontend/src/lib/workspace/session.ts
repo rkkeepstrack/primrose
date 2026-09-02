@@ -5,6 +5,7 @@ import type { Collection } from '../shared/types';
 import { LoadUIState, OpenCollection, SaveUIState } from '../../../wailsjs/go/main/App';
 import { appstate } from '../../../wailsjs/go/models';
 import { loadEnvironments } from './environments';
+import { loadHistory } from './history';
 import { activeIdx, collections, restored } from './state';
 import { activateTab, addCollectionTab, isSpecialTab, tabOrder } from './tabs';
 import { applyTheme, currentTheme } from './theme';
@@ -18,6 +19,7 @@ export async function restoreSession() {
       try {
         cols.push((await OpenCollection(root)) as Collection);
         await loadEnvironments(root);
+        await loadHistory(root);
       } catch {
         // folder gone/renamed — skip silently
       }
