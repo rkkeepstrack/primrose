@@ -2,6 +2,7 @@
   // Layout shell: header, search row, tree, and the root drop zone.
   import X from '@lucide/svelte/icons/x';
   import Tree from './Tree.svelte';
+  import HistoryStrip from './HistoryStrip.svelte';
   import SidebarHeader from './SidebarHeader.svelte';
   import primroseLogo from '../../assets/images/primrose-logo.svg';
   import { acceptPathDrag, carriesPath, readPathDrag } from './dnd';
@@ -127,6 +128,7 @@
       <img src={primroseLogo} alt="recent filter" />
     </button>
   </div>
+  <HistoryStrip />
   <div class="tree-scroll">
     <Tree nodes={$visibleTree} />
   </div>
