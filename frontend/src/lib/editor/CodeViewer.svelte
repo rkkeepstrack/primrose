@@ -9,6 +9,7 @@
   import { Decoration, WidgetType } from '@codemirror/view';
   import { RangeSetBuilder, StateField } from '@codemirror/state';
   import { jsonHighlightStyle } from './jsonHighlight';
+  import { stickyPath } from './stickyPath';
 
   export let value: string;
   export let lang: 'json' | 'text' = 'text';
@@ -189,7 +190,7 @@
       EditorView.lineWrapping,
       theme,
     ];
-    if (lang === 'json') ext.push(json());
+    if (lang === 'json') ext.push(json(), stickyPath());
     return ext;
   }
 

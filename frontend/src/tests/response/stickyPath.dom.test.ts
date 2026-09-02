@@ -6,6 +6,9 @@ import { json } from '@codemirror/lang-json';
 import { codeFolding, syntaxHighlighting } from '@codemirror/language';
 import { jsonHighlightStyle } from '../../lib/editor/jsonHighlight';
 import { stickyPath, refreshSticky } from '../../lib/editor/stickyPath';
+import { mount, unmount } from 'svelte';
+import CodeViewer from '../../lib/editor/CodeViewer.svelte';
+import CodeEditor from '../../lib/editor/CodeEditor.svelte';
 
 const nested = [
   '{',
@@ -87,5 +90,53 @@ describe('sticky path overlay', () => {
     const overlay = host.querySelector<HTMLElement>('.cm-sticky-path')!;
     expect(overlay.style.display).toBe('none');
     view.destroy();
+  });
+});
+
+describe('sticky path integration', () => {
+  it('is active in the JSON response viewer', async () => {
+    const host = document.createElement('div');
+    document.body.appendChild(host);
+    const comp = mount(CodeViewer, { target: host, props: { value: nested, lang: 'json' } });
+    await Promise.resolve();
+    const view = EditorView.findFromDOM(host.querySelector('.cm-editor') as HTMLElement)!;
+    refreshSticky(view, view.state.doc.line(5).from);
+    expect(host.querySelectorAll('.cm-sticky-line').length).toBe(3);
+    unmount(comp);
+  });
+
+  it('is inactive in text mode', async () => {
+    const host = document.createElement('div');
+    document.body.appendChild(host);
+    const comp = mount(CodeViewer, { target: host, props: { value: nested, lang: 'text' } });
+    await Promise.resolve();
+    expect(host.querySelector('.cm-sticky-path')).toBeNull();
+    unmount(comp);
+  });
+
+  it('is active in the JSON body editor', async () => {
+    const host = document.createElement('div');
+    document.body.appendChild(host);
+    const comp = mount(CodeEditor, {
+      target: host,
+      props: { value: nested, lang: 'json', onChange: () => {} },
+    });
+    await Promise.resolve();
+    const view = EditorView.findFromDOM(host.querySelector('.cm-editor') as HTMLElement)!;
+    refreshSticky(view, view.state.doc.line(5).from);
+    expect(host.querySelectorAll('.cm-sticky-line').length).toBe(3);
+    unmount(comp);
+  });
+
+  it('is inactive in the text body editor', async () => {
+    const host = document.createElement('div');
+    document.body.appendChild(host);
+    const comp = mount(CodeEditor, {
+      target: host,
+      props: { value: 'plain text', lang: 'text', onChange: () => {} },
+    });
+    await Promise.resolve();
+    expect(host.querySelector('.cm-sticky-path')).toBeNull();
+    unmount(comp);
   });
 });

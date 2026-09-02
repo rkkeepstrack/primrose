@@ -10,6 +10,7 @@
   import { python } from '@codemirror/legacy-modes/mode/python';
   import { jsonHighlightStyle } from './jsonHighlight';
   import { jsonSyntaxErrors } from './jsonDiagnostics';
+  import { stickyPath } from './stickyPath';
   import { createEnvVarCompletions, createVarHover, varHighlighter } from './variableHighlight';
 
   export let value: string;
@@ -103,7 +104,7 @@
     } else {
       ext.push(EditorView.lineWrapping, lineNumbers());
       if (lang === 'json') {
-        ext.push(json(), syntaxHighlighting(jsonHighlightStyle), lintGutter(), linter(jsonSyntaxErrors));
+        ext.push(json(), syntaxHighlighting(jsonHighlightStyle), lintGutter(), linter(jsonSyntaxErrors), stickyPath());
       } else if (lang === 'python') {
         // Starlark is Python syntax; the legacy stream mode is enough for
         // highlighting and reuses the JSON highlight colors
