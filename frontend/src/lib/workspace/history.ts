@@ -3,7 +3,7 @@
 // only mirror the store into the config-dir file, per collection root.
 
 import { LoadHistory, SaveHistory } from '../../../wailsjs/go/main/App';
-import { historyPaths, setHistory } from '../shared/stores';
+import { HISTORY_MAX, historyPaths, setHistory } from '../shared/stores';
 
 export const SAVE_DEBOUNCE_MS = 500;
 
@@ -21,9 +21,10 @@ export async function loadHistory(root: string) {
   } catch {
     // an unreadable history file is not worth an error dialog; start empty
   }
-  lastSeen.set(root, paths.slice(0, 100));
+  const capped = paths.slice(0, HISTORY_MAX);
+  lastSeen.set(root, capped);
   loaded.add(root);
-  setHistory(root, paths);
+  setHistory(root, capped);
   if (!subscribed) {
     subscribed = true;
     historyPaths.subscribe(scheduleSaves);

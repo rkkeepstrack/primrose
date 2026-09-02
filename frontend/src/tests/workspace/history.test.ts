@@ -9,7 +9,7 @@ vi.mock('../../../wailsjs/go/main/App', () => ({
 }));
 
 import { loadHistory, SAVE_DEBOUNCE_MS } from '../../lib/workspace/history';
-import { historyPaths, touchRecent } from '../../lib/shared/stores';
+import { HISTORY_MAX, historyPaths, touchRecent } from '../../lib/shared/stores';
 
 beforeEach(() => {
   vi.useFakeTimers();
@@ -48,6 +48,15 @@ describe('debounced save', () => {
     vi.advanceTimersByTime(SAVE_DEBOUNCE_MS + 10);
     expect(SaveHistory).toHaveBeenCalledTimes(1);
     expect(SaveHistory).toHaveBeenCalledWith('/c', ['/c/c.toml', '/c/b.toml', '/c/a.toml']);
+  });
+
+  it('does not schedule a save when the backend returns more than HISTORY_MAX entries', async () => {
+    const many = Array.from({ length: 150 }, (_, i) => `/c/r${i}.toml`);
+    LoadHistory.mockResolvedValue(many);
+    await loadHistory('/c');
+    expect(get(historyPaths)['/c']).toEqual(many.slice(0, HISTORY_MAX));
+    vi.advanceTimersByTime(SAVE_DEBOUNCE_MS + 10);
+    expect(SaveHistory).not.toHaveBeenCalled();
   });
 
   it('does not save a root that was never loaded, and not on load itself', async () => {
