@@ -8,6 +8,8 @@
   export let filtered: Record<string, string>;
   export let dirty: boolean;
   export let headersDraft: Record<string, string> | null;
+  export let secretKeys: string[];
+  export let onToggleSecret: (key: string) => void;
   export let onChange: (entries: Record<string, string>) => void;
   export let onHeadersChange: (entries: Record<string, string>) => void;
   export let onSave: () => void;
@@ -21,7 +23,7 @@
         Save{dirty ? ' •' : ''}
       </button>
     </div>
-    <KeyValueEditor entries={filtered} {onChange} />
+    <KeyValueEditor entries={filtered} {onChange} {secretKeys} {onToggleSecret} />
     {#if search}
       <p class="note">Filtered view — hidden variables are kept as they are.</p>
     {/if}

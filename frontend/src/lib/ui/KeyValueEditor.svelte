@@ -1,11 +1,22 @@
 <script lang="ts">
   import X from '@lucide/svelte/icons/x';
+  import Eye from '@lucide/svelte/icons/eye';
+  import EyeOff from '@lucide/svelte/icons/eye-off';
+  import Lock from '@lucide/svelte/icons/lock';
+  import LockOpen from '@lucide/svelte/icons/lock-open';
   import { findDuplicateKeys, toEntries, toRows, type Row } from './keyValueTable';
   export let entries: Record<string, string>;
   export let onChange: (entries: Record<string, string>) => void;
   // read-only rows shown pinned on top (e.g. headers inherited from the
   // environment); struck through once an own row overrides the same name
   export let inherited: Record<string, string> = {};
+  // keys whose values are secret: masked input + reveal toggle. When
+  // onToggleSecret is set, every row gets a lock button to flip the flag.
+  export let secretKeys: string[] = [];
+  export let onToggleSecret: ((key: string) => void) | null = null;
+
+  let revealed: Record<string, boolean> = {};
+  $: secretSet = new Set(secretKeys);
 
   // Local row model so keys can be edited without map-key collisions.
   let rows: Row[] = toRows(entries);
@@ -55,8 +66,31 @@
             on:input={emit}
             title={duplicateKeys.has(row.key) ? 'Duplicate name — only the last value is used' : ''} />
         </td>
-        <td><input placeholder="value" bind:value={row.value} on:input={emit} /></td>
+        <td class="value-cell">
+          {#if secretSet.has(row.key) && !revealed[row.key]}
+            <input placeholder="value" type="password" bind:value={row.value} on:input={emit} />
+          {:else}
+            <input placeholder="value" type="text" bind:value={row.value} on:input={emit} />
+          {/if}
+          {#if secretSet.has(row.key)}
+            <button
+              class="reveal"
+              title={revealed[row.key] ? 'Hide value' : 'Reveal value'}
+              on:click={() => (revealed = { ...revealed, [row.key]: !revealed[row.key] })}>
+              {#if revealed[row.key]}<EyeOff size={13} strokeWidth={2} />{:else}<Eye size={13} strokeWidth={2} />{/if}
+            </button>
+          {/if}
+        </td>
         <td class="actions">
+          {#if onToggleSecret}
+            <button
+              class="secret-toggle"
+              class:is-secret={secretSet.has(row.key)}
+              title={secretSet.has(row.key) ? 'Secret — click to make normal' : 'Make secret'}
+              on:click={() => onToggleSecret?.(row.key)}>
+              {#if secretSet.has(row.key)}<Lock size={13} strokeWidth={2} />{:else}<LockOpen size={13} strokeWidth={2} />{/if}
+            </button>
+          {/if}
           <button class="remove" title="Remove" on:click={() => removeRow(i)}><X size={13} strokeWidth={2} /></button>
         </td>
       </tr>
@@ -110,13 +144,40 @@
     opacity: 0.6;
   }
   td.actions {
-    width: 34px;
+    width: 64px;
+    white-space: nowrap;
     text-align: center;
+  }
+  .value-cell {
+    position: relative;
+  }
+  .value-cell .reveal {
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    border: none;
+    background: none;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    color: var(--text-faint);
+  }
+  .secret-toggle {
+    border: none;
+    background: none;
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    color: var(--text-faint);
+  }
+  .secret-toggle.is-secret {
+    color: var(--purple-soft);
   }
   .remove {
     border: none;
     background: none;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     color: var(--text-ghost);
     cursor: pointer;

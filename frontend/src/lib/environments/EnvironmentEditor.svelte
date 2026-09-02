@@ -13,12 +13,18 @@
   export let environments: Environment[];
   export let activeName: string | null;
   export let onSelect: (name: string) => void;
-  export let onSave: (name: string, vars: Record<string, string>, headers: Record<string, string>) => Promise<void> | void;
+  export let onSave: (
+    name: string,
+    vars: Record<string, string>,
+    headers: Record<string, string>,
+    secrets: Record<string, string>,
+  ) => Promise<void> | void;
   export let onCreate: (name: string) => void;
 
   let search = '';
   let draft: Record<string, string> | null = null;
   let headersDraft: Record<string, string> | null = null;
+  let secretsDraft: string[] | null = null;
   let draftFor: string | null = null;
   function menuAction(action: (root: string, name: string) => void, name: string) {
     draftFor = null; // the list may change under us — rebuild the draft
@@ -35,9 +41,11 @@
     if (stash && stash.name === active.name) {
       draft = { ...stash.vars };
       headersDraft = { ...stash.headers };
+      secretsDraft = [...(stash.secrets ?? active.secrets)];
     } else {
       draft = { ...active.vars };
       headersDraft = { ...active.headers };
+      secretsDraft = [...active.secrets];
     }
     search = '';
   }
@@ -58,15 +66,24 @@
     return ka.length === kb.length && ka.every((k, i) => k === kb[i] && a[k] === b[k]);
   }
 
-  $: dirty = active && draft && headersDraft ? !sameVars(draft, active.vars) || !sameVars(headersDraft, active.headers) : false;
+  function sameList(a: string[], b: string[]): boolean {
+    const sa = [...a].sort();
+    const sb = [...b].sort();
+    return sa.length === sb.length && sa.every((v, i) => v === sb[i]);
+  }
+
+  $: dirty =
+    active && draft && headersDraft && secretsDraft
+      ? !sameVars(draft, active.vars) || !sameVars(headersDraft, active.headers) || !sameList(secretsDraft, active.secrets)
+      : false;
 
   // keep the shared stash in sync: dirty drafts survive unmounting (tab
   // switches), clean state drops the stash again
-  $: if (dirty && draftFor && draft && headersDraft) stashEnvDraft(draftFor, draft, headersDraft);
+  $: if (dirty && draftFor && draft && headersDraft && secretsDraft) stashEnvDraft(draftFor, draft, headersDraft, secretsDraft);
   else if (!dirty) clearEnvDraft();
 
-  function stashEnvDraft(name: string, vars: Record<string, string>, headers: Record<string, string>) {
-    envDrafts.update((m) => ({ ...m, [root]: { name, vars, headers } }));
+  function stashEnvDraft(name: string, vars: Record<string, string>, headers: Record<string, string>, secrets: string[]) {
+    envDrafts.update((m) => ({ ...m, [root]: { name, vars, headers, secrets } }));
   }
 
   function clearEnvDraft() {
@@ -103,9 +120,17 @@
     }
   }
 
+  function toggleSecret(key: string) {
+    if (!secretsDraft) return;
+    secretsDraft = secretsDraft.includes(key) ? secretsDraft.filter((k) => k !== key) : [...secretsDraft, key];
+  }
+
   async function save() {
-    if (!active || !draft || !headersDraft) return;
-    await onSave(active.name, draft, headersDraft);
+    if (!active || !draft || !headersDraft || !secretsDraft) return;
+    const isSecret = new Set(secretsDraft);
+    const plain = Object.fromEntries(Object.entries(draft).filter(([k]) => !isSecret.has(k)));
+    const secrets = Object.fromEntries(Object.entries(draft).filter(([k]) => isSecret.has(k)));
+    await onSave(active.name, plain, headersDraft, secrets);
     // resync from the saved file so the rows show the alphabetical order
     // the file was written in
     draftFor = null;
@@ -138,6 +163,8 @@
       {filtered}
       {dirty}
       {headersDraft}
+      secretKeys={secretsDraft ?? []}
+      onToggleSecret={toggleSecret}
       onChange={handleChange}
       onHeadersChange={(h) => (headersDraft = h)}
       onSave={save} />

@@ -18,7 +18,9 @@ export const restored = writable(false);
 export const diskChanged = writable(false);
 // unsaved environment-editor drafts per collection root; they survive tab
 // switches and are only confirmed away when the env tab itself closes
-export const envDrafts = writable<Record<string, { name: string; vars: Record<string, string>; headers: Record<string, string> }>>({});
+export const envDrafts = writable<
+  Record<string, { name: string; vars: Record<string, string>; headers: Record<string, string>; secrets?: string[] }>
+>({});
 // bumped by the ⌘S menu handler while an environment tab is active
 export const envSaveSignal = writable(0);
 // last opened request per collection root, restored when switching back
