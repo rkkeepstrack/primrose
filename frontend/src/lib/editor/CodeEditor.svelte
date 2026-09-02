@@ -6,7 +6,8 @@
   import { json } from '@codemirror/lang-json';
   import { linter, lintGutter } from '@codemirror/lint';
   import { autocompletion } from '@codemirror/autocomplete';
-  import { syntaxHighlighting } from '@codemirror/language';
+  import { StreamLanguage, syntaxHighlighting } from '@codemirror/language';
+  import { python } from '@codemirror/legacy-modes/mode/python';
   import { jsonHighlightStyle } from './jsonHighlight';
   import { jsonSyntaxErrors } from './jsonDiagnostics';
   import { createEnvVarCompletions, createVarHover, varHighlighter } from './variableHighlight';
@@ -14,7 +15,7 @@
   export let value: string;
   export let onChange: (value: string) => void;
   export let singleLine = false;
-  export let lang: 'json' | 'text' = 'text';
+  export let lang: 'json' | 'text' | 'python' = 'text';
   export let placeholder = '';
   // active environment's variables: names complete inside {{…}}, values
   // show in a hover tooltip
@@ -103,6 +104,10 @@
       ext.push(EditorView.lineWrapping, lineNumbers());
       if (lang === 'json') {
         ext.push(json(), syntaxHighlighting(jsonHighlightStyle), lintGutter(), linter(jsonSyntaxErrors));
+      } else if (lang === 'python') {
+        // Starlark is Python syntax; the legacy stream mode is enough for
+        // highlighting and reuses the JSON highlight colors
+        ext.push(StreamLanguage.define(python), syntaxHighlighting(jsonHighlightStyle));
       }
     }
     return ext;

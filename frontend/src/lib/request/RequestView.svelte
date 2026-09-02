@@ -4,18 +4,20 @@
   import TabBar from '../ui/TabBar.svelte';
   import BodyEditor from './BodyEditor.svelte';
   import EnvPanel from './EnvPanel.svelte';
+  import TestsEditor from './TestsEditor.svelte';
   import { setHeaders, setQuery } from './requestEdit';
   import { inheritedHeaders, request } from '../workspace/state';
 
-  type Tab = 'query' | 'body' | 'headers' | 'variables';
-  const TABS: Tab[] = ['query', 'body', 'headers', 'variables'];
+  type Tab = 'query' | 'body' | 'headers' | 'variables' | 'tests';
+  const TABS: Tab[] = ['query', 'body', 'headers', 'variables', 'tests'];
   let tab: Tab = 'query';
 
-  // ⌘1–4 switch the request tabs (⌘5–7 belong to the response pane)
+  // ⌘1–4 switch the first four request tabs (⌘5–7 belong to the response
+  // pane, so the tests tab has no shortcut)
   function onKeydown(e: KeyboardEvent) {
     if (!(e.metaKey || e.ctrlKey)) return;
     const n = Number(e.key);
-    if (n >= 1 && n <= TABS.length) {
+    if (n >= 1 && n <= 4) {
       e.preventDefault();
       tab = TABS[n - 1];
     }
@@ -36,8 +38,10 @@
     {/if}
   {:else if tab === 'body'}
     <BodyEditor />
-  {:else}
+  {:else if tab === 'variables'}
     <EnvPanel />
+  {:else}
+    <TestsEditor />
   {/if}
 {/if}
 
