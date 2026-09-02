@@ -4,9 +4,12 @@
 // computeStickyLines; the overlay rendering is added in the stickyPath()
 // extension below.
 
-import { EditorState } from '@codemirror/state';
+import { EditorState, EditorSelection, type Extension } from '@codemirror/state';
+import { EditorView, ViewPlugin, type ViewUpdate } from '@codemirror/view';
 import { syntaxTree, ensureSyntaxTree, foldedRanges } from '@codemirror/language';
+import { highlightTree } from '@lezer/highlight';
 import type { SyntaxNode } from '@lezer/common';
+import { jsonHighlightStyle } from './jsonHighlight';
 
 const MAX_LEVELS = 5;
 
@@ -22,7 +25,10 @@ export function computeStickyLines(state: EditorState, topPos: number): StickyLi
   const doc = state.doc;
   const topLine = doc.lineAt(topPos);
   // the tree is parsed lazily; make sure it covers the top line (cheap: the
-  // viewport is normally already parsed by the language extension)
+  // viewport is normally already parsed by the language extension).
+  // NOTE(partial-parse): on very large documents ensureSyntaxTree may return
+  // null (timeout 100 ms) and we fall back to whatever the incremental parser
+  // has so far — ancestors above the parsed region are silently omitted.
   const tree = ensureSyntaxTree(state, topLine.to, 100) ?? syntaxTree(state);
   const anchors: number[] = [];
   for (let n: SyntaxNode | null = tree.resolveInner(topLine.from, 1); n; n = n.parent) {
@@ -49,4 +55,133 @@ export function computeStickyLines(state: EditorState, topPos: number): StickyLi
     lines.push({ from: line.from, text: line.text });
   }
   return lines.slice(-MAX_LEVELS); // deeper than 5 levels: keep the deepest 5
+}
+
+// stays under the floating search panel (zIndex 20 in CodeViewer's theme)
+const stickyTheme = EditorView.theme({
+  '.cm-sticky-path': {
+    position: 'absolute',
+    top: '0',
+    left: '0',
+    right: '0',
+    zIndex: '10',
+    backgroundColor: 'var(--bg)',
+    borderBottom: '1px solid var(--border)',
+    overflow: 'hidden',
+  },
+  '.cm-sticky-line': {
+    whiteSpace: 'pre',
+    cursor: 'pointer',
+    color: 'var(--text-soft)',
+  },
+  '.cm-sticky-line:hover': { backgroundColor: 'var(--bg-hover)' },
+});
+
+const stickyPlugin = ViewPlugin.fromClass(
+  class {
+    overlay: HTMLElement;
+    lines: StickyLine[] = [];
+    private key = '';
+    private lastTopPos = 0;
+
+    constructor(readonly view: EditorView) {
+      this.overlay = document.createElement('div');
+      this.overlay.className = 'cm-sticky-path';
+      this.overlay.style.display = 'none';
+      this.overlay.addEventListener('mousedown', this.onClick);
+      view.scrollDOM.addEventListener('scroll', this.onScroll);
+      view.dom.appendChild(this.overlay);
+    }
+
+    update(u: ViewUpdate) {
+      // fold changes arrive as viewport/geometry changes; use last known topPos
+      // because layout reads are not allowed during an update call
+      if (u.docChanged || u.viewportChanged || u.geometryChanged) {
+        this.refresh(this.lastTopPos);
+      }
+    }
+
+    onScroll = () => {
+      this.lastTopPos = this.topVisiblePos();
+      this.refresh(this.lastTopPos);
+    };
+
+    onClick = (e: MouseEvent) => {
+      const el = (e.target as HTMLElement).closest<HTMLElement>('.cm-sticky-line');
+      if (!el) return;
+      e.preventDefault();
+      const from = Number(el.dataset.from);
+      this.view.dispatch({
+        selection: EditorSelection.cursor(from),
+        effects: EditorView.scrollIntoView(from, { y: 'start' }),
+      });
+      this.view.focus();
+    };
+
+    // first line fully visible below the overlay (block heights are
+    // document-relative, same space as scrollTop)
+    topVisiblePos(): number {
+      const offset = this.view.scrollDOM.scrollTop + this.lines.length * this.view.defaultLineHeight;
+      let block = this.view.lineBlockAtHeight(offset);
+      if (block.top < offset && block.to + 1 <= this.view.state.doc.length) {
+        block = this.view.lineBlockAt(block.to + 1);
+      }
+      return block.from;
+    }
+
+    refresh(topPos = this.lastTopPos) {
+      const lines = computeStickyLines(this.view.state, topPos);
+      const key = lines.map((l) => `${l.from}:${l.text}`).join('\n');
+      if (key === this.key) return;
+      this.key = key;
+      this.lines = lines;
+      this.overlay.replaceChildren(...lines.map((l) => this.renderLine(l)));
+      this.overlay.style.display = lines.length ? '' : 'none';
+      // start the copies where real line text starts (right of the gutter)
+      this.overlay.style.paddingLeft = `${this.view.contentDOM.offsetLeft}px`;
+    }
+
+    // re-render the line's text through the editor's highlight style so the
+    // copy is visually identical to the real line, not a plain-text clone
+    renderLine(l: StickyLine): HTMLElement {
+      const el = document.createElement('div');
+      el.className = 'cm-sticky-line';
+      el.dataset.from = String(l.from);
+      el.style.height = `${this.view.defaultLineHeight}px`;
+      const state = this.view.state;
+      const to = l.from + l.text.length;
+      let pos = l.from;
+      highlightTree(
+        syntaxTree(state),
+        jsonHighlightStyle,
+        (from, spanTo, classes) => {
+          if (from > pos) el.appendChild(document.createTextNode(state.sliceDoc(pos, from)));
+          const span = document.createElement('span');
+          span.className = classes;
+          span.textContent = state.sliceDoc(from, spanTo);
+          el.appendChild(span);
+          pos = spanTo;
+        },
+        l.from,
+        to,
+      );
+      if (pos < to) el.appendChild(document.createTextNode(state.sliceDoc(pos, to)));
+      return el;
+    }
+
+    destroy() {
+      this.view.scrollDOM.removeEventListener('scroll', this.onScroll);
+      this.overlay.remove();
+    }
+  },
+);
+
+// the extension components wire in for JSON mode
+export function stickyPath(): Extension {
+  return [stickyPlugin, stickyTheme];
+}
+
+// test hook: force a top visible line without real scroll metrics (jsdom)
+export function refreshSticky(view: EditorView, topPos: number) {
+  view.plugin(stickyPlugin)?.refresh(topPos);
 }
