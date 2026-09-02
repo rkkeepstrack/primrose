@@ -85,7 +85,7 @@ export function resetFilters() {
   recentFilterOn.set(false);
 }
 
-function findRequestNode(nodes: TreeNode[], path: string): TreeNode | null {
+export function findRequestNode(nodes: TreeNode[], path: string): TreeNode | null {
   for (const n of nodes) {
     if (n.path === path && !n.isFolder) return n;
     if (n.isFolder && n.children?.length) {
@@ -142,13 +142,20 @@ export const heat = derived([recentPaths, activeRoot], ([$recents, $root]) =>
 // Newest = orange (35°, blending into the yellow/orange selection), aging
 // through coral/pink/purple/blue to teal (190°). Intensity fades linearly
 // so the oldest entry melts into the white background.
-export function heatStyle(rank: number | undefined): string {
-  if (!rank) return '';
+
+// the raw slot/row color for a 0..1 recency rank — shared by the tree-row
+// heat and the history strip so both heatmaps speak one visual language
+export function heatColor(rank: number): string {
   const hue = (395 - (1 - rank) * 205) % 360;
   const alpha = 0.11 * rank;
+  return `hsla(${Math.floor(hue)}, 80%, 52%, ${alpha.toFixed(3)})`;
+}
+
+export function heatStyle(rank: number | undefined): string {
+  if (!rank) return '';
   // a custom property (not `background` directly) so the row's :hover rule
   // still wins — inline backgrounds would override it
-  return `--heat-bg: hsla(${hue.toFixed(0)}, 80%, 52%, ${alpha.toFixed(3)})`;
+  return `--heat-bg: ${heatColor(rank)}`;
 }
 
 // paths with unsaved edits (stashed or currently open)
