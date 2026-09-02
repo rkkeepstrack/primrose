@@ -80,6 +80,8 @@ func List(root string) ([]Environment, error) {
 			secrets = []string{}
 		}
 		missing := []string{}
+		// Secrets win: if a key appears both in [vars] and as a declared
+		// secret, the secrets-file value (or "" when missing) overwrites it.
 		for _, s := range secrets {
 			if v, ok := secretVals[s]; ok {
 				f.Vars[s] = v

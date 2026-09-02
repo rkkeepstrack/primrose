@@ -147,3 +147,23 @@ func TestListNoSecretsDeclared(t *testing.T) {
 		t.Error("slices must be non-nil so JSON encodes [] not null")
 	}
 }
+
+func TestListSecretOverridesVar(t *testing.T) {
+	root := t.TempDir()
+	dir := filepath.Join(root, "environments")
+	os.MkdirAll(dir, 0o755)
+	os.WriteFile(filepath.Join(dir, "staging.toml"), []byte(
+		"[vars]\napi_token = \"plain-value\"\n\n[secrets]\nvars = [\"api_token\"]\n",
+	), 0o644)
+	os.WriteFile(filepath.Join(dir, "staging.secrets.toml"), []byte(
+		"api_token = \"sk-secret\"\n",
+	), 0o644)
+
+	envs, err := List(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := envs[0].Vars["api_token"]; got != "sk-secret" {
+		t.Errorf("secret should win over same-named [vars] entry, got %q", got)
+	}
+}
