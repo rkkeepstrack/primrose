@@ -306,7 +306,13 @@ func TestSecretsResolveThroughPipeline(t *testing.T) {
 		map[string]string{"token": "sk-42"}); err != nil {
 		t.Fatal(err)
 	}
-	envs, _ := List(root)
+	envs, err := List(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(envs) == 0 {
+		t.Fatal("no environments loaded")
+	}
 
 	r := &collection.Request{
 		Method:  "GET",
