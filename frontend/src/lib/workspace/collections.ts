@@ -4,6 +4,7 @@ import { get } from 'svelte/store';
 import type { Collection, TreeNode } from '../shared/types';
 import { ChooseDirectory, CreateCollection, OpenCollectionDialog } from '../../../wailsjs/go/main/App';
 import { closeEnvView, confirmDiscardEnvEdits, loadEnvironments } from './environments';
+import { loadHistory } from './history';
 import { stashCurrentEdit } from './drafts';
 import { dropRecents } from '../shared/stores';
 import { selectRequest } from './requests';
@@ -36,6 +37,7 @@ async function addOpenedCollection(col: Collection) {
   addCollectionTab(col.root);
   activateTab(col.root);
   await loadEnvironments(col.root);
+  await loadHistory(col.root);
 }
 
 export async function openCollectionViaDialog() {
