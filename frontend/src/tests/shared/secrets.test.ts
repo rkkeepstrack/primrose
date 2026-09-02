@@ -31,6 +31,15 @@ describe('maskSecrets', () => {
   it('leaves strings without secrets alone and ignores empty values', () => {
     expect(maskSecrets('hello', { api_token: 'sk-abc123', empty: '' })).toBe('hello');
   });
+
+  it('masks the longest value first when secret values overlap', () => {
+    expect(maskSecrets('use sk-abc123 or sk-abc', { token: 'sk-abc', full_token: 'sk-abc123' })).toBe(
+      'use {{full_token}} or {{token}}',
+    );
+    // no partial leakage regardless of insertion order
+    expect(maskSecrets('use sk-abc123', { token: 'sk-abc', full_token: 'sk-abc123' })).toBe('use {{full_token}}');
+    expect(maskSecrets('use sk-abc123', { full_token: 'sk-abc123', token: 'sk-abc' })).toBe('use {{full_token}}');
+  });
 });
 
 describe('maskEntries', () => {

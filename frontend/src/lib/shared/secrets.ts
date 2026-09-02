@@ -15,9 +15,11 @@ export function secretValues(env: Environment | null): Record<string, string> {
   return out;
 }
 
-// replaces every occurrence of each secret value with its {{name}} placeholder
+// replaces every occurrence of each secret value with its {{name}} placeholder;
+// longest values first so overlapping secrets can't leave partial leftovers
 export function maskSecrets(s: string, secretVals: Record<string, string>): string {
-  for (const [name, value] of Object.entries(secretVals)) {
+  const entries = Object.entries(secretVals).sort((a, b) => b[1].length - a[1].length);
+  for (const [name, value] of entries) {
     if (value) s = s.split(value).join(`{{${name}}}`);
   }
   return s;
