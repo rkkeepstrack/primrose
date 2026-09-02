@@ -10,6 +10,7 @@ import (
 	"primrose/internal/cookies"
 	"primrose/internal/env"
 	"primrose/internal/httpclient"
+	"primrose/internal/tests"
 	"primrose/internal/watch"
 
 	"github.com/wailsapp/wails/v2/pkg/menu"
@@ -288,6 +289,18 @@ func (a *App) SendRequest(r collection.Request, envVars, dynamicVars, inheritedH
 	resp, err := httpclient.SendCtx(ctx, resolved, a.jarFor(root))
 	if ctx.Err() == context.Canceled {
 		return nil, fmt.Errorf("canceled")
+	}
+	// assertions run after a successful exchange; the script text was
+	// already {{env}}-resolved by collection.Resolve, same as the body
+	if err == nil && resp != nil && resolved.Tests.Script != "" {
+		resp.Tests = tests.Run(resolved.Tests.Script, tests.Input{
+			Status:     resp.Status,
+			Headers:    resp.Headers,
+			Body:       resp.Body,
+			DurationMs: resp.DurationMs,
+			Size:       resp.Size,
+			URL:        resp.FinalURL,
+		})
 	}
 	return resp, err
 }

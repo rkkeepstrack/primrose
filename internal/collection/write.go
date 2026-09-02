@@ -79,5 +79,15 @@ func WriteRequest(path string, r *Request) error {
 		}
 	}
 
+	if r.Tests.Script != "" {
+		b.WriteString("\n[tests]\n")
+		if strings.Contains(r.Tests.Script, "'''") {
+			fmt.Fprintf(&b, "script = %s\n", tomlutil.String(r.Tests.Script))
+		} else {
+			script := strings.TrimSuffix(r.Tests.Script, "\n")
+			fmt.Fprintf(&b, "script = '''\n%s'''\n", script)
+		}
+	}
+
 	return os.WriteFile(path, []byte(b.String()), 0o644)
 }

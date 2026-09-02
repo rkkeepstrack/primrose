@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"primrose/internal/collection"
+	"primrose/internal/tests"
 )
 
 // Response is what the frontend renders in the response pane.
@@ -38,6 +39,9 @@ type Response struct {
 	ContentType    string            `json:"contentType"`
 	DurationMs     int64             `json:"durationMs"`
 	Size           int64             `json:"size"`
+	// Tests carries the request's assertion results; nil when the request
+	// has no test script.
+	Tests *tests.Report `json:"tests,omitempty"`
 }
 
 // captureRequestHeaders returns the headers the request will carry on the

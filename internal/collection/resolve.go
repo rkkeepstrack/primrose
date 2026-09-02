@@ -53,6 +53,7 @@ func Resolve(r *Request, envVars, dynamicVars map[string]string) *Request {
 		Query:   make(map[string]string, len(r.Query)),
 		Headers: make(map[string]string, len(r.Headers)),
 		Body:    Body{Type: r.Body.Type, Content: sub(r.Body.Content)},
+		Tests:   Tests{Script: sub(r.Tests.Script)},
 	}
 	for k, v := range r.Query {
 		out.Query[sub(k)] = sub(v)

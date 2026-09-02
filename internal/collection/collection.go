@@ -25,6 +25,11 @@ type Body struct {
 	Content string `toml:"content" json:"content"`
 }
 
+// Tests holds the request's post-response Starlark assertion script.
+type Tests struct {
+	Script string `toml:"script" json:"script"`
+}
+
 // Request mirrors a request .toml file.
 type Request struct {
 	Method  string            `toml:"method" json:"method"`
@@ -35,6 +40,8 @@ type Request struct {
 	// values for the request's :dynamic variables — request-scoped
 	// equivalents of environment variables
 	Vars map[string]string `toml:"vars" json:"vars"`
+	// post-response assertions, run sandboxed after a send
+	Tests Tests `toml:"tests" json:"tests"`
 }
 
 // Collection is an opened collection folder.
