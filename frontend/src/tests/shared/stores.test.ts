@@ -9,6 +9,9 @@ import {
   unsavedEdits,
   stashEdit,
   dropEdit,
+  HISTORY_MAX,
+  historyPaths,
+  setHistory,
 } from '../../lib/shared/stores';
 import type { ApiRequest } from '../../lib/shared/types';
 
@@ -17,6 +20,7 @@ const fakeReq = { method: 'GET', url: '' } as ApiRequest;
 beforeEach(() => {
   recentPaths.set({});
   unsavedEdits.set({});
+  historyPaths.set({});
 });
 
 describe('recentPaths', () => {
@@ -41,6 +45,41 @@ describe('recentPaths', () => {
     dropRecents('/c');
     expect(get(recentPaths)['/c']).toBeUndefined();
     expect(get(recentPaths)['/d']).toEqual(['/d/x']);
+  });
+});
+
+describe('historyPaths', () => {
+  it('touchRecent also feeds the history list, deduped by recency', () => {
+    touchRecent('/c', '/c/a');
+    touchRecent('/c', '/c/b');
+    touchRecent('/c', '/c/a');
+    expect(get(historyPaths)['/c']).toEqual(['/c/a', '/c/b']);
+  });
+
+  it('caps at HISTORY_MAX while recentPaths keeps its own smaller cap', () => {
+    for (let i = 0; i < HISTORY_MAX + 5; i++) touchRecent('/c', `/c/r${i}`);
+    expect(get(historyPaths)['/c']).toHaveLength(HISTORY_MAX);
+    expect(get(historyPaths)['/c'][0]).toBe(`/c/r${HISTORY_MAX + 4}`);
+    expect(get(recentPaths)['/c']).toHaveLength(RECENT_MAX);
+  });
+
+  it('keeps a separate list per collection root', () => {
+    touchRecent('/c', '/c/a');
+    touchRecent('/d', '/d/x');
+    expect(get(historyPaths)['/c']).toEqual(['/c/a']);
+    expect(get(historyPaths)['/d']).toEqual(['/d/x']);
+  });
+
+  it('setHistory replaces a root list and enforces the cap', () => {
+    setHistory('/c', Array.from({ length: HISTORY_MAX + 3 }, (_, i) => `/c/r${i}`));
+    expect(get(historyPaths)['/c']).toHaveLength(HISTORY_MAX);
+    expect(get(historyPaths)['/c'][0]).toBe('/c/r0');
+  });
+
+  it('renameRecent renames history entries too', () => {
+    touchRecent('/c', '/c/a');
+    renameRecent('/c/a', '/c/b');
+    expect(get(historyPaths)['/c']).toEqual(['/c/b']);
   });
 });
 

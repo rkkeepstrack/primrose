@@ -16,12 +16,27 @@ export const selectedEnvNames = writable<Record<string, string>>({});
 export const RECENT_MAX = 10;
 export const recentPaths = writable<Record<string, string[]>>({});
 
+// Quick-access history: the last 100 opened requests per collection root,
+// most recent first. Persisted via the backend (see workspace/history.ts);
+// the last-10 recentPaths heat above stays session-only and unchanged.
+export const HISTORY_MAX = 100;
+export const historyPaths = writable<Record<string, string[]>>({});
+
+// replaces a root's history wholesale (used when loading from the backend)
+export function setHistory(root: string, paths: string[]) {
+  historyPaths.update((m) => ({ ...m, [root]: paths.slice(0, HISTORY_MAX) }));
+}
+
 export function touchRecent(root: string, path: string) {
   recentPaths.update((m) => {
     const next = [path, ...(m[root] ?? []).filter((p) => p !== path)].slice(0, RECENT_MAX);
     pruneEdits(root, next);
     return { ...m, [root]: next };
   });
+  historyPaths.update((m) => ({
+    ...m,
+    [root]: [path, ...(m[root] ?? []).filter((p) => p !== path)].slice(0, HISTORY_MAX),
+  }));
 }
 
 export function dropRecents(root: string) {
@@ -30,6 +45,9 @@ export function dropRecents(root: string) {
 
 export function renameRecent(oldPath: string, newPath: string) {
   recentPaths.update((m) =>
+    Object.fromEntries(Object.entries(m).map(([root, list]) => [root, list.map((p) => (p === oldPath ? newPath : p))])),
+  );
+  historyPaths.update((m) =>
     Object.fromEntries(Object.entries(m).map(([root, list]) => [root, list.map((p) => (p === oldPath ? newPath : p))])),
   );
   unsavedEdits.update((e) => {
