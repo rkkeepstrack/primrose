@@ -2,13 +2,13 @@
 // watcher when a collection is modified outside the app (git pull, editors).
 
 import { get } from 'svelte/store';
-import type { ApiRequest, Collection } from '../shared/types';
+import type { Collection } from '../shared/types';
 import { dropEdit } from '../shared/stores';
-import { GetTree, ReadRequest } from '../../../wailsjs/go/main/App';
+import { GetTree } from '../../../wailsjs/go/main/App';
 import { EventsOn } from '../../../wailsjs/runtime/runtime';
 import { dropCollection } from './collections';
 import { loadEnvironments } from './environments';
-import { normalizeAndSetRequest } from './requests';
+import { normalizeAndSetRequest, readRequestFile } from './requests';
 import { clearSelection, collections, dirty, diskChanged, selectedPath } from './state';
 
 export function initExternalSync() {
@@ -44,8 +44,7 @@ async function reconcileOpenRequest(root: string) {
   const path = get(selectedPath);
   if (!path || !path.startsWith(root + '/')) return;
   try {
-    const r = (await ReadRequest(path)) as unknown as ApiRequest;
-    r.tests = r.tests ?? { script: '' };
+    const r = await readRequestFile(path);
     if (get(dirty)) {
       diskChanged.set(true);
       return;
@@ -66,8 +65,7 @@ export async function reloadFromDisk() {
   const path = get(selectedPath);
   if (!path) return;
   try {
-    const r = (await ReadRequest(path)) as unknown as ApiRequest;
-    r.tests = r.tests ?? { script: '' };
+    const r = await readRequestFile(path);
     normalizeAndSetRequest(r);
     dirty.set(false);
     dropEdit(path);

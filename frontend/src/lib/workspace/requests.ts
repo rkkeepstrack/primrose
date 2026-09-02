@@ -10,6 +10,18 @@ import { refreshTree } from './refresh';
 import { newDraftKey, stashCurrentEdit } from './drafts';
 import { activeRoot, clearSelection, dirty, diskChanged, draftDir, draftName, error, request, selectedPath } from './state';
 
+// backfills fields absent in files written before they existed
+export function normalizeRequest(r: ApiRequest): ApiRequest {
+  r.vars = r.vars ?? {};
+  r.tests = r.tests ?? { script: '' };
+  return r;
+}
+
+// reads a request from disk with all optional fields backfilled
+export async function readRequestFile(path: string): Promise<ApiRequest> {
+  return normalizeRequest((await ReadRequest(path)) as unknown as ApiRequest);
+}
+
 // URL is the source of truth for query params in the UI: requests loaded
 // from disk get their query folded into the URL before entering the store
 export function normalizeAndSetRequest(r: ApiRequest) {
@@ -31,9 +43,7 @@ export async function selectRequest(node: TreeNode) {
       request.set(stashed);
       dirty.set(true);
     } else {
-      const r = (await ReadRequest(node.path)) as unknown as ApiRequest;
-      r.vars = r.vars ?? {}; // absent in files from before request vars existed
-      r.tests = r.tests ?? { script: '' }; // absent in files from before tests existed
+      const r = await readRequestFile(node.path);
       normalizeAndSetRequest(r);
       dirty.set(false);
     }
