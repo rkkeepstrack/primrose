@@ -44,6 +44,10 @@ export function setBodyContent(c: string) {
   edit((r) => (r.body.content = c));
 }
 
+export function setTestScript(s: string) {
+  edit((r) => (r.tests = { script: s }));
+}
+
 // dynamic :var values live on the request and persist with it; an empty
 // value drops the key so saved files stay clean
 export function setVar(name: string, value: string) {

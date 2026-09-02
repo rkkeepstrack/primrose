@@ -31,8 +31,9 @@ export async function selectRequest(node: TreeNode) {
       request.set(stashed);
       dirty.set(true);
     } else {
-      const r = (await ReadRequest(node.path)) as ApiRequest;
+      const r = (await ReadRequest(node.path)) as unknown as ApiRequest;
       r.vars = r.vars ?? {}; // absent in files from before request vars existed
+      r.tests = r.tests ?? { script: '' }; // absent in files from before tests existed
       normalizeAndSetRequest(r);
       dirty.set(false);
     }
@@ -53,6 +54,7 @@ export async function newRequest(dir: string) {
     headers: {},
     body: { type: 'json', content: '' },
     vars: {},
+    tests: { script: '' },
   });
   selectedPath.set(null);
   draftDir.set(dir);

@@ -10,6 +10,7 @@ function req(partial: Partial<ApiRequest>): ApiRequest {
     headers: {},
     body: { type: 'json', content: '' },
     vars: {},
+    tests: { script: '' },
     ...partial,
   };
 }

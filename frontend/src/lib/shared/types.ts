@@ -25,6 +25,8 @@ export interface ApiRequest {
   body: RequestBody;
   // values for the request's :dynamic variables, saved with the request
   vars: Record<string, string>;
+  // post-response Starlark assertions, saved with the request
+  tests: { script: string };
 }
 
 export interface ApiResponse {
@@ -42,6 +44,21 @@ export interface ApiResponse {
   body: string;
   durationMs: number;
   size: number;
+  // assertion results; absent when the request has no test script
+  tests?: TestReport;
+}
+
+export interface TestResult {
+  line: number;
+  source: string;
+  ok: boolean;
+  message: string;
+}
+
+export interface TestReport {
+  results: TestResult[];
+  passed: number;
+  total: number;
 }
 
 export interface RunRecord {

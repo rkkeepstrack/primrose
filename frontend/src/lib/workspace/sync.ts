@@ -44,7 +44,8 @@ async function reconcileOpenRequest(root: string) {
   const path = get(selectedPath);
   if (!path || !path.startsWith(root + '/')) return;
   try {
-    const r = (await ReadRequest(path)) as ApiRequest;
+    const r = (await ReadRequest(path)) as unknown as ApiRequest;
+    r.tests = r.tests ?? { script: '' };
     if (get(dirty)) {
       diskChanged.set(true);
       return;
@@ -65,7 +66,8 @@ export async function reloadFromDisk() {
   const path = get(selectedPath);
   if (!path) return;
   try {
-    const r = (await ReadRequest(path)) as ApiRequest;
+    const r = (await ReadRequest(path)) as unknown as ApiRequest;
+    r.tests = r.tests ?? { script: '' };
     normalizeAndSetRequest(r);
     dirty.set(false);
     dropEdit(path);
