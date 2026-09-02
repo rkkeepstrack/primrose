@@ -138,11 +138,47 @@ func Save(root, name string, vars, headers, secrets map[string]string) error {
 		}
 	}
 	writeSection("vars", vars)
+	secretNames := make([]string, 0, len(secrets))
+	for k := range secrets {
+		secretNames = append(secretNames, k)
+	}
+	sort.Strings(secretNames)
+	if len(secretNames) > 0 {
+		b.WriteString("\n[secrets]\nvars = [")
+		for i, k := range secretNames {
+			if i > 0 {
+				b.WriteString(", ")
+			}
+			b.WriteString(tomlutil.String(k))
+		}
+		b.WriteString("]\n")
+	}
 	if len(headers) > 0 {
 		b.WriteString("\n")
 		writeSection("headers", headers)
 	}
-	return os.WriteFile(filepath.Join(dir, name+".toml"), []byte(b.String()), 0o644)
+
+	if err := os.WriteFile(filepath.Join(dir, name+".toml"), []byte(b.String()), 0o644); err != nil {
+		return err
+	}
+
+	// both files rewritten in one save: toggling secret<->normal is atomic
+	secPath := secretsFilePath(root, name)
+	if len(secretNames) == 0 {
+		err := os.Remove(secPath)
+		if os.IsNotExist(err) {
+			return nil
+		}
+		return err
+	}
+	var sb strings.Builder
+	for _, k := range secretNames {
+		if secrets[k] == "" {
+			continue // declared but missing stays missing
+		}
+		fmt.Fprintf(&sb, "%s = %s\n", tomlutil.Key(k), tomlutil.String(secrets[k]))
+	}
+	return os.WriteFile(secPath, []byte(sb.String()), 0o600)
 }
 
 // path of an environment file.
@@ -150,9 +186,15 @@ func envPath(root, name string) string {
 	return filepath.Join(root, dirName, name+".toml")
 }
 
-// Delete removes an environment file.
+// Delete removes an environment file and its secrets sibling.
 func Delete(root, name string) error {
-	return os.Remove(envPath(root, name))
+	if err := os.Remove(envPath(root, name)); err != nil {
+		return err
+	}
+	if err := os.Remove(secretsFilePath(root, name)); err != nil && !os.IsNotExist(err) {
+		return err
+	}
+	return nil
 }
 
 // Rename renames an environment, refusing to overwrite.
@@ -165,7 +207,13 @@ func Rename(root, oldName, newName string) error {
 	if _, err := os.Stat(dest); err == nil {
 		return fmt.Errorf("an environment named %q already exists", newName)
 	}
-	return os.Rename(envPath(root, oldName), dest)
+	if err := os.Rename(envPath(root, oldName), dest); err != nil {
+		return err
+	}
+	if err := os.Rename(secretsFilePath(root, oldName), secretsFilePath(root, newName)); err != nil && !os.IsNotExist(err) {
+		return err
+	}
+	return nil
 }
 
 // Duplicate copies an environment to "<name>-copy" (then "-copy-2", …) and
@@ -182,5 +230,13 @@ func Duplicate(root, name string) (string, error) {
 		}
 		newName = fmt.Sprintf("%s-copy-%d", name, n)
 	}
-	return newName, os.WriteFile(envPath(root, newName), data, 0o644)
+	if err := os.WriteFile(envPath(root, newName), data, 0o644); err != nil {
+		return "", err
+	}
+	if sec, err := os.ReadFile(secretsFilePath(root, name)); err == nil {
+		if err := os.WriteFile(secretsFilePath(root, newName), sec, 0o600); err != nil {
+			return "", err
+		}
+	}
+	return newName, nil
 }

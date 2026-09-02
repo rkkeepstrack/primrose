@@ -3,6 +3,7 @@ package env
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -145,6 +146,110 @@ func TestListNoSecretsDeclared(t *testing.T) {
 	}
 	if envs[0].Secrets == nil || envs[0].MissingSecrets == nil {
 		t.Error("slices must be non-nil so JSON encodes [] not null")
+	}
+}
+
+func TestSaveSecretsRoundTrip(t *testing.T) {
+	root := t.TempDir()
+	err := Save(root, "staging",
+		map[string]string{"api_url": "https://api.staging"},
+		nil,
+		map[string]string{"api_token": "sk-abc123", "db_pass": ""})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// committed file holds names only, never values
+	main, _ := os.ReadFile(filepath.Join(root, "environments", "staging.toml"))
+	if strings.Contains(string(main), "sk-abc123") {
+		t.Fatal("secret value leaked into committed env file")
+	}
+	if !strings.Contains(string(main), "[secrets]") {
+		t.Errorf("missing [secrets] section:\n%s", main)
+	}
+
+	// secrets file holds only non-empty values
+	sec, err := os.ReadFile(filepath.Join(root, "environments", "staging.secrets.toml"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(sec), "sk-abc123") || strings.Contains(string(sec), "db_pass") {
+		t.Errorf("secrets file content:\n%s", sec)
+	}
+
+	envs, _ := List(root)
+	e := envs[0]
+	if e.Vars["api_token"] != "sk-abc123" || e.Vars["db_pass"] != "" {
+		t.Errorf("merged vars: %v", e.Vars)
+	}
+	if len(e.Secrets) != 2 {
+		t.Errorf("declared: %v", e.Secrets)
+	}
+	if len(e.MissingSecrets) != 1 || e.MissingSecrets[0] != "db_pass" {
+		t.Errorf("missing: %v", e.MissingSecrets)
+	}
+}
+
+func TestSaveSecretToggleRoundTrip(t *testing.T) {
+	root := t.TempDir()
+	// start: token is secret
+	if err := Save(root, "s", map[string]string{"a": "1"}, nil, map[string]string{"token": "xyz"}); err != nil {
+		t.Fatal(err)
+	}
+	// toggle secret -> normal: value moves into the committed file, secrets file goes away
+	if err := Save(root, "s", map[string]string{"a": "1", "token": "xyz"}, nil, nil); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Stat(filepath.Join(root, "environments", "s.secrets.toml")); !os.IsNotExist(err) {
+		t.Error("secrets file should be removed when nothing is declared secret")
+	}
+	envs, _ := List(root)
+	if envs[0].Vars["token"] != "xyz" || len(envs[0].Secrets) != 0 {
+		t.Errorf("after toggle to normal: %v / %v", envs[0].Vars, envs[0].Secrets)
+	}
+	// toggle back normal -> secret
+	if err := Save(root, "s", map[string]string{"a": "1"}, nil, map[string]string{"token": "xyz"}); err != nil {
+		t.Fatal(err)
+	}
+	main, _ := os.ReadFile(filepath.Join(root, "environments", "s.toml"))
+	if strings.Contains(string(main), "xyz") {
+		t.Error("value must leave the committed file when toggled secret")
+	}
+	envs, _ = List(root)
+	if envs[0].Vars["token"] != "xyz" {
+		t.Errorf("merged after toggle back: %v", envs[0].Vars)
+	}
+}
+
+func TestSecretsFileFollowsEnvFile(t *testing.T) {
+	root := t.TempDir()
+	if err := Save(root, "s", map[string]string{}, nil, map[string]string{"token": "xyz"}); err != nil {
+		t.Fatal(err)
+	}
+
+	dup, err := Duplicate(root, "s")
+	if err != nil {
+		t.Fatal(err)
+	}
+	envs, _ := List(root)
+	for _, e := range envs {
+		if e.Name == dup && e.Vars["token"] != "xyz" {
+			t.Errorf("duplicate lost secret: %v", e.Vars)
+		}
+	}
+
+	if err := Rename(root, "s", "t"); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Stat(filepath.Join(root, "environments", "t.secrets.toml")); err != nil {
+		t.Error("rename must move the secrets file")
+	}
+
+	if err := Delete(root, "t"); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Stat(filepath.Join(root, "environments", "t.secrets.toml")); !os.IsNotExist(err) {
+		t.Error("delete must remove the secrets file")
 	}
 }
 
