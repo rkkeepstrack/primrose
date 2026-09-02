@@ -15,7 +15,8 @@
     envVars={$activeEnvVars}
     placeholder={'assert res.status == 200\nassert "json" in res.headers["content-type"]'} />
   <p class="hint">
-    Starlark (Python syntax). Each top-level assert becomes one result; res has status, headers, body, duration_ms, size, url.
+    Starlark (Python syntax). Each top-level assert becomes one result; res has status, headers, body, duration_ms, size, url. Nested fields
+    use dict indexing: <code>assert res.body["type"] == "page"</code>
   </p>
 {/if}
 
@@ -24,5 +25,9 @@
     color: var(--text-ghost);
     font-size: 12px;
     margin: 0;
+  }
+  .hint code {
+    font-family: var(--mono);
+    font-size: 11px;
   }
 </style>

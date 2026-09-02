@@ -90,8 +90,9 @@
     background: var(--bg-hover);
   }
   .slot {
-    /* equal-width slots: always 1/100th of the strip, newest at the left */
-    flex: 0 0 1%;
+    /* equal-width slots sharing the full strip, newest at the left:
+       2 entries -> 50% each, 100 entries -> 1% each */
+    flex: 1 1 0;
     min-width: 0;
     border: none;
     padding: 0;
