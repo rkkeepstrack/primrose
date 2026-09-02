@@ -8,13 +8,15 @@
   import ResponseBody from './ResponseBody.svelte';
   import ResponseHeaders from './ResponseHeaders.svelte';
   import Timeline from './Timeline.svelte';
+  import TestResults from './TestResults.svelte';
+  import { testBadge } from './testReport';
   import { activeEnv, sending } from '../workspace/state';
   import { maskEntries, maskSecrets, secretValues } from '../shared/secrets';
 
   export let runs: RunRecord[];
 
-  type Tab = 'response' | 'headers' | 'timeline';
-  const TABS: Tab[] = ['response', 'headers', 'timeline'];
+  type Tab = 'response' | 'headers' | 'timeline' | 'tests';
+  const BASE_TABS: Tab[] = ['response', 'headers', 'timeline'];
   let tab: Tab = 'response';
   let viewedIdx = 0;
 
@@ -35,6 +37,11 @@
   }
 
   $: current = runs[viewedIdx] ?? null;
+  // the tests tab only exists when the viewed run actually ran assertions
+  $: report = current?.response?.tests ?? null;
+  $: TABS = report ? [...BASE_TABS, 'tests' as Tab] : BASE_TABS;
+  $: badges = (report ? { tests: testBadge(report) } : {}) as Record<string, { text: string; ok: boolean }>;
+  $: if (tab === 'tests' && !report) tab = 'response';
   $: secretVals = secretValues($activeEnv);
   $: maskFn = (s: string) => maskSecrets(s, secretVals);
 </script>
@@ -42,7 +49,7 @@
 <svelte:window on:keydown={onKeydown} />
 
 <div class="response-pane">
-  <TabBar tabs={TABS} active={tab} onSelect={(t) => (tab = t as Tab)} accent="var(--orange)" />
+  <TabBar tabs={TABS} active={tab} onSelect={(t) => (tab = t as Tab)} accent="var(--orange)" {badges} />
 
   {#if $sending}
     <ResponseLoading />
@@ -63,7 +70,7 @@
       {:else}
         <p class="empty">No response headers (request failed).</p>
       {/if}
-    {:else}
+    {:else if tab === 'timeline'}
       <Timeline
         {runs}
         {viewedIdx}
@@ -72,6 +79,8 @@
           viewedIdx = i;
           tab = 'response';
         }} />
+    {:else if report}
+      <TestResults {report} />
     {/if}
   {/if}
 </div>

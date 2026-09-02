@@ -3,12 +3,17 @@
   export let active: string;
   export let onSelect: (tab: string) => void;
   export let accent = 'var(--green)';
+  // optional per-tab count badge, e.g. tests "3/3" (green) or "1/3" (red)
+  export let badges: Record<string, { text: string; ok: boolean }> = {};
 </script>
 
 <nav class="tabs" style="--tab-accent: {accent}">
   {#each tabs as t (t)}
     <button class:active={t === active} on:click={() => onSelect(t)}>
       {t[0].toUpperCase() + t.slice(1)}
+      {#if badges[t]}
+        <span class="badge" class:fail={!badges[t].ok}>{badges[t].text}</span>
+      {/if}
     </button>
   {/each}
 </nav>
@@ -40,5 +45,18 @@
   .tabs button.active {
     color: var(--text);
     border-bottom-color: var(--tab-accent);
+  }
+  .badge {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    padding: 1px 6px;
+    border-radius: 8px;
+    margin-left: 4px;
+    background: var(--green-bg);
+    color: var(--green-text);
+  }
+  .badge.fail {
+    background: var(--red-bg);
+    color: var(--red-text);
   }
 </style>
