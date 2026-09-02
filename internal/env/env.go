@@ -37,6 +37,35 @@ type envFile struct {
 
 const dirName = "environments"
 const secretsSuffix = ".secrets.toml"
+const ignorePattern = "environments/*.secrets.toml"
+
+// EnsureSecretsIgnored makes sure the collection's .gitignore covers the
+// secrets files. Appends the pattern once when the collection is a git
+// repo or already has a .gitignore; otherwise does nothing (no gratuitous
+// file creation).
+func EnsureSecretsIgnored(root string) error {
+	gi := filepath.Join(root, ".gitignore")
+	data, err := os.ReadFile(gi)
+	if os.IsNotExist(err) {
+		if _, statErr := os.Stat(filepath.Join(root, ".git")); statErr != nil {
+			return nil
+		}
+		return os.WriteFile(gi, []byte(ignorePattern+"\n"), 0o644)
+	}
+	if err != nil {
+		return err
+	}
+	for _, line := range strings.Split(string(data), "\n") {
+		if strings.TrimSpace(line) == ignorePattern {
+			return nil
+		}
+	}
+	out := string(data)
+	if out != "" && !strings.HasSuffix(out, "\n") {
+		out += "\n"
+	}
+	return os.WriteFile(gi, []byte(out+ignorePattern+"\n"), 0o644)
+}
 
 // path of an environment's gitignored secrets sibling file.
 func secretsFilePath(root, name string) string {

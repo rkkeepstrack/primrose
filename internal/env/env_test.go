@@ -5,6 +5,8 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"primrose/internal/collection"
 )
 
 func TestListEmptyWhenNoDir(t *testing.T) {
@@ -250,6 +252,75 @@ func TestSecretsFileFollowsEnvFile(t *testing.T) {
 	}
 	if _, err := os.Stat(filepath.Join(root, "environments", "t.secrets.toml")); !os.IsNotExist(err) {
 		t.Error("delete must remove the secrets file")
+	}
+}
+
+func TestEnsureSecretsIgnored(t *testing.T) {
+	// no .git, no .gitignore: do nothing, create nothing
+	root := t.TempDir()
+	if err := EnsureSecretsIgnored(root); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Stat(filepath.Join(root, ".gitignore")); !os.IsNotExist(err) {
+		t.Error("must not create .gitignore in a non-repo without one")
+	}
+
+	// git repo without .gitignore: create it with the pattern
+	repo := t.TempDir()
+	os.MkdirAll(filepath.Join(repo, ".git"), 0o755)
+	if err := EnsureSecretsIgnored(repo); err != nil {
+		t.Fatal(err)
+	}
+	data, err := os.ReadFile(filepath.Join(repo, ".gitignore"))
+	if err != nil || !strings.Contains(string(data), "environments/*.secrets.toml") {
+		t.Fatalf("pattern not written: %q, %v", data, err)
+	}
+
+	// idempotent: running again appends nothing
+	before := string(data)
+	if err := EnsureSecretsIgnored(repo); err != nil {
+		t.Fatal(err)
+	}
+	data, _ = os.ReadFile(filepath.Join(repo, ".gitignore"))
+	if string(data) != before {
+		t.Errorf("not idempotent:\nbefore %q\nafter  %q", before, data)
+	}
+
+	// existing .gitignore without trailing newline: append cleanly
+	plain := t.TempDir()
+	os.WriteFile(filepath.Join(plain, ".gitignore"), []byte("node_modules"), 0o644)
+	if err := EnsureSecretsIgnored(plain); err != nil {
+		t.Fatal(err)
+	}
+	data, _ = os.ReadFile(filepath.Join(plain, ".gitignore"))
+	if string(data) != "node_modules\nenvironments/*.secrets.toml\n" {
+		t.Errorf("append: %q", data)
+	}
+}
+
+func TestSecretsResolveThroughPipeline(t *testing.T) {
+	root := t.TempDir()
+	if err := Save(root, "s",
+		map[string]string{"base": "https://api.example"},
+		nil,
+		map[string]string{"token": "sk-42"}); err != nil {
+		t.Fatal(err)
+	}
+	envs, _ := List(root)
+
+	r := &collection.Request{
+		Method:  "GET",
+		URL:     "{{base}}/items",
+		Query:   map[string]string{"key": "{{token}}"},
+		Headers: map[string]string{"Authorization": "Bearer {{token}}"},
+		Body:    collection.Body{Type: "json", Content: `{"t":"{{token}}"}`},
+	}
+	out := collection.Resolve(r, envs[0].Vars, nil)
+	if out.URL != "https://api.example/items" ||
+		out.Query["key"] != "sk-42" ||
+		out.Headers["Authorization"] != "Bearer sk-42" ||
+		out.Body.Content != `{"t":"sk-42"}` {
+		t.Errorf("resolved: %+v", out)
 	}
 }
 

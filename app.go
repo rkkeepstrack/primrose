@@ -197,6 +197,7 @@ func (a *App) OpenCollectionDialog() (*collection.Collection, error) {
 	col, err := collection.Open(dir)
 	if err == nil {
 		a.watchCollection(dir)
+		_ = env.EnsureSecretsIgnored(dir) // best effort; never blocks opening
 	}
 	return col, err
 }
@@ -206,6 +207,7 @@ func (a *App) OpenCollection(root string) (*collection.Collection, error) {
 	col, err := collection.Open(root)
 	if err == nil {
 		a.watchCollection(root)
+		_ = env.EnsureSecretsIgnored(root) // best effort; never blocks opening
 	}
 	return col, err
 }
