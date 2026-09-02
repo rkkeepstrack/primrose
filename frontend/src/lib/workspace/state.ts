@@ -42,6 +42,8 @@ export const activeEnvVars = derived([envs, activeEnvName], ([$envs, $name]) => 
 // (auth lives here: staging and prod carry their own keys)
 export const inheritedHeaders = derived([envs, activeEnvName], ([$envs, $name]) => $envs.find((e) => e.name === $name)?.headers ?? {});
 
+export const activeEnv = derived([envs, activeEnvName], ([$envs, $name]) => $envs.find((e) => e.name === $name) ?? null);
+
 export function clearSelection() {
   selectedPath.set(null);
   request.set(null);

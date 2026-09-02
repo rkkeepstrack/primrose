@@ -55,7 +55,7 @@ async function operateThenReload(root: string, fn: () => Promise<unknown>) {
 
 export async function createEnvironment(root: string, name: string) {
   await operateThenReload(root, async () => {
-    await SaveEnvironment(root, name, {}, {});
+    await SaveEnvironment(root, name, {}, {}, {});
     pickEnvironment(root, name);
   });
 }
@@ -86,6 +86,12 @@ export async function duplicateEnvironment(root: string, name: string) {
   await operateThenReload(root, () => DuplicateEnvironment(root, name));
 }
 
-export async function saveEnvironment(root: string, name: string, vars: Record<string, string>, headers: Record<string, string>) {
-  await operateThenReload(root, () => SaveEnvironment(root, name, vars, headers));
+export async function saveEnvironment(
+  root: string,
+  name: string,
+  vars: Record<string, string>,
+  headers: Record<string, string>,
+  secrets: Record<string, string>,
+) {
+  await operateThenReload(root, () => SaveEnvironment(root, name, vars, headers, secrets));
 }

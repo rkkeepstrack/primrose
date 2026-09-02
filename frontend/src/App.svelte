@@ -186,7 +186,7 @@
         environments={$environments[envRoot] ?? []}
         activeName={$selectedEnvNames[envRoot] ?? ($environments[envRoot] ?? [])[0]?.name ?? null}
         onSelect={(name) => pickEnvironment(envRoot, name)}
-        onSave={(name, vars, headers) => saveEnvironment(envRoot, name, vars, headers)}
+        onSave={(name, vars, headers) => { const e = ($environments[envRoot] ?? []).find((x) => x.name === name); return saveEnvironment(envRoot, name, vars, headers, Object.fromEntries((e?.secrets ?? []).map((s) => [s, vars[s] ?? '']))); }}
         onCreate={(name) => createEnvironment(envRoot, name)} />
     {/key}
   {:else}

@@ -90,8 +90,8 @@ export function RenameItem(arg1, arg2) {
   return window['go']['main']['App']['RenameItem'](arg1, arg2);
 }
 
-export function SaveEnvironment(arg1, arg2, arg3, arg4) {
-  return window['go']['main']['App']['SaveEnvironment'](arg1, arg2, arg3, arg4);
+export function SaveEnvironment(arg1, arg2, arg3, arg4, arg5) {
+  return window['go']['main']['App']['SaveEnvironment'](arg1, arg2, arg3, arg4, arg5);
 }
 
 export function SaveRequest(arg1, arg2) {

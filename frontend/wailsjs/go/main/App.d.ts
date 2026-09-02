@@ -50,7 +50,7 @@ export function RenameEnvironment(arg1:string,arg2:string,arg3:string):Promise<v
 
 export function RenameItem(arg1:string,arg2:string):Promise<string>;
 
-export function SaveEnvironment(arg1:string,arg2:string,arg3:Record<string, string>,arg4:Record<string, string>):Promise<void>;
+export function SaveEnvironment(arg1:string,arg2:string,arg3:Record<string, string>,arg4:Record<string, string>,arg5:Record<string, string>):Promise<void>;
 
 export function SaveRequest(arg1:string,arg2:collection.Request):Promise<void>;
 

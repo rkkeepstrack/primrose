@@ -68,4 +68,6 @@ export interface Environment {
   path: string;
   vars: Record<string, string>;
   headers: Record<string, string>;
+  secrets: string[];
+  missingSecrets: string[];
 }

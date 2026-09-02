@@ -33,8 +33,10 @@
       if (draft[name] !== undefined) merged[name] = draft[name];
     }
     if ($activeEnvName && $activeRoot) {
-      const headers = $envs.find((e) => e.name === $activeEnvName)?.headers ?? {};
-      await saveEnvironment($activeRoot, $activeEnvName, merged, headers);
+      const activeEnv = $envs.find((e) => e.name === $activeEnvName);
+      const headers = activeEnv?.headers ?? {};
+      const secrets = Object.fromEntries((activeEnv?.secrets ?? []).map((s) => [s, merged[s] ?? '']));
+      await saveEnvironment($activeRoot, $activeEnvName, merged, headers, secrets);
       draft = {};
     }
   }
