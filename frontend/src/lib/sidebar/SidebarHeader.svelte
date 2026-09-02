@@ -10,7 +10,7 @@
   import MenuSep from '../ui/MenuSep.svelte';
   import { newRequest } from '../workspace/requests';
   import { pickEnvironment } from '../workspace/environments';
-  import { activeEnvName, activeRoot, envs } from '../workspace/state';
+  import { activeEnv, activeEnvName, activeRoot, envs } from '../workspace/state';
   import { openCookiesTab, openEnvironmentTab } from '../workspace/collections';
   import { newFolder } from '../workspace/treeOps';
 
@@ -43,6 +43,13 @@
     <Menu placement="bottom-end">
       <button slot="trigger" class="env-label" title="Switch environment">
         {$activeEnvName ?? 'No environment'}
+        {#if $activeEnv && $activeEnv.missingSecrets.length > 0}
+          <span
+            class="secret-warn"
+            title={`Missing local values for: ${$activeEnv.missingSecrets.join(', ')} (environments/${$activeEnv.name}.secrets.toml)`}>
+            {$activeEnv.missingSecrets.length} secret{$activeEnv.missingSecrets.length === 1 ? '' : 's'} missing
+          </span>
+        {/if}
         <ChevronDown class="chev" size={8} strokeWidth={2} />
       </button>
       {#each $envs as e (e.name)}
@@ -135,5 +142,10 @@
     color: var(--text-disabled);
     font-size: 12px;
     padding: 6px 10px;
+  }
+  .secret-warn {
+    font-size: 10px;
+    color: var(--red);
+    white-space: nowrap;
   }
 </style>

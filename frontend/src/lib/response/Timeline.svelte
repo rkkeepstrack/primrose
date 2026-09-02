@@ -7,6 +7,8 @@
   export let runs: RunRecord[];
   export let viewedIdx: number;
   export let onView: (idx: number) => void;
+  // render-only masking of secret values (identity when no env is active)
+  export let mask: (s: string) => string = (s) => s;
 </script>
 
 <ul class="timeline">
@@ -23,11 +25,11 @@
           <span class="meta">{fmtTime(run.at)}</span>
         </span>
         {#if run.response?.requestUrl ?? run.response?.finalUrl}
-          <span class="row-url">→ {run.response.requestUrl ?? run.response.finalUrl}</span>
+          <span class="row-url">→ {mask(run.response.requestUrl ?? run.response.finalUrl)}</span>
         {/if}
         {#if run.response?.redirects?.length}
           {#each run.response.redirects as hop}
-            <span class="row-url redirect" title="Followed redirect">↪ {hop}</span>
+            <span class="row-url redirect" title="Followed redirect">↪ {mask(hop)}</span>
           {/each}
         {/if}
       </button>

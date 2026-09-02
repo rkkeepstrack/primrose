@@ -8,7 +8,8 @@
   import ResponseBody from './ResponseBody.svelte';
   import ResponseHeaders from './ResponseHeaders.svelte';
   import Timeline from './Timeline.svelte';
-  import { sending } from '../workspace/state';
+  import { activeEnv, sending } from '../workspace/state';
+  import { maskEntries, maskSecrets, secretValues } from '../shared/secrets';
 
   export let runs: RunRecord[];
 
@@ -34,6 +35,7 @@
   }
 
   $: current = runs[viewedIdx] ?? null;
+  $: secretVals = secretValues($activeEnv);
 </script>
 
 <svelte:window on:keydown={onKeydown} />
@@ -56,7 +58,7 @@
       {/if}
     {:else if tab === 'headers'}
       {#if current.response}
-        <ResponseHeaders headers={current.response.headers} requestHeaders={current.response.requestHeaders ?? {}} />
+        <ResponseHeaders headers={current.response.headers} requestHeaders={maskEntries(current.response.requestHeaders ?? {}, secretVals)} />
       {:else}
         <p class="empty">No response headers (request failed).</p>
       {/if}
@@ -64,6 +66,7 @@
       <Timeline
         {runs}
         {viewedIdx}
+        mask={(s) => maskSecrets(s, secretVals)}
         onView={(i) => {
           viewedIdx = i;
           tab = 'response';
