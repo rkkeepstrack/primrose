@@ -113,7 +113,7 @@ func TestWriteRequestRoundTrip(t *testing.T) {
 
 // text bodies are sent verbatim, so a save must not add or drop newlines
 func TestWriteRequestBodyExact(t *testing.T) {
-	for _, c := range []string{"a=1&b=2", "hello\n", "line1\nline2", "\nleading", "  indented\n\n", "ends in a quote'", "two quotes''"} {
+	for _, c := range []string{"a=1&b=2", "hello\n", "line1\nline2", "\nleading", "  indented\n\n", "ends in a quote'", "two quotes''", "bare\rreturn", "ends in\r", "crlf\r\nline", "nul\x00byte", "tab\tok"} {
 		tmp := t.TempDir() + "/req.toml"
 		if err := WriteRequest(tmp, &Request{Method: "POST", URL: "u", Body: Body{Type: "text", Content: c}}); err != nil {
 			t.Fatal(err)

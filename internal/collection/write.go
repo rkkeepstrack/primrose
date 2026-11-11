@@ -78,23 +78,27 @@ func WriteRequest(path string, r *Request) error {
 	if r.Body.Content != "" {
 		b.WriteString("\n[body]\n")
 		fmt.Fprintf(&b, "type = %s\n", tomlutil.String(r.Body.Type))
-		if strings.Contains(r.Body.Content, "'''") {
-			fmt.Fprintf(&b, "content = %s\n", tomlutil.String(r.Body.Content))
-		} else {
-			// TOML drops the newline right after the opening ''', nothing else:
-			// text bodies go out verbatim, so no newline may sneak in here
-			fmt.Fprintf(&b, "content = '''\n%s'''\n", r.Body.Content)
-		}
+		fmt.Fprintf(&b, "content = %s\n", multiline(r.Body.Content))
 	}
 
 	if r.Tests.Script != "" {
 		b.WriteString("\n[tests]\n")
-		if strings.Contains(r.Tests.Script, "'''") {
-			fmt.Fprintf(&b, "script = %s\n", tomlutil.String(r.Tests.Script))
-		} else {
-			fmt.Fprintf(&b, "script = '''\n%s'''\n", r.Tests.Script)
-		}
+		fmt.Fprintf(&b, "script = %s\n", multiline(r.Tests.Script))
 	}
 
 	return os.WriteFile(path, []byte(b.String()), 0o644)
+}
+
+// multiline renders s as a readable triple-quoted literal, or as an escaped
+// basic string when a literal can't hold it verbatim: three single quotes
+// inside, or control characters TOML forbids there (a bare CR used to make
+// the file unreadable). TOML drops the newline right after the opening
+// quotes and nothing else, so the content round-trips exactly.
+func multiline(s string) string {
+	if strings.Contains(s, "'''") || strings.ContainsFunc(s, func(r rune) bool {
+		return (r < 0x20 && r != '\t' && r != '\n') || r == 0x7f
+	}) {
+		return tomlutil.String(s)
+	}
+	return "'''\n" + s + "'''"
 }
