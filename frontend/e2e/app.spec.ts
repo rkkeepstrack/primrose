@@ -19,12 +19,12 @@ async function openRequest(page: Page, ...names: string[]) {
 
 async function send(page: Page) {
   await page.getByRole('button', { name: 'Send' }).click();
-  await expect(page.locator('.cm-editor').last()).toBeVisible();
+  await expect(page.locator('.status-line')).toBeVisible();
 }
 
-// the mouse parked on the status bar, so no row wears a hover tint
+// the mouse parked in the empty bottom-right corner, so no row wears a hover tint
 async function shoot(page: Page, name: string) {
-  await page.mouse.move(1270, 790);
+  await page.mouse.move(1275, 795);
   await expect(page).toHaveScreenshot(name);
 }
 

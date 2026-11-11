@@ -19,8 +19,8 @@ import (
 
 	"primrose/internal/collection"
 	"primrose/internal/env"
+	"primrose/internal/exchange"
 	"primrose/internal/httpclient"
-	"primrose/internal/tests"
 )
 
 // what the screenshots show instead of this machine's checkout path and the
@@ -121,7 +121,11 @@ func TestGenerate(t *testing.T) {
 				t.Fatal(err)
 			}
 			fx.Requests[n.Path] = r
-			fx.Responses[Key(r.Method, r.URL)] = send(t, *r, vars, local.Headers)
+			key := Key(r.Method, r.URL)
+			if _, dup := fx.Responses[key]; dup {
+				t.Fatalf("%s: another request already answers %q; the bridge can't tell them apart, give it a different path", n.Path, key)
+			}
+			fx.Responses[key] = send(t, *r, vars, local.Headers)
 		}
 	}
 	walk(col.Tree)
@@ -130,27 +134,31 @@ func TestGenerate(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	s := strings.ReplaceAll(string(data), root, fakeRoot)
-	s = strings.ReplaceAll(s, srv.URL, fakeBase)
-	s = strings.ReplaceAll(s, strings.TrimPrefix(srv.URL, "http://"), strings.TrimPrefix(fakeBase, "https://"))
+	// replace the JSON-escaped forms: a checkout under "R&D" or a Windows
+	// path would otherwise slip through and leak into the committed file
+	s := strings.ReplaceAll(string(data), jsonText(root), fakeRoot)
+	s = strings.ReplaceAll(s, jsonText(srv.URL), fakeBase)
+	s = strings.ReplaceAll(s, jsonText(strings.TrimPrefix(srv.URL, "http://")), strings.TrimPrefix(fakeBase, "https://"))
+	for _, leak := range []string{jsonText(root), jsonText(srv.Listener.Addr().String())} {
+		if strings.Contains(s, leak) {
+			t.Fatalf("fixture still contains %s", leak)
+		}
+	}
 	if err := os.WriteFile(out, []byte(s+"\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 }
 
-// what App.SendRequest does, minus cancellation and the cookie jar
+// jsonText is s as it appears inside a JSON string
+func jsonText(s string) string {
+	b, _ := json.Marshal(s)
+	return string(b[1 : len(b)-1])
+}
+
 func send(t *testing.T, r collection.Request, vars, inherited map[string]string) *httpclient.Response {
-	r.Headers = collection.MergeHeaders(inherited, r.Headers)
-	resolved := collection.Resolve(&r, vars, r.Vars)
-	resp, err := httpclient.SendCtx(context.Background(), resolved, nil)
+	resp, err := exchange.Do(context.Background(), r, vars, r.Vars, inherited, nil)
 	if err != nil {
 		t.Fatalf("%s %s: %v", r.Method, r.URL, err)
-	}
-	if resolved.Tests.Script != "" {
-		resp.Tests = tests.Run(resolved.Tests.Script, tests.Input{
-			Status: resp.Status, Headers: resp.Headers, Body: resp.Body,
-			DurationMs: resp.DurationMs, Size: resp.Size, URL: resp.FinalURL,
-		})
 	}
 	resp.DurationMs = 42 + int64(len(resp.Body)%50) // stable, and not all the same
 	return resp

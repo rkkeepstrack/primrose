@@ -18,14 +18,13 @@ export default defineConfig({
   },
   use: {
     baseURL: 'http://127.0.0.1:4173',
-    viewport: { width: 1280, height: 800 },
-    deviceScaleFactor: 1,
     colorScheme: 'light',
     locale: 'en-US',
     timezoneId: 'UTC',
     trace: 'retain-on-failure',
   },
-  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
+  // the device preset brings its own 1280x720 viewport, so ours goes after it
+  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 800 }, deviceScaleFactor: 1 } }],
   webServer: {
     command: 'npx vite preview --port 4173 --strictPort --host 127.0.0.1',
     url: 'http://127.0.0.1:4173',

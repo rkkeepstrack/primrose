@@ -9,9 +9,6 @@ export interface BridgeOptions {
   theme?: 'default' | 'gruvbox-light' | 'pastel';
 }
 
-export const root = fixture.root;
-export const path = (rel: string) => `${fixture.root}/${rel}`;
-
 /**
  * Installs a fake Wails bridge (window.go + window.runtime) backed by the
  * fixture, before the app's scripts run. The generated bindings call these
@@ -52,9 +49,28 @@ export async function installBridge(page: Page, opts: BridgeOptions = {}) {
           return key in responses ? clone(responses[key]) : fail(`no fixture response for ${key}`);
         },
         CancelRequest: ok,
+        ChooseDirectory: async () => '', // the user cancelled the picker
       };
-      // the remaining bindings (rename, delete, cookies, …) just succeed
-      const go = new Proxy(App, { get: (t, name: string) => t[name] ?? ok });
+      // writes succeed and are forgotten
+      for (const name of [
+        'AddCookie',
+        'ClearCookies',
+        'CreateCollection',
+        'CreateFolder',
+        'DeleteCookie',
+        'DeleteEnvironment',
+        'DeleteItem',
+        'DuplicateEnvironment',
+        'DuplicateItem',
+        'MoveItem',
+        'RenameEnvironment',
+        'RenameItem',
+        'SaveEnvironment',
+      ])
+        App[name] = ok;
+      // a binding nobody taught the bridge fails loudly instead of quietly
+      // rendering an empty state into the baselines
+      const go = new Proxy(App, { get: (t, name: string) => t[name] ?? (() => fail(`fake bridge has no ${name}`)) });
       (window as unknown as { go: unknown }).go = { main: { App: go } };
       (window as unknown as { runtime: unknown }).runtime = {
         EventsOnMultiple: (name: string, cb: (...data: unknown[]) => void) => {
