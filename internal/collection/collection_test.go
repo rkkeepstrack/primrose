@@ -106,8 +106,25 @@ func TestWriteRequestRoundTrip(t *testing.T) {
 	if got.URL != orig.URL || got.Query["b c"] != "two words" {
 		t.Errorf("round trip mismatch:\norig: %+v\ngot:  %+v", orig, got)
 	}
-	if got.Body.Content != orig.Body.Content && got.Body.Content != orig.Body.Content+"\n" {
+	if got.Body.Content != orig.Body.Content {
 		t.Errorf("body mismatch: %q", got.Body.Content)
+	}
+}
+
+// text bodies are sent verbatim, so a save must not add or drop newlines
+func TestWriteRequestBodyExact(t *testing.T) {
+	for _, c := range []string{"a=1&b=2", "hello\n", "line1\nline2", "\nleading", "  indented\n\n", "ends in a quote'", "two quotes''"} {
+		tmp := t.TempDir() + "/req.toml"
+		if err := WriteRequest(tmp, &Request{Method: "POST", URL: "u", Body: Body{Type: "text", Content: c}}); err != nil {
+			t.Fatal(err)
+		}
+		got, err := ReadRequest(tmp)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if got.Body.Content != c {
+			t.Errorf("body %q came back as %q", c, got.Body.Content)
+		}
 	}
 }
 

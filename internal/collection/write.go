@@ -74,8 +74,9 @@ func WriteRequest(path string, r *Request) error {
 		if strings.Contains(r.Body.Content, "'''") {
 			fmt.Fprintf(&b, "content = %s\n", tomlutil.String(r.Body.Content))
 		} else {
-			content := strings.TrimSuffix(r.Body.Content, "\n")
-			fmt.Fprintf(&b, "content = '''\n%s\n'''\n", content)
+			// TOML drops the newline right after the opening ''', nothing else:
+			// text bodies go out verbatim, so no newline may sneak in here
+			fmt.Fprintf(&b, "content = '''\n%s'''\n", r.Body.Content)
 		}
 	}
 
@@ -84,12 +85,7 @@ func WriteRequest(path string, r *Request) error {
 		if strings.Contains(r.Tests.Script, "'''") {
 			fmt.Fprintf(&b, "script = %s\n", tomlutil.String(r.Tests.Script))
 		} else {
-			// Intentional asymmetry with body: body appends a trailing newline
-			// ('''\n%s\n''') as a normalising convention, but tests uses exact
-			// round-trip semantics ('''\n%s''') — the trailing newline is part
-			// of the script content and must be preserved verbatim.
-			script := strings.TrimSuffix(r.Tests.Script, "\n")
-			fmt.Fprintf(&b, "script = '''\n%s'''\n", script)
+			fmt.Fprintf(&b, "script = '''\n%s'''\n", r.Tests.Script)
 		}
 	}
 
