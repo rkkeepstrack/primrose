@@ -127,9 +127,12 @@ const stickyPlugin = ViewPlugin.fromClass(
       if (!el) return;
       e.preventDefault();
       const from = Number(el.dataset.from);
+      // the rows above the clicked one stay pinned, so land the line right
+      // below them instead of underneath the overlay
+      const depth = Array.prototype.indexOf.call(this.overlay.children, el);
       this.view.dispatch({
         selection: EditorSelection.cursor(from),
-        effects: EditorView.scrollIntoView(from, { y: 'start' }),
+        effects: EditorView.scrollIntoView(from, { y: 'start', yMargin: depth * this.view.defaultLineHeight }),
       });
       this.view.focus();
     };

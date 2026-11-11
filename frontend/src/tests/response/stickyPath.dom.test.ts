@@ -72,6 +72,26 @@ describe('sticky path overlay', () => {
     view.destroy();
   });
 
+  it('clicking a sticky line scrolls it below the rows that stay pinned above it', () => {
+    const { view, host } = makeView(nested);
+    refreshSticky(view, view.state.doc.line(5).from);
+    const seen: { pos: number; yMargin: number }[] = [];
+    const dispatch = view.dispatch.bind(view);
+    view.dispatch = ((spec: Parameters<typeof dispatch>[0]) => {
+      const tr = view.state.update(spec as never);
+      for (const e of tr.effects) {
+        const v = e.value as { range?: { from: number }; yMargin?: number };
+        if (v.range && typeof v.yMargin === 'number') seen.push({ pos: v.range.from, yMargin: v.yMargin });
+      }
+      dispatch(tr);
+    }) as typeof view.dispatch;
+    // "profile" is the second row: "user" stays pinned above it, one line's worth
+    const target = [...host.querySelectorAll<HTMLElement>('.cm-sticky-line')].find((l) => l.textContent === '    "profile": {')!;
+    target.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+    expect(seen).toEqual([{ pos: view.state.doc.line(3).from, yMargin: view.defaultLineHeight }]);
+    view.destroy();
+  });
+
   it('remaps the tracked position when text is inserted above the sticky region', () => {
     const { view, host } = makeView(nested);
     refreshSticky(view, view.state.doc.line(5).from);
