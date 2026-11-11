@@ -47,10 +47,6 @@ go test ./...      # backend tests
 cd frontend && npm test   # frontend tests
 ```
 
-### Contributing
-
-Work happens on a branch and lands in `main` through a pull request; CI (tests, type check, format) runs on every PR. Commit subjects follow `type(TICKET): subject` (`feat`, `fix`, `chore`, …) because the release reads them.
-
 ### Deployment
 
 Run the "Release" workflow from the Actions tab, or:
@@ -61,6 +57,10 @@ gh workflow run release.yml -f version=1.4.0   # or say it yourself
 ```
 
 Everything committed to `main` since the last tag becomes the release. Any `feat` bumps the minor version, a `!` or `BREAKING CHANGE` the major one (the minor while still on 0.x), anything else the patch. The notes list the commits by type. macOS, Windows and Linux zips are attached; tag and release are only created once all three built, so a failed run can simply be re-run.
+
+### Contributing
+
+Work happens on a branch and lands in `main` through a pull request; CI (tests, type check, format) runs on every PR. Commit subjects follow `type(TICKET): subject` (`feat`, `fix`, `chore`, …) because the release reads them.
 
 ### License
 
