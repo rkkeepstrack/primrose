@@ -5,6 +5,7 @@
   import Lock from '@lucide/svelte/icons/lock';
   import LockOpen from '@lucide/svelte/icons/lock-open';
   import Power from '@lucide/svelte/icons/power';
+  import CodeEditor from '../editor/CodeEditor.svelte';
   import { findDuplicateKeys, toEntries, toRows, type Row } from './keyValueTable';
   export let entries: Record<string, string>;
   export let onChange: (entries: Record<string, string>) => void;
@@ -19,6 +20,11 @@
   // set, every row gets a power button to flip it.
   export let disabledKeys: string[] = [];
   export let onToggleEnabled: ((key: string, enabled: boolean) => void) | null = null;
+
+  // when set, non-secret values get {{var}} highlighting, hover and completion
+  export let envVars: Record<string, string> | null = null;
+  // forwarded to the value editors so their undo history resets per request
+  export let docKey: unknown = undefined;
 
   let revealed: Record<string, boolean> = {};
   $: secretSet = new Set(secretKeys);
@@ -63,7 +69,7 @@
         <td class="origin">inherited</td>
       </tr>
     {/each}
-    {#each rows as row, i}
+    {#each rows as row, i (row)}
       <tr class:off={disabledSet.has(row.key)}>
         <td class:duplicate={duplicateKeys.has(row.key)}>
           <input
@@ -75,6 +81,19 @@
         <td class="value-cell">
           {#if secretSet.has(row.key) && !revealed[row.key]}
             <input placeholder="value" type="password" bind:value={row.value} on:input={emit} />
+          {:else if envVars}
+            <div class="cell-editor">
+              <CodeEditor
+                singleLine
+                value={row.value}
+                placeholder="value"
+                {envVars}
+                {docKey}
+                onChange={(v) => {
+                  row.value = v;
+                  emit();
+                }} />
+            </div>
           {:else}
             <input placeholder="value" type="text" bind:value={row.value} on:input={emit} />
           {/if}
@@ -140,8 +159,21 @@
   tr.off .secret-toggle {
     opacity: 0.45;
   }
-  tr.off td input {
+  tr.off td input,
+  tr.off .cell-editor :global(.cm-line) {
     text-decoration: line-through;
+  }
+  /* the CodeMirror value cell mimics the plain inputs around it */
+  .cell-editor {
+    display: flex;
+    flex: 1;
+    min-width: 0;
+  }
+  .cell-editor :global(.cm-content) {
+    padding: 7px 10px;
+  }
+  .cell-editor:focus-within {
+    background: var(--yellow-bg);
   }
   td.duplicate input {
     color: var(--red);
