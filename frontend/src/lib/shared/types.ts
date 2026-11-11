@@ -21,6 +21,8 @@ export interface ApiRequest {
   method: string;
   url: string;
   query: Record<string, string>;
+  // query keys switched off: still listed, left out of the URL and the send
+  disabledQuery: string[];
   headers: Record<string, string>;
   body: RequestBody;
   // values for the request's :dynamic variables, saved with the request

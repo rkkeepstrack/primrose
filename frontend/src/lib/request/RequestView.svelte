@@ -5,7 +5,7 @@
   import BodyEditor from './BodyEditor.svelte';
   import EnvPanel from './EnvPanel.svelte';
   import TestsEditor from './TestsEditor.svelte';
-  import { setHeaders, setQuery } from './requestEdit';
+  import { setHeaders, setQuery, setQueryEnabled } from './requestEdit';
   import { inheritedHeaders, request } from '../workspace/state';
 
   type Tab = 'query' | 'body' | 'headers' | 'variables' | 'tests';
@@ -30,7 +30,7 @@
   <TabBar tabs={TABS} active={tab} onSelect={(t) => (tab = t as Tab)} />
 
   {#if tab === 'query'}
-    <KeyValueEditor entries={$request.query} onChange={setQuery} />
+    <KeyValueEditor entries={$request.query} onChange={setQuery} disabledKeys={$request.disabledQuery} onToggleEnabled={setQueryEnabled} />
   {:else if tab === 'headers'}
     <KeyValueEditor entries={$request.headers} onChange={setHeaders} inherited={$inheritedHeaders} />
     {#if Object.keys($inheritedHeaders).length > 0}

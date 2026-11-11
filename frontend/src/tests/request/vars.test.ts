@@ -7,6 +7,7 @@ function req(partial: Partial<ApiRequest>): ApiRequest {
     method: 'GET',
     url: '',
     query: {},
+    disabledQuery: [],
     headers: {},
     body: { type: 'json', content: '' },
     vars: {},

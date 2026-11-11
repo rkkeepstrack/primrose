@@ -49,6 +49,13 @@ func WriteRequest(path string, r *Request) error {
 
 	fmt.Fprintf(&b, "method = %s\n", tomlutil.String(strings.ToUpper(r.Method)))
 	fmt.Fprintf(&b, "url = %s\n", tomlutil.String(r.URL))
+	if len(r.DisabledQuery) > 0 {
+		quoted := make([]string, len(r.DisabledQuery))
+		for i, k := range r.DisabledQuery {
+			quoted[i] = tomlutil.String(k)
+		}
+		fmt.Fprintf(&b, "disabled_query = [%s]\n", strings.Join(quoted, ", "))
+	}
 
 	writeSection := func(name string, m map[string]string) {
 		if len(m) == 0 {

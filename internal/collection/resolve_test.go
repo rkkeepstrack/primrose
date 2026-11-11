@@ -110,3 +110,11 @@ func TestResolveMergesSecondQueryMark(t *testing.T) {
 		t.Errorf("url = %s", got.URL)
 	}
 }
+
+func TestResolveKeepsDisabledQuery(t *testing.T) {
+	r := &Request{URL: "x", Query: map[string]string{"a": "1"}, DisabledQuery: []string{"a"}}
+	got := Resolve(r, nil, nil)
+	if len(got.DisabledQuery) != 1 || got.DisabledQuery[0] != "a" {
+		t.Errorf("disabled query dropped: %v", got.DisabledQuery)
+	}
+}

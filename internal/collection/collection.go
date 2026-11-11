@@ -32,11 +32,14 @@ type Tests struct {
 
 // Request mirrors a request .toml file.
 type Request struct {
-	Method  string            `toml:"method" json:"method"`
-	URL     string            `toml:"url" json:"url"`
-	Query   map[string]string `toml:"query" json:"query"`
-	Headers map[string]string `toml:"headers" json:"headers"`
-	Body    Body              `toml:"body" json:"body"`
+	Method string            `toml:"method" json:"method"`
+	URL    string            `toml:"url" json:"url"`
+	Query  map[string]string `toml:"query" json:"query"`
+	// query keys switched off in the UI: kept in [query] with their value,
+	// left out of the URL and the sent request
+	DisabledQuery []string          `toml:"disabled_query" json:"disabledQuery"`
+	Headers       map[string]string `toml:"headers" json:"headers"`
+	Body          Body              `toml:"body" json:"body"`
 	// values for the request's :dynamic variables — request-scoped
 	// equivalents of environment variables
 	Vars map[string]string `toml:"vars" json:"vars"`

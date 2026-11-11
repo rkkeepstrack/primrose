@@ -185,3 +185,26 @@ func TestMergeHeaders(t *testing.T) {
 		t.Errorf("merged = %v", got)
 	}
 }
+
+func TestWriteRequestKeepsDisabledQuery(t *testing.T) {
+	tmp := t.TempDir() + "/req.toml"
+	orig := &Request{
+		Method:        "GET",
+		URL:           "https://x.io/things?a=1",
+		Query:         map[string]string{"a": "1", "debug": "true"},
+		DisabledQuery: []string{"debug"},
+	}
+	if err := WriteRequest(tmp, orig); err != nil {
+		t.Fatal(err)
+	}
+	got, err := ReadRequest(tmp)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(got.DisabledQuery) != 1 || got.DisabledQuery[0] != "debug" {
+		t.Errorf("disabled query lost: %+v", got.DisabledQuery)
+	}
+	if got.Query["debug"] != "true" {
+		t.Errorf("disabled param must keep its value: %v", got.Query)
+	}
+}

@@ -4,6 +4,7 @@
   import EyeOff from '@lucide/svelte/icons/eye-off';
   import Lock from '@lucide/svelte/icons/lock';
   import LockOpen from '@lucide/svelte/icons/lock-open';
+  import Power from '@lucide/svelte/icons/power';
   import { findDuplicateKeys, toEntries, toRows, type Row } from './keyValueTable';
   export let entries: Record<string, string>;
   export let onChange: (entries: Record<string, string>) => void;
@@ -14,9 +15,14 @@
   // onToggleSecret is set, every row gets a lock button to flip the flag.
   export let secretKeys: string[] = [];
   export let onToggleSecret: ((key: string) => void) | null = null;
+  // keys switched off (kept in the table, dimmed). When onToggleEnabled is
+  // set, every row gets a power button to flip it.
+  export let disabledKeys: string[] = [];
+  export let onToggleEnabled: ((key: string, enabled: boolean) => void) | null = null;
 
   let revealed: Record<string, boolean> = {};
   $: secretSet = new Set(secretKeys);
+  $: disabledSet = new Set(disabledKeys);
 
   // Local row model so keys can be edited without map-key collisions.
   let rows: Row[] = toRows(entries);
@@ -58,7 +64,7 @@
       </tr>
     {/each}
     {#each rows as row, i}
-      <tr>
+      <tr class:off={disabledSet.has(row.key)}>
         <td class:duplicate={duplicateKeys.has(row.key)}>
           <input
             placeholder="name"
@@ -82,6 +88,15 @@
           {/if}
         </td>
         <td class="actions">
+          {#if onToggleEnabled}
+            <button
+              class="enable-toggle"
+              class:is-off={disabledSet.has(row.key)}
+              title={disabledSet.has(row.key) ? 'Enable' : 'Disable (keeps the row)'}
+              on:click={() => onToggleEnabled?.(row.key, disabledSet.has(row.key))}>
+              <Power size={13} strokeWidth={2} />
+            </button>
+          {/if}
           {#if onToggleSecret}
             <button
               class="secret-toggle"
@@ -120,6 +135,13 @@
   td input:focus {
     outline: none;
     background: var(--yellow-bg);
+  }
+  tr.off td:not(.actions),
+  tr.off .secret-toggle {
+    opacity: 0.45;
+  }
+  tr.off td input {
+    text-decoration: line-through;
   }
   td.duplicate input {
     color: var(--red);
@@ -173,6 +195,20 @@
   }
   .secret-toggle.is-secret {
     color: var(--purple-soft);
+  }
+  .enable-toggle {
+    border: none;
+    background: none;
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    color: var(--text-faint);
+  }
+  .enable-toggle:hover {
+    color: var(--text-soft);
+  }
+  .enable-toggle.is-off {
+    color: var(--orange-strong);
   }
   .remove {
     border: none;

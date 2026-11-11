@@ -13,6 +13,7 @@ import { activeRoot, clearSelection, dirty, diskChanged, draftDir, draftName, er
 // backfills fields absent in files written before they existed
 export function normalizeRequest(r: ApiRequest): ApiRequest {
   r.vars = r.vars ?? {};
+  r.disabledQuery = r.disabledQuery ?? [];
   r.tests = r.tests ?? { script: '' };
   return r;
 }
@@ -25,9 +26,10 @@ export async function readRequestFile(path: string): Promise<ApiRequest> {
 // URL is the source of truth for query params in the UI: requests loaded
 // from disk get their query folded into the URL before entering the store
 export function normalizeAndSetRequest(r: ApiRequest) {
-  const norm = normalizeUrlAndQuery(r.url, r.query);
+  const norm = normalizeUrlAndQuery(r.url, r.query, r.disabledQuery);
   r.url = norm.url;
   r.query = norm.query;
+  r.disabledQuery = norm.disabledQuery;
   request.set(r);
 }
 
@@ -61,6 +63,7 @@ export async function newRequest(dir: string) {
     method: 'GET',
     url: '',
     query: {},
+    disabledQuery: [],
     headers: {},
     body: { type: 'json', content: '' },
     vars: {},
