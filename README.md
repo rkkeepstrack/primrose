@@ -47,14 +47,20 @@ go test ./...      # backend tests
 cd frontend && npm test   # frontend tests
 ```
 
+### Contributing
+
+Work happens on a branch and lands in `main` through a pull request; CI (tests, type check, format) runs on every PR. Commit subjects follow `type(TICKET): subject` (`feat`, `fix`, `chore`, …) because the release reads them.
+
 ### Deployment
 
-GitHub Actions builds macOS, Windows, and Linux binaries and publishes them as a GitHub Release. Either run the "Release" workflow from the Actions tab (it tags for you), or push a tag manually:
+Run the "Release" workflow from the Actions tab, or:
 
 ```sh
-gh workflow run release.yml -f version=v0.1.0
-# or: git tag v0.1.0 && git push origin v0.1.0
+gh workflow run release.yml               # version derived from the commits
+gh workflow run release.yml -f version=1.4.0   # or say it yourself
 ```
+
+Everything committed to `main` since the last tag becomes the release. Any `feat` bumps the minor version, a `!` or `BREAKING CHANGE` the major one (the minor while still on 0.x), anything else the patch. The notes list the commits by type. macOS, Windows and Linux builds are attached, and the tag is only pushed once all three built.
 
 ### License
 
