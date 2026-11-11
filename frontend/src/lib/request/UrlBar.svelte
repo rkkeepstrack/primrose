@@ -4,6 +4,7 @@
   import Check from '@lucide/svelte/icons/check';
   import Code from '@lucide/svelte/icons/code';
   import Play from '@lucide/svelte/icons/play';
+  import RotateCcw from '@lucide/svelte/icons/rotate-ccw';
   import Save from '@lucide/svelte/icons/save';
   import X from '@lucide/svelte/icons/x';
   import { METHODS } from '../shared/types';
@@ -15,7 +16,9 @@
   import DraftNameRow from './DraftNameRow.svelte';
   import { toCurl } from './curl';
   import { setMethod, setUrl } from './requestEdit';
-  import { saveRequest } from '../workspace/requests';
+  import { handleUndoKeydown } from './undoKeys';
+  import { editIdentity } from '../workspace/drafts';
+  import { discardChanges, saveRequest } from '../workspace/requests';
   import { cancelRequest, sendRequest } from '../workspace/send';
   import { activeEnvVars, dirty, diskChanged, draftName, inheritedHeaders, request, sending } from '../workspace/state';
   import { ClipboardSetText } from '../../../wailsjs/runtime/runtime';
@@ -30,6 +33,7 @@
 
   // ⌘S lives in the native menu now; ⌘↵ stays here (menus can't bind Return)
   function handleKeydown(e: KeyboardEvent) {
+    if (handleUndoKeydown(e)) return;
     if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
       e.preventDefault();
       sendRequest();
@@ -58,7 +62,13 @@
           {/each}
         </Menu>
       </div>
-      <CodeEditor singleLine value={$request.url} placeholder="https://api.example.com/…" onChange={setUrl} envVars={$activeEnvVars} />
+      <CodeEditor
+        singleLine
+        value={$request.url}
+        placeholder="https://api.example.com/…"
+        onChange={setUrl}
+        envVars={$activeEnvVars}
+        docKey={$editIdentity} />
       <Popover trigger="manual" placement="bottom-end" autoDismissMs={1600} bind:open={curlCopied}>
         <button
           slot="trigger"
@@ -76,6 +86,11 @@
         <div class="curl-toast">Copied as curl request</div>
       </Popover>
     </div>
+    {#if $dirty}
+      <button class="action revert" on:click={discardChanges} title="Discard unsaved changes" aria-label="Discard changes">
+        <RotateCcw size={14} strokeWidth={2} />
+      </button>
+    {/if}
     <button class="action save" class:dirty={$dirty} on:click={saveRequest} title="Save (⌘S)" aria-label="Save">
       <Save size={15} strokeWidth={2} />
       {#if $dirty}<span class="save-dot"></span>{/if}
@@ -224,6 +239,10 @@
   }
   .action:hover {
     background: var(--bg-lift);
+  }
+  .action.revert:hover {
+    color: var(--red);
+    border-color: var(--red);
   }
   .action.save.dirty {
     border-color: var(--yellow-border);

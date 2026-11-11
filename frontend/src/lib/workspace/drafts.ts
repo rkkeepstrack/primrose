@@ -17,6 +17,10 @@ export function historyKey(): string {
   return get(selectedPath) ?? currentDraftKey;
 }
 
+// what the editors are showing: a saved request's path or the draft key.
+// Editors rebuild their undo history when it changes.
+export const editIdentity = derived([selectedPath, draftDir], ([$path]) => $path ?? currentDraftKey);
+
 // run history of the selected request (or the current draft)
 export const runs = derived([selectedPath, draftDir, runHistory], ([$path, _draft, $history]) => $history[$path ?? currentDraftKey] ?? []);
 

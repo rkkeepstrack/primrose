@@ -6,6 +6,8 @@ import { errMsg } from '../shared/errors';
 import { normalizeUrlAndQuery } from '../shared/urlQuery';
 import { dropEdit, touchRecent, unsavedEdits } from '../shared/stores';
 import { CreateRequest, ReadRequest, SaveRequest } from '../../../wailsjs/go/main/App';
+import { discardDialog } from '../ui/dialogs';
+import { resetUndo } from '../request/undo';
 import { refreshTree } from './refresh';
 import { newDraftKey, stashCurrentEdit } from './drafts';
 import { activeRoot, clearSelection, dirty, diskChanged, draftDir, draftName, error, request, selectedPath } from './state';
@@ -82,6 +84,29 @@ export function closeRequest() {
   if (!get(request)) return;
   stashCurrentEdit();
   clearSelection();
+}
+
+// the revert button: drafts are closed, saved requests reloaded from disk
+export async function discardChanges() {
+  if (!get(dirty) || !get(request)) return;
+  const isDraft = get(draftDir) !== null;
+  const name = isDraft ? 'this draft' : (get(selectedPath)?.split('/').pop() ?? 'this request');
+  if (!(await discardDialog(`Discard unsaved changes to ${name}?`))) return;
+  if (isDraft) {
+    clearSelection();
+    return;
+  }
+  const path = get(selectedPath)!;
+  error.set('');
+  try {
+    normalizeAndSetRequest(await readRequestFile(path));
+    dirty.set(false);
+    diskChanged.set(false);
+    dropEdit(path);
+    resetUndo();
+  } catch (e) {
+    error.set(errMsg(e));
+  }
 }
 
 export async function saveRequest() {

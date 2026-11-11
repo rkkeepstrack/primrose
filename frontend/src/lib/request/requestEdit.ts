@@ -5,10 +5,12 @@ import { get } from 'svelte/store';
 import type { ApiRequest } from '../shared/types';
 import { buildUrl, queryAfterUrlEdit, splitUrl } from '../shared/urlQuery';
 import { dirty, request } from '../workspace/state';
+import { snapshotBeforeEdit } from './undo';
 
 export function edit(mutate: (r: ApiRequest) => void) {
   const r = get(request);
   if (!r) return;
+  snapshotBeforeEdit();
   mutate(r);
   request.set(r);
   dirty.set(true);
