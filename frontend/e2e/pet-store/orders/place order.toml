@@ -1,0 +1,10 @@
+method = "PUT"
+url = "{{baseUrl}}/orders/:orderId"
+
+[vars]
+orderId = "42"
+
+[body]
+type = "json"
+content = '''
+{ "petId": {{petId}}, "quantity": 1 }'''

@@ -1,0 +1,15 @@
+method = "POST"
+url = "{{baseUrl}}/pets"
+
+[headers]
+Content-Type = "application/json"
+
+[body]
+type = "json"
+content = '''
+{
+  "name": "Primrose",
+  "species": "cat",
+  "tags": ["fluffy", "{{status}}"],
+  "owner": { "name": "Ada", "since": 2019 }
+}'''

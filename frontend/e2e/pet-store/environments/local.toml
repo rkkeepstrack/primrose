@@ -1,0 +1,7 @@
+[vars]
+baseUrl = "https://petstore.example.com"
+petId = "7"
+status = "available"
+
+[headers]
+X-Client = "primrose"

@@ -1,0 +1,298 @@
+{
+  "root": "/Users/ada/pet-store",
+  "collection": {
+    "name": "pet-store",
+    "root": "/Users/ada/pet-store",
+    "tree": [
+      {
+        "name": "orders",
+        "path": "/Users/ada/pet-store/orders",
+        "isFolder": true,
+        "children": [
+          {
+            "name": "place order",
+            "path": "/Users/ada/pet-store/orders/place order.toml",
+            "isFolder": false,
+            "method": "PUT"
+          }
+        ]
+      },
+      {
+        "name": "pets",
+        "path": "/Users/ada/pet-store/pets",
+        "isFolder": true,
+        "children": [
+          {
+            "name": "create pet",
+            "path": "/Users/ada/pet-store/pets/create pet.toml",
+            "isFolder": false,
+            "method": "POST"
+          },
+          {
+            "name": "get pet",
+            "path": "/Users/ada/pet-store/pets/get pet.toml",
+            "isFolder": false,
+            "method": "GET"
+          },
+          {
+            "name": "list pets",
+            "path": "/Users/ada/pet-store/pets/list pets.toml",
+            "isFolder": false,
+            "method": "GET"
+          }
+        ]
+      },
+      {
+        "name": "health",
+        "path": "/Users/ada/pet-store/health.toml",
+        "isFolder": false,
+        "method": "GET"
+      }
+    ]
+  },
+  "requests": {
+    "/Users/ada/pet-store/health.toml": {
+      "method": "GET",
+      "url": "{{baseUrl}}/health",
+      "query": {},
+      "disabledQuery": null,
+      "headers": {},
+      "body": {
+        "type": "json",
+        "content": ""
+      },
+      "vars": null,
+      "tests": {
+        "script": ""
+      }
+    },
+    "/Users/ada/pet-store/orders/place order.toml": {
+      "method": "PUT",
+      "url": "{{baseUrl}}/orders/:orderId",
+      "query": {},
+      "disabledQuery": null,
+      "headers": {},
+      "body": {
+        "type": "json",
+        "content": "{ \"petId\": {{petId}}, \"quantity\": 1 }"
+      },
+      "vars": {
+        "orderId": "42"
+      },
+      "tests": {
+        "script": ""
+      }
+    },
+    "/Users/ada/pet-store/pets/create pet.toml": {
+      "method": "POST",
+      "url": "{{baseUrl}}/pets",
+      "query": {},
+      "disabledQuery": null,
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "type": "json",
+        "content": "{\n  \"name\": \"Primrose\",\n  \"species\": \"cat\",\n  \"tags\": [\"fluffy\", \"{{status}}\"],\n  \"owner\": { \"name\": \"Ada\", \"since\": 2019 }\n}"
+      },
+      "vars": null,
+      "tests": {
+        "script": ""
+      }
+    },
+    "/Users/ada/pet-store/pets/get pet.toml": {
+      "method": "GET",
+      "url": "{{baseUrl}}/pets/:id",
+      "query": {},
+      "disabledQuery": null,
+      "headers": {},
+      "body": {
+        "type": "json",
+        "content": ""
+      },
+      "vars": {
+        "id": "7"
+      },
+      "tests": {
+        "script": ""
+      }
+    },
+    "/Users/ada/pet-store/pets/list pets.toml": {
+      "method": "GET",
+      "url": "{{baseUrl}}/pets?limit=20\u0026status={{status}}",
+      "query": {
+        "debug": "true",
+        "limit": "20",
+        "status": "{{status}}"
+      },
+      "disabledQuery": [
+        "debug"
+      ],
+      "headers": {},
+      "body": {
+        "type": "json",
+        "content": ""
+      },
+      "vars": null,
+      "tests": {
+        "script": "assert res.status == 200\nassert len(res.body[\"pets\"]) == 3\n"
+      }
+    }
+  },
+  "environments": [
+    {
+      "name": "local",
+      "path": "/Users/ada/pet-store/environments/local.toml",
+      "vars": {
+        "baseUrl": "https://petstore.example.com",
+        "petId": "7",
+        "status": "available"
+      },
+      "headers": {
+        "X-Client": "primrose"
+      },
+      "secrets": [],
+      "missingSecrets": []
+    },
+    {
+      "name": "production",
+      "path": "/Users/ada/pet-store/environments/production.toml",
+      "vars": {
+        "baseUrl": "https://api.petstore.example.com",
+        "petId": "1",
+        "status": "available"
+      },
+      "headers": {},
+      "secrets": [],
+      "missingSecrets": []
+    }
+  ],
+  "responses": {
+    "GET {{baseUrl}}/health": {
+      "requestUrl": "https://petstore.example.com/health",
+      "finalUrl": "https://petstore.example.com/health",
+      "requestHeaders": {
+        "Accept-Encoding": "gzip",
+        "Host": "petstore.example.com",
+        "User-Agent": "primrose/0.1",
+        "X-Client": "primrose"
+      },
+      "status": 200,
+      "statusText": "OK",
+      "headers": {
+        "Content-Length": "3",
+        "Content-Type": "text/plain; charset=utf-8"
+      },
+      "body": "ok\n",
+      "contentType": "text/plain; charset=utf-8",
+      "durationMs": 45,
+      "size": 3
+    },
+    "GET {{baseUrl}}/pets": {
+      "requestUrl": "https://petstore.example.com/pets?limit=20\u0026status=available",
+      "finalUrl": "https://petstore.example.com/pets?limit=20\u0026status=available",
+      "requestHeaders": {
+        "Accept-Encoding": "gzip",
+        "Host": "petstore.example.com",
+        "User-Agent": "primrose/0.1",
+        "X-Client": "primrose"
+      },
+      "status": 200,
+      "statusText": "OK",
+      "headers": {
+        "Content-Length": "235",
+        "Content-Type": "application/json",
+        "X-Request-Id": "req-0001"
+      },
+      "body": "{\"pets\":[{\"id\":7,\"name\":\"Primrose\",\"species\":\"cat\",\"status\":\"available\"},{\"id\":8,\"name\":\"Biscuit\",\"species\":\"dog\",\"status\":\"available\"},{\"id\":9,\"name\":\"Pickle\",\"species\":\"axolotl\",\"status\":\"available\"}],\"page\":{\"limit\":20,\"next\":null}}",
+      "contentType": "application/json",
+      "durationMs": 77,
+      "size": 235,
+      "tests": {
+        "results": [
+          {
+            "line": 1,
+            "source": "assert res.status == 200",
+            "ok": true,
+            "message": ""
+          },
+          {
+            "line": 2,
+            "source": "assert len(res.body[\"pets\"]) == 3",
+            "ok": true,
+            "message": ""
+          }
+        ],
+        "passed": 2,
+        "total": 2
+      }
+    },
+    "GET {{baseUrl}}/pets/:id": {
+      "requestUrl": "https://petstore.example.com/pets/7",
+      "finalUrl": "https://petstore.example.com/pets/7",
+      "requestHeaders": {
+        "Accept-Encoding": "gzip",
+        "Host": "petstore.example.com",
+        "User-Agent": "primrose/0.1",
+        "X-Client": "primrose"
+      },
+      "status": 200,
+      "statusText": "OK",
+      "headers": {
+        "Content-Length": "173",
+        "Content-Type": "application/json",
+        "X-Request-Id": "req-0001"
+      },
+      "body": "{\"id\":7,\"name\":\"Primrose\",\"species\":\"cat\",\"tags\":[\"fluffy\",\"available\"],\"owner\":{\"name\":\"Ada\",\"since\":2019,\"address\":{\"city\":\"Düsseldorf\",\"zip\":\"40213\"}},\"vaccinated\":true}",
+      "contentType": "application/json",
+      "durationMs": 65,
+      "size": 173
+    },
+    "POST {{baseUrl}}/pets": {
+      "requestUrl": "https://petstore.example.com/pets",
+      "finalUrl": "https://petstore.example.com/pets",
+      "requestHeaders": {
+        "Accept-Encoding": "gzip",
+        "Content-Length": "124",
+        "Content-Type": "application/json",
+        "Host": "petstore.example.com",
+        "User-Agent": "primrose/0.1",
+        "X-Client": "primrose"
+      },
+      "status": 201,
+      "statusText": "Created",
+      "headers": {
+        "Content-Length": "42",
+        "Content-Type": "application/json",
+        "X-Request-Id": "req-0001"
+      },
+      "body": "{\"id\":10,\"name\":\"Primrose\",\"created\":true}",
+      "contentType": "application/json",
+      "durationMs": 84,
+      "size": 42
+    },
+    "PUT {{baseUrl}}/orders/:orderId": {
+      "requestUrl": "https://petstore.example.com/orders/42",
+      "finalUrl": "https://petstore.example.com/orders/42",
+      "requestHeaders": {
+        "Accept-Encoding": "gzip",
+        "Content-Length": "29",
+        "Content-Type": "application/json",
+        "Host": "petstore.example.com",
+        "User-Agent": "primrose/0.1",
+        "X-Client": "primrose"
+      },
+      "status": 409,
+      "statusText": "Conflict",
+      "headers": {
+        "Content-Length": "37",
+        "Content-Type": "application/json",
+        "X-Request-Id": "req-0001"
+      },
+      "body": "{\"error\":\"pet 7 is already reserved\"}",
+      "contentType": "application/json",
+      "durationMs": 79,
+      "size": 37
+    }
+  }
+}

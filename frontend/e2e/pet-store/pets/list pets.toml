@@ -1,0 +1,14 @@
+method = "GET"
+url = "{{baseUrl}}/pets?limit=20&status={{status}}"
+disabled_query = ["debug"]
+
+[query]
+debug = "true"
+limit = "20"
+status = "{{status}}"
+
+[tests]
+script = '''
+assert res.status == 200
+assert len(res.body["pets"]) == 3
+'''
