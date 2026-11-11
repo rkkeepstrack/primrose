@@ -6,7 +6,8 @@
   import { json } from '@codemirror/lang-json';
   import { linter, lintGutter } from '@codemirror/lint';
   import { autocompletion } from '@codemirror/autocomplete';
-  import { StreamLanguage, syntaxHighlighting } from '@codemirror/language';
+  import { codeFolding, foldGutter, StreamLanguage, syntaxHighlighting, unfoldAll } from '@codemirror/language';
+  import { foldBelowRoot } from './foldBelowRoot';
   import { python } from '@codemirror/legacy-modes/mode/python';
   import { jsonHighlightStyle } from './jsonHighlight';
   import { jsonSyntaxErrors } from './jsonDiagnostics';
@@ -24,6 +25,15 @@
 
   let host: HTMLDivElement;
   let view: EditorView | null = null;
+
+  // "collapse all" for JSON bodies: folds everything one level below the
+  // root so the top-level keys stay in view
+  export function collapseAll() {
+    if (view) foldBelowRoot(view);
+  }
+  export function expandAll() {
+    if (view) unfoldAll(view);
+  }
 
   // getters keep the extensions reading the current prop value without
   // rebuilding the editor when the environment changes
@@ -56,6 +66,16 @@
       borderRight: '1px solid var(--border-faint)',
     },
     '.cm-lineNumbers .cm-gutterElement': { padding: '0 6px 0 12px', minWidth: '30px' },
+    '.cm-foldGutter .cm-gutterElement': { padding: '0 4px 0 2px', cursor: 'pointer' },
+    '.cm-foldPlaceholder': {
+      background: 'var(--bg-hover)',
+      border: '1px solid var(--border-soft)',
+      color: 'var(--text-faint)',
+      borderRadius: '4px',
+      padding: '0 5px',
+      margin: '0 2px',
+      cursor: 'pointer',
+    },
     // the hover tooltip content (VarTooltip) brings its own card look
     '.cm-tooltip.cm-tooltip-hover': {
       backgroundColor: 'transparent',
@@ -105,6 +125,7 @@
       ext.push(EditorView.lineWrapping, lineNumbers());
       if (lang === 'json') {
         ext.push(json(), syntaxHighlighting(jsonHighlightStyle), lintGutter(), linter(jsonSyntaxErrors), stickyPath());
+        ext.push(codeFolding(), foldGutter({ openText: '▾', closedText: '▸' }));
       } else if (lang === 'python') {
         // Starlark is Python syntax; the legacy stream mode is enough for
         // highlighting and reuses the JSON highlight colors

@@ -5,7 +5,8 @@
   import SearchPanel from './SearchPanel.svelte';
   import { EditorState } from '@codemirror/state';
   import { json } from '@codemirror/lang-json';
-  import { foldGutter, codeFolding, syntaxHighlighting, foldedRanges } from '@codemirror/language';
+  import { foldGutter, codeFolding, syntaxHighlighting, foldedRanges, unfoldAll } from '@codemirror/language';
+  import { foldBelowRoot } from './foldBelowRoot';
   import { Decoration, WidgetType } from '@codemirror/view';
   import { RangeSetBuilder, StateField } from '@codemirror/state';
   import { jsonHighlightStyle } from './jsonHighlight';
@@ -16,6 +17,14 @@
 
   let host: HTMLDivElement;
   let view: EditorView | null = null;
+
+  // "collapse all" keeps the top-level keys visible, see foldBelowRoot
+  export function collapseAll() {
+    if (view) foldBelowRoot(view);
+  }
+  export function expandAll() {
+    if (view) unfoldAll(view);
+  }
 
   const theme = EditorView.theme({
     '&': { fontSize: '11px', height: '100%', backgroundColor: 'transparent' },
