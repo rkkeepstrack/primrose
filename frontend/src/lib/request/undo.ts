@@ -54,24 +54,34 @@ function apply(snap: Snapshot) {
   applying = false;
 }
 
-export function undo() {
+// true when there was something to undo
+export function undo(): boolean {
   const snap = past.pop();
-  if (!snap) return;
+  if (!snap) return false;
   const cur = current();
   if (cur) future.push(cur);
   apply(snap);
   lastEditAt = -Infinity; // the next edit starts a new step
   sync();
+  return true;
 }
 
-export function redo() {
+// true when there was something to redo
+export function redo(): boolean {
   const snap = future.pop();
-  if (!snap) return;
+  if (!snap) return false;
   const cur = current();
   if (cur) past.push(cur);
   apply(snap);
   lastEditAt = -Infinity;
   sync();
+  return true;
+}
+
+// the file changed under the stack (save, reload, external edit): every
+// snapshot now differs from disk, so restoring one must show as unsaved
+export function diskBaselineMoved() {
+  for (const snap of [...past, ...future]) snap.dirty = true;
 }
 
 // on request switch: ⌘Z must never resurrect another request's state

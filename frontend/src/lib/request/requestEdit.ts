@@ -27,10 +27,11 @@ export function setUrl(v: string) {
   });
 }
 
-export function setQuery(q: Record<string, string>) {
+// `disabled` comes from the query table, which tracks it per row (renames)
+export function setQuery(q: Record<string, string>, disabled?: string[]) {
   edit((r) => {
     r.query = q;
-    r.disabledQuery = r.disabledQuery.filter((k) => k in q);
+    r.disabledQuery = (disabled ?? r.disabledQuery).filter((k) => k in q);
     r.url = buildUrl(splitUrl(r.url).base, q, r.disabledQuery);
   });
 }

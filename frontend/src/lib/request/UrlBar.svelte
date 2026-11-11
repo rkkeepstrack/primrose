@@ -50,7 +50,7 @@
   {#if $draftName !== null}
     <DraftNameRow />
   {/if}
-  <div class="url-row">
+  <div class="url-row" data-request-undo>
     <div class="url-bar">
       <div class="method-menu-scope">
         <Menu placement="bottom-start">

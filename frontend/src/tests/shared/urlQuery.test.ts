@@ -97,3 +97,20 @@ describe('disabled query params', () => {
     expect(typed.disabledQuery).toEqual(['debug']);
   });
 });
+
+describe('queryAfterUrlEdit while typing', () => {
+  it('a half-typed param that starts like a disabled key leaves the disabled row alone', () => {
+    let state = { query: { a: '1', page: '7' } as Record<string, string>, disabledQuery: ['page'] };
+    for (const url of ['x?a=1&p', 'x?a=1&page', 'x?a=1&page_', 'x?a=1&page_size=10']) {
+      state = queryAfterUrlEdit(url, state.query, state.disabledQuery);
+    }
+    expect(state.query).toEqual({ a: '1', page: '7', page_size: '10' });
+    expect(state.disabledQuery).toEqual(['page']);
+  });
+
+  it('a complete key= pair in the URL re-enables a disabled param with the URL value', () => {
+    const s = queryAfterUrlEdit('x?page=3', { page: '7' }, ['page']);
+    expect(s.query).toEqual({ page: '3' });
+    expect(s.disabledQuery).toEqual([]);
+  });
+});

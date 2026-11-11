@@ -7,9 +7,9 @@ import { normalizeUrlAndQuery } from '../shared/urlQuery';
 import { dropEdit, touchRecent, unsavedEdits } from '../shared/stores';
 import { CreateRequest, ReadRequest, SaveRequest } from '../../../wailsjs/go/main/App';
 import { discardDialog } from '../ui/dialogs';
-import { resetUndo } from '../request/undo';
+import { diskBaselineMoved, resetUndo } from '../request/undo';
 import { refreshTree } from './refresh';
-import { newDraftKey, stashCurrentEdit } from './drafts';
+import { editIdentity, newDraftKey, stashCurrentEdit } from './drafts';
 import { activeRoot, clearSelection, dirty, diskChanged, draftDir, draftName, error, request, selectedPath } from './state';
 
 // backfills fields absent in files written before they existed
@@ -43,6 +43,7 @@ export async function selectRequest(node: TreeNode) {
   draftName.set(null);
   try {
     const stashed = get(unsavedEdits)[node.path];
+    editIdentity.set(node.path);
     if (stashed) {
       request.set(stashed);
       dirty.set(true);
@@ -61,6 +62,7 @@ export async function selectRequest(node: TreeNode) {
 
 export async function newRequest(dir: string) {
   stashCurrentEdit();
+  newDraftKey();
   request.set({
     method: 'GET',
     url: '',
@@ -74,7 +76,6 @@ export async function newRequest(dir: string) {
   selectedPath.set(null);
   draftDir.set(dir);
   draftName.set('');
-  newDraftKey();
   dirty.set(true);
 }
 
@@ -132,6 +133,7 @@ export async function saveRequest() {
     }
     dirty.set(false);
     diskChanged.set(false);
+    diskBaselineMoved();
     const path = get(selectedPath);
     if (path) dropEdit(path);
     await refreshTree(); // new file or method badge

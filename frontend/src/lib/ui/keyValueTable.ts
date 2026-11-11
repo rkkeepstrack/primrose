@@ -1,7 +1,8 @@
 // Row model helpers for KeyValueEditor: rows keep their identity while keys
 // are edited, entries are the emitted map form.
 
-export type Row = { key: string; value: string };
+// off: switched off; lives on the row so a rename doesn't switch it back on
+export type Row = { key: string; value: string; off?: boolean };
 
 export function toRows(entries: Record<string, string>): Row[] {
   return Object.entries(entries).map(([key, value]) => ({ key, value }));

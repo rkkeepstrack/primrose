@@ -39,3 +39,30 @@ describe('KeyValueEditor enable toggles', () => {
     unmount(comp);
   });
 });
+
+describe('KeyValueEditor disabled rows keep their state by row, not by name', () => {
+  it('renaming a disabled row reports the new name as disabled, through an empty name too', async () => {
+    const host = document.createElement('div');
+    document.body.appendChild(host);
+    const emitted: [Record<string, string>, string[] | undefined][] = [];
+    const comp = mount(KeyValueEditor, {
+      target: host,
+      props: {
+        entries: { a: '1', debug: 'true' },
+        onChange: (e: Record<string, string>, off?: string[]) => emitted.push([e, off]),
+        disabledKeys: ['debug'],
+        onToggleEnabled: () => {},
+      },
+    });
+    await Promise.resolve();
+    const name = host.querySelectorAll<HTMLInputElement>('td input[placeholder="name"]')[1];
+    for (const v of ['debugg', '', 'x']) {
+      name.value = v;
+      name.dispatchEvent(new Event('input'));
+      await Promise.resolve();
+    }
+    expect(emitted.map(([, off]) => off)).toEqual([['debugg'], [], ['x']]);
+    expect(host.querySelectorAll('tr.off')).toHaveLength(1);
+    unmount(comp);
+  });
+});

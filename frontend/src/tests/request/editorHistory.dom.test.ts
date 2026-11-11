@@ -7,6 +7,7 @@ import { EditorView } from '@codemirror/view';
 import { undo } from '@codemirror/commands';
 import TestsEditor from '../../lib/request/TestsEditor.svelte';
 import { dirty, request, selectedPath } from '../../lib/workspace/state';
+import { editIdentity } from '../../lib/workspace/drafts';
 import type { ApiRequest } from '../../lib/shared/types';
 
 function req(script: string): ApiRequest {
@@ -25,6 +26,7 @@ function req(script: string): ApiRequest {
 describe('CodeEditor history across external value writes', () => {
   it('keeps undo history when the same request is written from outside', async () => {
     selectedPath.set('/c/a.toml');
+    editIdentity.set('/c/a.toml');
     request.set(req('one'));
     dirty.set(false);
     const host = document.createElement('div');
@@ -49,6 +51,7 @@ describe('CodeEditor history across external value writes', () => {
 
   it('starts a fresh history when another request is opened', async () => {
     selectedPath.set('/c/a.toml');
+    editIdentity.set('/c/a.toml');
     request.set(req('one'));
     const host = document.createElement('div');
     document.body.appendChild(host);
@@ -56,6 +59,7 @@ describe('CodeEditor history across external value writes', () => {
     await tick();
 
     selectedPath.set('/c/b.toml');
+    editIdentity.set('/c/b.toml');
     request.set(req('other'));
     await tick();
     const view = EditorView.findFromDOM(host.querySelector('.cm-editor') as HTMLElement)!;

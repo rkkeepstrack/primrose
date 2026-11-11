@@ -46,16 +46,32 @@ export function normalizeUrlAndQuery(url: string, query: Record<string, string>,
 }
 
 // The URL bar was edited: its params replace the enabled ones, disabled
-// params stay in their rows untouched unless the URL now names them.
+// params stay in their rows untouched. Only a complete `key=` pair in the URL
+// re-enables a disabled key; a bare `key` is usually a longer name still being
+// typed (`page` on the way to `page_size`) and must not eat the disabled row.
 export function queryAfterUrlEdit(url: string, prev: Record<string, string>, disabled: string[]): Omit<QueryState, 'url'> {
   const fromUrl = queryFromUrl(url);
+  const complete = keysWithEquals(url);
+  const reEnabled = (k: string) => k in fromUrl && complete.has(k);
   const query: Record<string, string> = {};
   for (const [k, v] of Object.entries(prev)) {
-    if (k in fromUrl) query[k] = fromUrl[k];
-    else if (disabled.includes(k)) query[k] = v;
+    if (disabled.includes(k)) query[k] = reEnabled(k) ? fromUrl[k] : v;
+    else if (k in fromUrl) query[k] = fromUrl[k];
   }
   for (const [k, v] of Object.entries(fromUrl)) {
     if (!(k in query)) query[k] = v;
   }
-  return { query, disabledQuery: disabled.filter((k) => k in query && !(k in fromUrl)) };
+  return { query, disabledQuery: disabled.filter((k) => k in query && !reEnabled(k)) };
+}
+
+function keysWithEquals(url: string): Set<string> {
+  const i = url.indexOf('?');
+  if (i === -1) return new Set();
+  return new Set(
+    url
+      .slice(i + 1)
+      .split('&')
+      .filter((p) => p.includes('='))
+      .map((p) => p.slice(0, p.indexOf('='))),
+  );
 }

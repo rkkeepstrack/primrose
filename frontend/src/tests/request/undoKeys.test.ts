@@ -64,6 +64,44 @@ describe('⌘Z routing', () => {
     expect(get(request)?.url).toBe('b');
   });
 
+  it('leaves plain inputs outside the request editor to native undo', () => {
+    const search = document.createElement('input');
+    document.body.appendChild(search);
+    const e = key({ target: search });
+    expect(handleUndoKeydown(e)).toBe(false);
+    expect(e.defaultPrevented).toBe(false);
+    expect(get(request)?.url).toBe('b');
+  });
+
+  it('handles inputs inside the request editor', () => {
+    const scope = document.createElement('div');
+    scope.setAttribute('data-request-undo', '');
+    const input = document.createElement('input');
+    scope.appendChild(input);
+    expect(handleUndoKeydown(key({ target: input }))).toBe(true);
+    expect(get(request)?.url).toBe('a');
+  });
+
+  it('a nested opt-out inside the request editor goes back to native undo', () => {
+    const scope = document.createElement('div');
+    scope.setAttribute('data-request-undo', '');
+    const envTable = document.createElement('table');
+    envTable.setAttribute('data-request-undo', 'off');
+    const input = document.createElement('input');
+    envTable.appendChild(input);
+    scope.appendChild(envTable);
+    expect(handleUndoKeydown(key({ target: input }))).toBe(false);
+    expect(get(request)?.url).toBe('b');
+  });
+
+  it('does not swallow the key when there is nothing to undo or redo', () => {
+    resetUndo();
+    const e = key();
+    expect(handleUndoKeydown(e)).toBe(false);
+    expect(e.defaultPrevented).toBe(false);
+    expect(handleUndoKeydown(key({ shift: true }))).toBe(false);
+  });
+
   it('ignores other keys and special tabs', () => {
     expect(handleUndoKeydown(key({ key: 'y' }))).toBe(false);
     activeTabId.set('env:/c');

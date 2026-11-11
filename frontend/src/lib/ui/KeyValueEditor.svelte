@@ -8,7 +8,8 @@
   import CodeEditor from '../editor/CodeEditor.svelte';
   import { findDuplicateKeys, toEntries, toRows, type Row } from './keyValueTable';
   export let entries: Record<string, string>;
-  export let onChange: (entries: Record<string, string>) => void;
+  // with onToggleEnabled set, the second argument lists the disabled names
+  export let onChange: (entries: Record<string, string>, disabled?: string[]) => void;
   // read-only rows shown pinned on top (e.g. headers inherited from the
   // environment); struck through once an own row overrides the same name
   export let inherited: Record<string, string> = {};
@@ -28,22 +29,34 @@
 
   let revealed: Record<string, boolean> = {};
   $: secretSet = new Set(secretKeys);
-  $: disabledSet = new Set(disabledKeys);
 
   // Local row model so keys can be edited without map-key collisions.
   let rows: Row[] = toRows(entries);
   let lastEntries = entries;
 
-  // Re-sync only when the parent hands us a different object (request switch).
-  $: if (entries !== lastEntries) {
-    lastEntries = entries;
-    rows = toRows(entries);
+  // Re-sync only when the parent hands us a different object (request switch,
+  // URL bar edit) — not after our own emit, or a slow parent would undo typing.
+  function syncFrom(e: Record<string, string>) {
+    if (e === lastEntries) return;
+    lastEntries = e;
+    rows = toRows(e);
+    applyDisabled(disabledKeys);
   }
+  $: syncFrom(entries);
+
+  // rows with an empty name keep their flag: clearing a name to retype it
+  // must not switch the row back on
+  function applyDisabled(keys: string[]) {
+    const off = new Set(keys);
+    for (const r of rows) if (r.key.trim() !== '') r.off = off.has(r.key);
+    rows = rows;
+  }
+  $: applyDisabled(disabledKeys);
 
   function emit() {
     const out = toEntries(rows);
     lastEntries = out;
-    onChange(out);
+    onChange(out, onToggleEnabled ? rows.filter((r) => r.off && r.key.trim() !== '').map((r) => r.key) : undefined);
   }
 
   $: duplicateKeys = findDuplicateKeys(rows);
@@ -70,7 +83,7 @@
       </tr>
     {/each}
     {#each rows as row, i (row)}
-      <tr class:off={disabledSet.has(row.key)}>
+      <tr class:off={row.off}>
         <td class:duplicate={duplicateKeys.has(row.key)}>
           <input
             placeholder="name"
@@ -110,9 +123,9 @@
           {#if onToggleEnabled}
             <button
               class="enable-toggle"
-              class:is-off={disabledSet.has(row.key)}
-              title={disabledSet.has(row.key) ? 'Enable' : 'Disable (keeps the row)'}
-              on:click={() => onToggleEnabled?.(row.key, disabledSet.has(row.key))}>
+              class:is-off={row.off}
+              title={row.off ? 'Enable' : 'Disable (keeps the row)'}
+              on:click={() => onToggleEnabled?.(row.key, !!row.off)}>
               <Power size={13} strokeWidth={2} />
             </button>
           {/if}
