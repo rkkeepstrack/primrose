@@ -53,12 +53,18 @@ The screenshots run against a fake backend fed by `frontend/e2e/fixture.json`, w
 
 ### Deployment
 
-GitHub Actions builds macOS, Windows, and Linux binaries and publishes them as a GitHub Release. Either run the "Release" workflow from the Actions tab (it tags for you), or push a tag manually:
+Run the "Release" workflow from the Actions tab, or:
 
 ```sh
-gh workflow run release.yml -f version=v0.1.0
-# or: git tag v0.1.0 && git push origin v0.1.0
+gh workflow run release.yml               # version derived from the commits
+gh workflow run release.yml -f version=1.4.0   # or say it yourself
 ```
+
+Everything committed to `main` since the last tag becomes the release. Any `feat` bumps the minor version, a `!` or `BREAKING CHANGE` the major one (the minor while still on 0.x), anything else the patch. The notes list the commits by type. macOS, Windows and Linux zips are attached; tag and release are only created once all three built, so a failed run can simply be re-run.
+
+### Contributing
+
+Work happens on a branch and lands in `main` through a pull request; CI (tests, type check, format) runs on every PR. Commit subjects follow `type(TICKET): subject` (`feat`, `fix`, `chore`, …) because the release reads them.
 
 ### License
 
