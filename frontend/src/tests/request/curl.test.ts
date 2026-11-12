@@ -7,6 +7,7 @@ function req(overrides: Partial<ApiRequest> = {}): ApiRequest {
     method: 'GET',
     url: 'https://api.example.com/users',
     query: {},
+    disabledQuery: [],
     headers: {},
     body: { type: 'json', content: '' },
     vars: {},

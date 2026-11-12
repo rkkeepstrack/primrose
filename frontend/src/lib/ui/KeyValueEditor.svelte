@@ -4,9 +4,12 @@
   import EyeOff from '@lucide/svelte/icons/eye-off';
   import Lock from '@lucide/svelte/icons/lock';
   import LockOpen from '@lucide/svelte/icons/lock-open';
+  import Power from '@lucide/svelte/icons/power';
+  import CodeEditor from '../editor/CodeEditor.svelte';
   import { findDuplicateKeys, toEntries, toRows, type Row } from './keyValueTable';
   export let entries: Record<string, string>;
-  export let onChange: (entries: Record<string, string>) => void;
+  // with onToggleEnabled set, the second argument lists the disabled names
+  export let onChange: (entries: Record<string, string>, disabled?: string[]) => void;
   // read-only rows shown pinned on top (e.g. headers inherited from the
   // environment); struck through once an own row overrides the same name
   export let inherited: Record<string, string> = {};
@@ -14,6 +17,15 @@
   // onToggleSecret is set, every row gets a lock button to flip the flag.
   export let secretKeys: string[] = [];
   export let onToggleSecret: ((key: string) => void) | null = null;
+  // keys switched off (kept in the table, dimmed). When onToggleEnabled is
+  // set, every row gets a power button to flip it.
+  export let disabledKeys: string[] = [];
+  export let onToggleEnabled: ((key: string, enabled: boolean) => void) | null = null;
+
+  // when set, non-secret values get {{var}} highlighting, hover and completion
+  export let envVars: Record<string, string> | null = null;
+  // forwarded to the value editors so their undo history resets per request
+  export let docKey: unknown = undefined;
 
   let revealed: Record<string, boolean> = {};
   $: secretSet = new Set(secretKeys);
@@ -22,16 +34,29 @@
   let rows: Row[] = toRows(entries);
   let lastEntries = entries;
 
-  // Re-sync only when the parent hands us a different object (request switch).
-  $: if (entries !== lastEntries) {
-    lastEntries = entries;
-    rows = toRows(entries);
+  // Re-sync only when the parent hands us a different object (request switch,
+  // URL bar edit) — not after our own emit, or a slow parent would undo typing.
+  function syncFrom(e: Record<string, string>) {
+    if (e === lastEntries) return;
+    lastEntries = e;
+    rows = toRows(e);
+    applyDisabled(disabledKeys);
   }
+  $: syncFrom(entries);
+
+  // rows with an empty name keep their flag: clearing a name to retype it
+  // must not switch the row back on
+  function applyDisabled(keys: string[]) {
+    const off = new Set(keys);
+    for (const r of rows) if (r.key.trim() !== '') r.off = off.has(r.key);
+    rows = rows;
+  }
+  $: applyDisabled(disabledKeys);
 
   function emit() {
     const out = toEntries(rows);
     lastEntries = out;
-    onChange(out);
+    onChange(out, onToggleEnabled ? rows.filter((r) => r.off && r.key.trim() !== '').map((r) => r.key) : undefined);
   }
 
   $: duplicateKeys = findDuplicateKeys(rows);
@@ -57,8 +82,8 @@
         <td class="origin">inherited</td>
       </tr>
     {/each}
-    {#each rows as row, i}
-      <tr>
+    {#each rows as row, i (row)}
+      <tr class:off={row.off}>
         <td class:duplicate={duplicateKeys.has(row.key)}>
           <input
             placeholder="name"
@@ -69,6 +94,19 @@
         <td class="value-cell">
           {#if secretSet.has(row.key) && !revealed[row.key]}
             <input placeholder="value" type="password" bind:value={row.value} on:input={emit} />
+          {:else if envVars}
+            <div class="cell-editor">
+              <CodeEditor
+                singleLine
+                value={row.value}
+                placeholder="value"
+                {envVars}
+                {docKey}
+                onChange={(v) => {
+                  row.value = v;
+                  emit();
+                }} />
+            </div>
           {:else}
             <input placeholder="value" type="text" bind:value={row.value} on:input={emit} />
           {/if}
@@ -82,6 +120,15 @@
           {/if}
         </td>
         <td class="actions">
+          {#if onToggleEnabled}
+            <button
+              class="enable-toggle"
+              class:is-off={row.off}
+              title={row.off ? 'Enable' : 'Disable (keeps the row)'}
+              on:click={() => onToggleEnabled?.(row.key, !!row.off)}>
+              <Power size={13} strokeWidth={2} />
+            </button>
+          {/if}
           {#if onToggleSecret}
             <button
               class="secret-toggle"
@@ -119,6 +166,26 @@
   }
   td input:focus {
     outline: none;
+    background: var(--yellow-bg);
+  }
+  tr.off td:not(.actions),
+  tr.off .secret-toggle {
+    opacity: 0.45;
+  }
+  tr.off td input,
+  tr.off .cell-editor :global(.cm-line) {
+    text-decoration: line-through;
+  }
+  /* the CodeMirror value cell mimics the plain inputs around it */
+  .cell-editor {
+    display: flex;
+    flex: 1;
+    min-width: 0;
+  }
+  .cell-editor :global(.cm-content) {
+    padding: 7px 10px;
+  }
+  .cell-editor:focus-within {
     background: var(--yellow-bg);
   }
   td.duplicate input {
@@ -173,6 +240,20 @@
   }
   .secret-toggle.is-secret {
     color: var(--purple-soft);
+  }
+  .enable-toggle {
+    border: none;
+    background: none;
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    color: var(--text-faint);
+  }
+  .enable-toggle:hover {
+    color: var(--text-soft);
+  }
+  .enable-toggle.is-off {
+    color: var(--orange-strong);
   }
   .remove {
     border: none;

@@ -45,7 +45,11 @@ Requires Go 1.25+, Node 22+, and the [Wails CLI](https://wails.io/docs/gettingst
 wails dev          # run the app with hot reload
 go test ./...      # backend tests
 cd frontend && npm test   # frontend tests
+make snapshots            # screenshot tests, in the Playwright container (needs Docker)
+make snapshots-update     # accept new baselines (frontend/e2e/__snapshots__)
 ```
+
+The screenshots run against a fake backend fed by `frontend/e2e/fixture.json`, which `make fixture` regenerates from the demo collection in `frontend/e2e/pet-store`.
 
 ### Deployment
 

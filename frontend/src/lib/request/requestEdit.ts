@@ -3,12 +3,14 @@
 
 import { get } from 'svelte/store';
 import type { ApiRequest } from '../shared/types';
-import { buildUrl, queryFromUrl, splitUrl } from '../shared/urlQuery';
+import { buildUrl, queryAfterUrlEdit, splitUrl } from '../shared/urlQuery';
 import { dirty, request } from '../workspace/state';
+import { snapshotBeforeEdit } from './undo';
 
 export function edit(mutate: (r: ApiRequest) => void) {
   const r = get(request);
   if (!r) return;
+  snapshotBeforeEdit();
   mutate(r);
   request.set(r);
   dirty.set(true);
@@ -21,14 +23,24 @@ export function setMethod(m: string) {
 export function setUrl(v: string) {
   edit((r) => {
     r.url = v;
-    r.query = queryFromUrl(v);
+    ({ query: r.query, disabledQuery: r.disabledQuery } = queryAfterUrlEdit(v, r.query, r.disabledQuery));
   });
 }
 
-export function setQuery(q: Record<string, string>) {
+// `disabled` comes from the query table, which tracks it per row (renames)
+export function setQuery(q: Record<string, string>, disabled?: string[]) {
   edit((r) => {
     r.query = q;
-    r.url = buildUrl(splitUrl(r.url).base, q);
+    r.disabledQuery = (disabled ?? r.disabledQuery).filter((k) => k in q);
+    r.url = buildUrl(splitUrl(r.url).base, q, r.disabledQuery);
+  });
+}
+
+export function setQueryEnabled(key: string, enabled: boolean) {
+  edit((r) => {
+    const rest = r.disabledQuery.filter((k) => k !== key);
+    r.disabledQuery = enabled ? rest : [...rest, key];
+    r.url = buildUrl(splitUrl(r.url).base, r.query, r.disabledQuery);
   });
 }
 

@@ -136,3 +136,24 @@ func TestJarRoundTrip(t *testing.T) {
 		t.Errorf("sent Cookie header must appear in RequestHeaders: %v", resp.RequestHeaders)
 	}
 }
+
+func TestSendSkipsDisabledQuery(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Query().Has("debug") {
+			t.Errorf("disabled param sent: %s", r.URL.RawQuery)
+		}
+		if r.URL.Query().Get("a") != "1" {
+			t.Errorf("enabled param missing: %s", r.URL.RawQuery)
+		}
+	}))
+	defer srv.Close()
+	_, err := Send(&collection.Request{
+		Method:        "GET",
+		URL:           srv.URL + "/t",
+		Query:         map[string]string{"a": "1", "debug": "true"},
+		DisabledQuery: []string{"debug"},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+}

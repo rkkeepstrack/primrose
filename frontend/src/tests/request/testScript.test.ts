@@ -10,6 +10,7 @@ function blank(): ApiRequest {
     method: 'GET',
     url: '',
     query: {},
+    disabledQuery: [],
     headers: {},
     body: { type: 'json', content: '' },
     vars: {},
@@ -43,6 +44,7 @@ describe('normalizeRequest', () => {
       method: 'GET',
       url: '',
       query: {},
+      disabledQuery: [],
       headers: {},
       body: { type: 'json', content: '' },
     } as unknown as ApiRequest;

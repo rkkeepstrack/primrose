@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { splitUrl, buildUrl, queryFromUrl, normalizeUrlAndQuery } from '../../lib/shared/urlQuery';
+import { splitUrl, buildUrl, queryFromUrl, normalizeUrlAndQuery, queryAfterUrlEdit } from '../../lib/shared/urlQuery';
 
 describe('splitUrl', () => {
   it('splits base and pairs', () => {
@@ -62,5 +62,55 @@ describe('normalizeUrlAndQuery', () => {
     const r = normalizeUrlAndQuery('u?a=fromUrl', { a: 'fromFile', b: '2' });
     expect(r.query.a).toBe('fromUrl');
     expect(r.url).toBe('u?a=fromUrl&b=2');
+  });
+});
+
+describe('disabled query params', () => {
+  it('buildUrl leaves disabled keys out', () => {
+    expect(buildUrl('u', { a: '1', debug: 'true' }, ['debug'])).toBe('u?a=1');
+  });
+
+  it('normalizeUrlAndQuery does not fold disabled keys into the URL', () => {
+    const r = normalizeUrlAndQuery('u?a=1', { a: '1', debug: 'true' }, ['debug']);
+    expect(r.url).toBe('u?a=1');
+    expect(r.query).toEqual({ a: '1', debug: 'true' });
+    expect(r.disabledQuery).toEqual(['debug']);
+  });
+
+  it('normalizeUrlAndQuery re-enables a disabled key that the URL carries', () => {
+    const r = normalizeUrlAndQuery('u?debug=1', { debug: 'true' }, ['debug']);
+    expect(r.query).toEqual({ debug: '1' });
+    expect(r.disabledQuery).toEqual([]);
+  });
+
+  it('queryAfterUrlEdit keeps disabled params in place and re-enables typed ones', () => {
+    const r = queryAfterUrlEdit('u?a=2&c=3', { a: '1', debug: 'true', b: '2' }, ['debug', 'b']);
+    expect(Object.entries(r.query)).toEqual([
+      ['a', '2'],
+      ['debug', 'true'],
+      ['b', '2'],
+      ['c', '3'],
+    ]);
+    expect(r.disabledQuery).toEqual(['debug', 'b']);
+    const typed = queryAfterUrlEdit('u?b=9', { debug: 'true', b: '2' }, ['debug', 'b']);
+    expect(typed.query).toEqual({ debug: 'true', b: '9' });
+    expect(typed.disabledQuery).toEqual(['debug']);
+  });
+});
+
+describe('queryAfterUrlEdit while typing', () => {
+  it('a half-typed param that starts like a disabled key leaves the disabled row alone', () => {
+    let state = { query: { a: '1', page: '7' } as Record<string, string>, disabledQuery: ['page'] };
+    for (const url of ['x?a=1&p', 'x?a=1&page', 'x?a=1&page_', 'x?a=1&page_size=10']) {
+      state = queryAfterUrlEdit(url, state.query, state.disabledQuery);
+    }
+    expect(state.query).toEqual({ a: '1', page: '7', page_size: '10' });
+    expect(state.disabledQuery).toEqual(['page']);
+  });
+
+  it('a complete key= pair in the URL re-enables a disabled param with the URL value', () => {
+    const s = queryAfterUrlEdit('x?page=3', { page: '7' }, ['page']);
+    expect(s.query).toEqual({ page: '3' });
+    expect(s.disabledQuery).toEqual([]);
   });
 });

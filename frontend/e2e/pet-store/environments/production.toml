@@ -1,0 +1,4 @@
+[vars]
+baseUrl = "https://api.petstore.example.com"
+petId = "1"
+status = "available"

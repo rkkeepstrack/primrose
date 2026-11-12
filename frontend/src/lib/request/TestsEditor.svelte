@@ -4,6 +4,7 @@
   // in the script text like they do in bodies.
   import CodeEditor from '../editor/CodeEditor.svelte';
   import { setTestScript } from './requestEdit';
+  import { editIdentity } from '../workspace/drafts';
   import { activeEnvVars, request } from '../workspace/state';
 </script>
 
@@ -11,6 +12,7 @@
   <CodeEditor
     value={$request.tests?.script ?? ''}
     onChange={setTestScript}
+    docKey={$editIdentity}
     lang="python"
     envVars={$activeEnvVars}
     placeholder={'assert res.status == 200\nassert "json" in res.headers["content-type"]'} />

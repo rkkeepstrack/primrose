@@ -58,6 +58,9 @@ func Resolve(r *Request, envVars, dynamicVars map[string]string) *Request {
 	for k, v := range r.Query {
 		out.Query[sub(k)] = sub(v)
 	}
+	for _, k := range r.DisabledQuery {
+		out.DisabledQuery = append(out.DisabledQuery, sub(k))
+	}
 	for k, v := range r.Headers {
 		out.Headers[sub(k)] = sub(v)
 	}

@@ -5,6 +5,7 @@
       items: [
         { keys: ['⌘', 'S'], what: 'Save the open request' },
         { keys: ['⌘', '↵'], what: 'Send the open request' },
+        { keys: ['⌘', 'Z'], what: 'Undo the last edit (⌘⇧Z redoes); text editors undo per keystroke, everything else per request' },
         { keys: ['⌘', '1–4'], what: 'Switch request tab (Query / Body / Headers / Variables)' },
         { keys: ['Esc'], what: 'Close the open request (unsaved edits are kept)' },
       ],

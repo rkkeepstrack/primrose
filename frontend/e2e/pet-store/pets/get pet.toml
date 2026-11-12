@@ -1,0 +1,5 @@
+method = "GET"
+url = "{{baseUrl}}/pets/:id"
+
+[vars]
+id = "7"

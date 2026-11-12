@@ -151,6 +151,9 @@ func SendCtx(ctx context.Context, r *collection.Request, jar http.CookieJar) (*R
 			existing[key] = true
 		}
 	}
+	for _, k := range r.DisabledQuery {
+		existing[k] = true
+	}
 	keys := make([]string, 0, len(r.Query))
 	for k := range r.Query {
 		if !existing[k] {

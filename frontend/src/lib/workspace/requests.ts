@@ -6,13 +6,16 @@ import { errMsg } from '../shared/errors';
 import { normalizeUrlAndQuery } from '../shared/urlQuery';
 import { dropEdit, touchRecent, unsavedEdits } from '../shared/stores';
 import { CreateRequest, ReadRequest, SaveRequest } from '../../../wailsjs/go/main/App';
+import { discardDialog } from '../ui/dialogs';
+import { diskBaselineMoved, resetUndo } from '../request/undo';
 import { refreshTree } from './refresh';
-import { newDraftKey, stashCurrentEdit } from './drafts';
+import { editIdentity, newDraftKey, stashCurrentEdit } from './drafts';
 import { activeRoot, clearSelection, dirty, diskChanged, draftDir, draftName, error, request, selectedPath } from './state';
 
 // backfills fields absent in files written before they existed
 export function normalizeRequest(r: ApiRequest): ApiRequest {
   r.vars = r.vars ?? {};
+  r.disabledQuery = r.disabledQuery ?? [];
   r.tests = r.tests ?? { script: '' };
   return r;
 }
@@ -25,9 +28,10 @@ export async function readRequestFile(path: string): Promise<ApiRequest> {
 // URL is the source of truth for query params in the UI: requests loaded
 // from disk get their query folded into the URL before entering the store
 export function normalizeAndSetRequest(r: ApiRequest) {
-  const norm = normalizeUrlAndQuery(r.url, r.query);
+  const norm = normalizeUrlAndQuery(r.url, r.query, r.disabledQuery);
   r.url = norm.url;
   r.query = norm.query;
+  r.disabledQuery = norm.disabledQuery;
   request.set(r);
 }
 
@@ -39,6 +43,7 @@ export async function selectRequest(node: TreeNode) {
   draftName.set(null);
   try {
     const stashed = get(unsavedEdits)[node.path];
+    editIdentity.set(node.path);
     if (stashed) {
       request.set(stashed);
       dirty.set(true);
@@ -57,10 +62,12 @@ export async function selectRequest(node: TreeNode) {
 
 export async function newRequest(dir: string) {
   stashCurrentEdit();
+  newDraftKey();
   request.set({
     method: 'GET',
     url: '',
     query: {},
+    disabledQuery: [],
     headers: {},
     body: { type: 'json', content: '' },
     vars: {},
@@ -69,7 +76,6 @@ export async function newRequest(dir: string) {
   selectedPath.set(null);
   draftDir.set(dir);
   draftName.set('');
-  newDraftKey();
   dirty.set(true);
 }
 
@@ -79,6 +85,29 @@ export function closeRequest() {
   if (!get(request)) return;
   stashCurrentEdit();
   clearSelection();
+}
+
+// the revert button: drafts are closed, saved requests reloaded from disk
+export async function discardChanges() {
+  if (!get(dirty) || !get(request)) return;
+  const isDraft = get(draftDir) !== null;
+  const name = isDraft ? 'this draft' : (get(selectedPath)?.split('/').pop() ?? 'this request');
+  if (!(await discardDialog(`Discard unsaved changes to ${name}?`))) return;
+  if (isDraft) {
+    clearSelection();
+    return;
+  }
+  const path = get(selectedPath)!;
+  error.set('');
+  try {
+    normalizeAndSetRequest(await readRequestFile(path));
+    dirty.set(false);
+    diskChanged.set(false);
+    dropEdit(path);
+    resetUndo();
+  } catch (e) {
+    error.set(errMsg(e));
+  }
 }
 
 export async function saveRequest() {
@@ -104,6 +133,7 @@ export async function saveRequest() {
     }
     dirty.set(false);
     diskChanged.set(false);
+    diskBaselineMoved();
     const path = get(selectedPath);
     if (path) dropEdit(path);
     await refreshTree(); // new file or method badge

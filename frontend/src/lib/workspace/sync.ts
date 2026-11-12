@@ -9,6 +9,7 @@ import { EventsOn } from '../../../wailsjs/runtime/runtime';
 import { dropCollection } from './collections';
 import { loadEnvironments } from './environments';
 import { normalizeAndSetRequest, readRequestFile } from './requests';
+import { diskBaselineMoved } from '../request/undo';
 import { clearSelection, collections, dirty, diskChanged, selectedPath } from './state';
 
 export function initExternalSync() {
@@ -50,6 +51,7 @@ async function reconcileOpenRequest(root: string) {
       return;
     }
     normalizeAndSetRequest(r);
+    diskBaselineMoved();
   } catch (e) {
     console.warn('open request no longer readable', path, e);
     if (get(dirty)) {
@@ -69,6 +71,7 @@ export async function reloadFromDisk() {
     normalizeAndSetRequest(r);
     dirty.set(false);
     dropEdit(path);
+    diskBaselineMoved();
   } catch {
     clearSelection();
   }

@@ -1,12 +1,13 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
   import { drawSelection, EditorView, keymap, lineNumbers, placeholder as cmPlaceholder } from '@codemirror/view';
-  import { EditorState } from '@codemirror/state';
+  import { Annotation, EditorState } from '@codemirror/state';
   import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
   import { json } from '@codemirror/lang-json';
   import { linter, lintGutter } from '@codemirror/lint';
   import { autocompletion } from '@codemirror/autocomplete';
-  import { StreamLanguage, syntaxHighlighting } from '@codemirror/language';
+  import { codeFolding, foldGutter, StreamLanguage, syntaxHighlighting, unfoldAll } from '@codemirror/language';
+  import { foldBelowRoot } from './foldBelowRoot';
   import { python } from '@codemirror/legacy-modes/mode/python';
   import { jsonHighlightStyle } from './jsonHighlight';
   import { jsonSyntaxErrors } from './jsonDiagnostics';
@@ -21,9 +22,22 @@
   // active environment's variables: names complete inside {{…}}, values
   // show in a hover tooltip
   export let envVars: Record<string, string> = {};
+  // identity of the document being edited: while it stays the same, outside
+  // value writes become undoable transactions; when it changes (another
+  // request opened) the editor and its history are rebuilt from scratch
+  export let docKey: unknown = undefined;
 
   let host: HTMLDivElement;
   let view: EditorView | null = null;
+
+  // "collapse all" for JSON bodies: folds everything one level below the
+  // root so the top-level keys stay in view
+  export function collapseAll() {
+    if (view) foldBelowRoot(view);
+  }
+  export function expandAll() {
+    if (view) unfoldAll(view);
+  }
 
   // getters keep the extensions reading the current prop value without
   // rebuilding the editor when the environment changes
@@ -56,6 +70,16 @@
       borderRight: '1px solid var(--border-faint)',
     },
     '.cm-lineNumbers .cm-gutterElement': { padding: '0 6px 0 12px', minWidth: '30px' },
+    '.cm-foldGutter .cm-gutterElement': { padding: '0 4px 0 2px', cursor: 'pointer' },
+    '.cm-foldPlaceholder': {
+      background: 'var(--bg-hover)',
+      border: '1px solid var(--border-soft)',
+      color: 'var(--text-faint)',
+      borderRadius: '4px',
+      padding: '0 5px',
+      margin: '0 2px',
+      cursor: 'pointer',
+    },
     // the hover tooltip content (VarTooltip) brings its own card look
     '.cm-tooltip.cm-tooltip-hover': {
       backgroundColor: 'transparent',
@@ -82,6 +106,9 @@
     },
   });
 
+  // marks value writes coming from the store so they don't echo back as edits
+  const external = Annotation.define<boolean>();
+
   function extensions() {
     const ext = [
       // draw the cursor ourselves: WKWebView's native caret leaves stale
@@ -94,7 +121,7 @@
       autocompletion({ override: [envVarCompletions], icons: false }),
       theme,
       EditorView.updateListener.of((u) => {
-        if (u.docChanged) onChange(u.state.doc.toString());
+        if (u.docChanged && !u.transactions.some((tr) => tr.annotation(external))) onChange(u.state.doc.toString());
       }),
     ];
     if (placeholder) ext.push(cmPlaceholder(placeholder));
@@ -105,6 +132,7 @@
       ext.push(EditorView.lineWrapping, lineNumbers());
       if (lang === 'json') {
         ext.push(json(), syntaxHighlighting(jsonHighlightStyle), lintGutter(), linter(jsonSyntaxErrors), stickyPath());
+        ext.push(codeFolding(), foldGutter({ openText: '▾', closedText: '▸' }));
       } else if (lang === 'python') {
         // Starlark is Python syntax; the legacy stream mode is enough for
         // highlighting and reuses the JSON highlight colors
@@ -125,10 +153,17 @@
   onMount(createView);
   onDestroy(() => view?.destroy());
 
-  // External value changes (request switch) — rebuild only if it differs from
-  // what the editor already holds, so typing isn't disrupted.
-  $: if (view && value !== view.state.doc.toString()) {
+  let lastKey = docKey;
+  $: if (view && docKey !== lastKey) {
+    lastKey = docKey;
     createView();
+  }
+
+  // Outside value writes of the same document (query tab rewriting the URL,
+  // request-level undo) replace the text in place so ⌘Z still works; only
+  // when it differs from what the editor holds, so typing isn't disrupted.
+  $: if (view && value !== view.state.doc.toString()) {
+    view.dispatch({ changes: { from: 0, to: view.state.doc.length, insert: value }, annotations: external.of(true) });
   }
 
   let lastLang = lang;

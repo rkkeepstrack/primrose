@@ -2,6 +2,12 @@
   // The response body with its json | raw | image modes; auto-picks the
   // right mode per response, manual override per response.
   import type { ApiResponse } from '../shared/types';
+  import ChevronsDownUp from '@lucide/svelte/icons/chevrons-down-up';
+  import ChevronsUpDown from '@lucide/svelte/icons/chevrons-up-down';
+  import Copy from '@lucide/svelte/icons/copy';
+  import Check from '@lucide/svelte/icons/check';
+  import Popover from '../ui/Popover.svelte';
+  import { ClipboardSetText } from '../../../wailsjs/runtime/runtime';
   import CodeViewer from '../editor/CodeViewer.svelte';
   import { fmtSize, prettyJson } from './format';
   import { autoMode, type BodyMode as Mode } from './responseMode';
@@ -11,10 +17,27 @@
   let mode: Mode = 'json';
   let modeTouched = false;
 
+  let viewer: CodeViewer;
+  let collapsed = false;
+
   let lastResponse = response;
   $: if (response !== lastResponse) {
     lastResponse = response;
     modeTouched = false;
+    collapsed = false;
+  }
+
+  let copied = false;
+  // copies the body as displayed: pretty-printed in json mode, raw otherwise
+  async function copyBody() {
+    await ClipboardSetText(mode === 'json' ? prettyJson(response.body) : response.body);
+    copied = true; // the popover dismisses itself and resets the icon
+  }
+
+  function toggleFold() {
+    collapsed = !collapsed;
+    if (collapsed) viewer.collapseAll();
+    else viewer.expandAll();
   }
 
   $: if (!modeTouched) mode = autoMode(response);
@@ -22,6 +45,8 @@
   function pickMode(m: Mode) {
     mode = m;
     modeTouched = true;
+    // the viewer rebuilds (unfolded) when the mode changes
+    collapsed = false;
   }
 </script>
 
@@ -29,6 +54,21 @@
   {#each ['json', 'raw', 'image'] as m}
     <button class:on={mode === m} on:click={() => pickMode(m as Mode)}>{m}</button>
   {/each}
+  {#if mode !== 'image' && !response.bodyBase64}
+    <span class="tools">
+      {#if mode === 'json'}
+        <button class="tool" title={collapsed ? 'Expand all' : 'Collapse all'} on:click={toggleFold}>
+          {#if collapsed}<ChevronsUpDown size={14} strokeWidth={2} />{:else}<ChevronsDownUp size={14} strokeWidth={2} />{/if}
+        </button>
+      {/if}
+      <Popover trigger="manual" placement="bottom-end" autoDismissMs={1600} bind:open={copied}>
+        <button slot="trigger" class="tool" class:copied title="Copy response body" aria-label="Copy response body" on:click={copyBody}>
+          {#if copied}<Check size={14} strokeWidth={2} />{:else}<Copy size={14} strokeWidth={2} />{/if}
+        </button>
+        <div class="toast">Response copied</div>
+      </Popover>
+    </span>
+  {/if}
 </div>
 {#if mode === 'image'}
   {#if response.bodyBase64}
@@ -43,7 +83,7 @@
     Binary response ({response.contentType || 'unknown type'}, {fmtSize(response.size)}) — try the image mode.
   </p>
 {:else if mode === 'json'}
-  <CodeViewer value={prettyJson(response.body)} lang="json" />
+  <CodeViewer bind:this={viewer} value={prettyJson(response.body)} lang="json" />
 {:else}
   <CodeViewer value={response.body} lang="text" />
 {/if}
@@ -67,6 +107,26 @@
     color: var(--green);
     font-weight: 600;
     background: var(--green-bg);
+  }
+  .tools {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+  }
+  .tools .tool {
+    display: inline-flex;
+    align-items: center;
+  }
+  .tools .tool:hover,
+  .tools .tool.copied {
+    color: var(--text-soft);
+  }
+  .toast {
+    padding: 8px 12px;
+    font-size: 12px;
+    color: var(--green-text);
+    white-space: nowrap;
   }
   .image-wrap {
     flex: 1;

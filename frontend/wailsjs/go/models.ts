@@ -124,6 +124,7 @@ export namespace collection {
 	    method: string;
 	    url: string;
 	    query: Record<string, string>;
+	    disabledQuery: string[];
 	    headers: Record<string, string>;
 	    body: Body;
 	    vars: Record<string, string>;
@@ -138,6 +139,7 @@ export namespace collection {
 	        this.method = source["method"];
 	        this.url = source["url"];
 	        this.query = source["query"];
+	        this.disabledQuery = source["disabledQuery"];
 	        this.headers = source["headers"];
 	        this.body = this.convertValues(source["body"], Body);
 	        this.vars = source["vars"];

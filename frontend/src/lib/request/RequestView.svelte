@@ -5,8 +5,9 @@
   import BodyEditor from './BodyEditor.svelte';
   import EnvPanel from './EnvPanel.svelte';
   import TestsEditor from './TestsEditor.svelte';
-  import { setHeaders, setQuery } from './requestEdit';
-  import { inheritedHeaders, request } from '../workspace/state';
+  import { setHeaders, setQuery, setQueryEnabled } from './requestEdit';
+  import { editIdentity } from '../workspace/drafts';
+  import { activeEnvVars, inheritedHeaders, request } from '../workspace/state';
 
   type Tab = 'query' | 'body' | 'headers' | 'variables' | 'tests';
   const TABS: Tab[] = ['query', 'body', 'headers', 'variables', 'tests'];
@@ -27,25 +28,42 @@
 <svelte:window on:keydown={onKeydown} />
 
 {#if $request}
-  <TabBar tabs={TABS} active={tab} onSelect={(t) => (tab = t as Tab)} />
+  <!-- ⌘Z in these fields undoes request edits, see undoKeys -->
+  <div class="request-edit" data-request-undo>
+    <TabBar tabs={TABS} active={tab} onSelect={(t) => (tab = t as Tab)} />
 
-  {#if tab === 'query'}
-    <KeyValueEditor entries={$request.query} onChange={setQuery} />
-  {:else if tab === 'headers'}
-    <KeyValueEditor entries={$request.headers} onChange={setHeaders} inherited={$inheritedHeaders} />
-    {#if Object.keys($inheritedHeaders).length > 0}
-      <p class="inherit-note">Same name overrides an inherited header; an empty value removes it for this request.</p>
+    {#if tab === 'query'}
+      <KeyValueEditor
+        entries={$request.query}
+        onChange={setQuery}
+        disabledKeys={$request.disabledQuery}
+        onToggleEnabled={setQueryEnabled}
+        envVars={$activeEnvVars}
+        docKey={$editIdentity} />
+    {:else if tab === 'headers'}
+      <KeyValueEditor
+        entries={$request.headers}
+        onChange={setHeaders}
+        inherited={$inheritedHeaders}
+        envVars={$activeEnvVars}
+        docKey={$editIdentity} />
+      {#if Object.keys($inheritedHeaders).length > 0}
+        <p class="inherit-note">Same name overrides an inherited header; an empty value removes it for this request.</p>
+      {/if}
+    {:else if tab === 'body'}
+      <BodyEditor />
+    {:else if tab === 'variables'}
+      <EnvPanel />
+    {:else}
+      <TestsEditor />
     {/if}
-  {:else if tab === 'body'}
-    <BodyEditor />
-  {:else if tab === 'variables'}
-    <EnvPanel />
-  {:else}
-    <TestsEditor />
-  {/if}
+  </div>
 {/if}
 
 <style>
+  .request-edit {
+    display: contents;
+  }
   .inherit-note {
     color: var(--text-ghost);
     font-size: 12px;

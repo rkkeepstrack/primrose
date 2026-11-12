@@ -81,7 +81,8 @@
 {#if usedEnvVars.length === 0}
   <p class="empty">No <span class="var-token">{'{{variables}}'}</span> used in this request.</p>
 {:else}
-  <table class="kv-table vars-table">
+  <!-- these edit the environment draft, not the request -->
+  <table class="kv-table vars-table" data-request-undo="off">
     <thead><tr><th>Name</th><th>Value</th></tr></thead>
     <tbody>
       {#each usedEnvVars as name (name)}
